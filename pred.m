@@ -107,12 +107,12 @@ tex = cell(numel(p.gratingContrasts), numel(p.gratingOrientations));
 
 for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS PHASES
     contrast = p.gratingContrasts(iC);
-    for iO=1:numel(p.gratingOrientations)
-        orientation = p.gratingOrientations(iO);
+    for iP=1:numel(p.testPhases)
+        phase = p.testPhases(iP);
         grating = rd_grating(pixelsPerDegree, p.imSize, ...
-            p.gratingSF, orientation, p.phase, contrast); % 0 to 1
+            p.gratingSF, 0, phase, contrast); % 0 to 1
         [gabor, aps] = rd_aperture(grating, 'gaussian', gratingRadius(1)/4);
-        tex{iC,iO} = Screen('MakeTexture', window, gabor*white);
+        tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
     end
 end
 %Make rects for placing image
@@ -177,7 +177,7 @@ switch p.task % one scenario for now, add demo for teaching purposes! add feedba
 
         trials = fullfact([numel(p.precueValidities),...
             numel(p.gratingOrientations),...
-            numel(p.testPhase),...
+            numel(p.testPhases),...
             numel(p.gratingContrasts)...
             numel(p.testStatus)]);
         if p.debug=="Y" || p.debug=="y"
@@ -212,6 +212,9 @@ switch p.task % one scenario for now, add demo for teaching purposes! add feedba
             testPhase = trials(trialIdx, testPhaseIdx);
             testContrast = trials(trialIdx, testContrastIdx);
             testStatus=trials(trialIdx, testStatusIdx);
+
+            % orientation
+            orientation=p.gratingOrientations(testOrientation);
             % tone
             toneName = p.precueNames{precueValidity};
             switch toneName
@@ -247,14 +250,14 @@ switch p.task % one scenario for now, add demo for teaching purposes! add feedba
 
 
             %% %%%% Play the trial %%%%
-            %% Present fixation
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            timeFix = Screen('Flip', window);
+            %% Present fixationwhite
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white*p.dimFactor);
+            timeFix = Screen('Flip', window,p.fixSOA-slack);
 
             %% Present STANDARD image
             drawFixation(window, cx, cy, fixSize, p.fixColor*white) % DO I EVEN NEED THIS????
             Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
-            timeS = Screen('Flip', window, p.standSOA - slack);
+            timeS = Screen('Flip', window, timeFix+p.standSOA - slack);
 
             % blank
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
@@ -267,7 +270,8 @@ switch p.task % one scenario for now, add demo for teaching purposes! add feedba
             %% Present TEST image
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             if testStatus==1
-                Screen('DrawTexture', window, tex{testContrast, testOrientation}, [], imRect, testOrientation);
+                Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
+                %Screen('DrawTexture', windowPointer, texturePointer [,sourceRect] [,destinationRect] [,rotationAngle] [, filterMode] [, globalAlpha] [, modulateColor] [, textureShader] [, specialFlags] [, auxParameters]);
             elseif testStatus==0
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             end
