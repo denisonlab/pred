@@ -59,14 +59,15 @@ screenNumber = max(Screen('Screens')); %screen to display on
 
 
 % Get window size & debug settings
+[window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
 
-if p.debug=="Y" || p.debug=="y"
-    [window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
-    nTrials=p.debugTrials;
-    nBlocks=nTrials/p.BlockTrialsDebug;
-elseif p.debug=="N" || p.debug=="n" 
-    [window, rect] = Screen('OpenWindow', screenNumber);
-end
+% if p.debug=="Y" || p.debug=="y"
+%     [window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
+%     nTrials=p.debugTrials;
+%     nBlocks=nTrials/p.BlockTrialsDebug;
+% elseif p.debug=="N" || p.debug=="n" 
+%     [window, rect] = Screen('OpenWindow', screenNumber);
+% end
 
 [screenWidthPx, screenHeight] = Screen('WindowSize', window);
 flipInterval = Screen('GetFlipInterval', window); % % Get refresh rate, frame duration (s)
@@ -75,7 +76,7 @@ flipInterval = Screen('GetFlipInterval', window); % % Get refresh rate, frame du
 % actually want the screen to change. This helps to avoid late screen
 % flips. So let's define this "slack" variable for convenience.
 slack = flipInterval/2;
-p.slack;
+p.slack=slack;
 
 % Get x and y coordinates for the center of the window
 [cx, cy] = RectCenter(rect);
