@@ -61,13 +61,13 @@ screenNumber = max(Screen('Screens')); %screen to display on
 % Get window size & debug settings
 [window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
 
-% if p.debug=="Y" || p.debug=="y"
+ if p.debug=="Y" || p.debug=="y"
 %     [window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
-%     nTrials=p.debugTrials;
-%     nBlocks=nTrials/p.BlockTrialsDebug;
+    nTrials=p.debugTrials;
+     nBlocks=nTrials/p.BlockTrialsDebug;
 % elseif p.debug=="N" || p.debug=="n" 
 %     [window, rect] = Screen('OpenWindow', screenNumber);
-% end
+ end
 
 [screenWidthPx, screenHeight] = Screen('WindowSize', window);
 flipInterval = Screen('GetFlipInterval', window); % % Get refresh rate, frame duration (s)
@@ -109,12 +109,12 @@ p.cueTones=cueTones;
 %% Make click (from JW ta-auditory)
 t = linspace(0, 10*p.Fs, 10*p.Fs)/p.Fs; % Time Vector (s)
 click = sin(2*pi*(t-p.clickRampDur)*p.clickFreq)./(2*pi*(t-p.clickRampDur)*p.clickFreq); % Click
-clickRampDurSamples = 0:1/p.Fs:clickRampDur - 1/p.Fs;
-clickRampDurSamples = length(clickRampDurSamples); % number of samples for onset/offset ramps
-click = CosineSquaredRamp(click,clickRampDurSamples);
-click = click-mean(click); % Next three lines are setting the overall level
-click = click./rms(click);
-click = click.*(10.^((80-100)./20));
+% clickRampDurSamples = 0:1/p.Fs:p.clickRampDur - 1/p.Fs;
+% clickRampDurSamples = length(clickRampDurSamples); % number of samples for onset/offset ramps
+% click = CosineSquaredRamp(click,clickRampDurSamples);
+% click = click-mean(click); % Next three lines are setting the overall level
+% click = click./rms(click);
+% click = click.*(10.^((80-100)./20));
 p.click=click;
 
 %% Keyboard
