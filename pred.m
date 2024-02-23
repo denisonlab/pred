@@ -6,9 +6,9 @@ function pred
 % s = stimuli, rects, trials
 % window = window
 % data = data
-% 
-% Code adapted from Angus Chapman triad_attn, Karen Tian hot-adapt, 
-% Juneau Wang ta-auditory, and Rachel Denison ta-deom
+%
+% Code adapted from Angus Chapman triad_attn, Karen Tian hot-adapt,
+% Juneau Wang ta-auditory, and Rachel Denison ta-demo
 % __________________________________________________________________
 clear; close all;
 %% Input
@@ -20,6 +20,7 @@ p.task = input(['Prediction task run:\n' ...
     '1 - Task\n'...
     '2 - Demo']);
 p.reps = input ('How many reps(1/2)?');
+p.fullScreen = input ('Full screen(0/1)?');
 %% Setup
 % Add paths
 directory = pwd; % get project directory path, set to prediction folder parent level
@@ -58,16 +59,22 @@ Screen('Preference', 'SkipSyncTests', 1);
 screenNumber = max(Screen('Screens')); %screen to display on
 
 
-% Get window size & debug settings
-[window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
+% Get window size 
+%[window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
 
- if p.debug=="Y" || p.debug=="y"
-%     [window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
+if p.fullScreen==1
+    [window, rect] = Screen('OpenWindow', screenNumber);
+elseif p.fullScreen==0
+    [window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
+end
+
+% Debug settings 
+if p.debug=="Y" || p.debug=="y"
     nTrials=p.debugTrials;
-     nBlocks=nTrials/p.BlockTrialsDebug;
-% elseif p.debug=="N" || p.debug=="n" 
-%     [window, rect] = Screen('OpenWindow', screenNumber);
- end
+    nBlocks=nTrials/p.BlockTrialsDebug;
+    % elseif p.debug=="N" || p.debug=="n"
+    %     [window, rect] = Screen('OpenWindow', screenNumber);
+end
 
 [screenWidthPx, screenHeight] = Screen('WindowSize', window);
 flipInterval = Screen('GetFlipInterval', window); % % Get refresh rate, frame duration (s)
@@ -206,8 +213,8 @@ switch p.task % task and demo
             numel(p.gratingContrasts)...
             numel(p.testStatus)]);
         %if p.debug=="Y" || p.debug=="y"
-            %nTrials=p.debugTrials;
-            %nBlocks=nTrials/p.BlockTrialsDebug; %60 trials/2 blocks
+        %nTrials=p.debugTrials;
+        %nBlocks=nTrials/p.BlockTrialsDebug; %60 trials/2 blocks
         if p.debug=="N" || p.debug=="n" && p.reps==1
             repmat(trials,p.reps*p.repScale1,1);
             nTrials = size(trials,1); %448*2= 896, each trial twice
@@ -221,12 +228,20 @@ switch p.task % task and demo
         end
 
         trialOrder = randperm(nTrials);
+       
         instructions = 'This is the main experiment\n\n';
         %% Show instruction screen and wait for a button press
         Screen('FillRect', window, white*p.backgroundColor);
-        instructionsFull = sprintf('%s\n\nThere will be a reference patch followed by a predictive tone and a second patch. A low tone predicts a CCW orientation\n. A high tone predicts a CW orientation.\n\nYour goal is to determine whether the second patch is: \n\n higher contrast and counterclockwise (press 1), \n\n lower contrast and counterclockwise (press 2), \n\lower contrast and clockwise (press 9), \n\nor higher contrast and clockwise (press 0) \n\nwith reference to the first patch!', instructions);
-        DrawFormattedText(window, instructionsFull, 'center', 'center', [1 1 1]*white);
-        Screen('Flip', window); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
+        instructions1 = sprintf('%s\n\nThere will be a reference patch followed by a predictive tone and a second patch.\n\nA low tone predicts a CCW orientation.\n\nA high tone predicts a CW orientation. \n\n Press to continue!', instructions);
+        DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
+        timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
+
+        KbWait(devNum);
+       
+        instructions2 ='Your goal is to determine whether the second patch is: \n\n higher contrast and counterclockwise (press 1), \n\nlower contrast and counterclockwise (press 2), \n\nlower contrast and clockwise (press 9), \n\nor higher contrast and clockwise (press 0) with reference to the first patch!\n\nPress to start!';
+        DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
+        Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
+        
         %pred_instructions(window, p, devNum);
         KbWait(devNum);
         timeStart = GetSecs;
@@ -295,7 +310,7 @@ switch p.task % task and demo
             drawFixation(window, cx, cy, fixSize, p.fixColor*white) % DO I EVEN NEED THIS????
             Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
             timeS = Screen('Flip', window, timeFix+p.standSOA - slack);
-                                  
+
             sound(click, p.Fs)  %play click
 
             % blank
@@ -428,19 +443,19 @@ switch p.task % task and demo
             d.targetResponseKey(iTrial) = targetResponseKey; % response key for trial
             d.timePreStart(iTrial)=timePreStart; % time before standard stimuli presentation
             d.timeFix(iTrial)=timeFix; % time for fixation
-            d.timeS(iTrial)=timeS; % time for standard 
+            d.timeS(iTrial)=timeS; % time for standard
             d.timeBlank1(iTrial)=timeBlank1; % time after standard
             d.timeTone(iTrial)=timeTone; % time at tone
             d.timeT(iTrial)=timeT; % time at test
-            
-                     
+
+
             %d.trials(iTrial)=trials(trialIdx, : );
             save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
 
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
             WaitSecs(p.ITI-d.timeSpentSaving(iTrial));
-            
+
             if mod(iTrial,p.BlockTrials)==0 || iTrial>p.BlockTrials*block
                 % Calculate block accuracy
                 blockStartTrial = (iTrial/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
@@ -476,8 +491,8 @@ switch p.task % task and demo
                 block = block+1; % keep track of block for block message only
             end
         end
-       
-%% CASE 2
+
+        %% CASE 2
     case 2 % DEMO
         % Make trials structure
         %% %%%% Generate trials in different conditions %%%%
@@ -501,40 +516,50 @@ switch p.task % task and demo
             numel(p.testPhases),...
             numel(p.gratingContrasts)...
             numel(p.testStatus)]);
-        
-     
+
+
         repmat(trials,p.reps*p.repScaleDemo,1); % demo: 448 trials
         nTrials = size(trials,1); %448, each trial once
         nBlocks=nTrials/p.BlockTrials; %((448)/64 = 7 blocks
-      
+
 
         trialOrder = randperm(nTrials);
-
         instructions = 'This is a demo of the main experiment\n\n';
         %% Show instruction screen and wait for a button press
         Screen('FillRect', window, white*p.backgroundColor);
-        instructionsFull = sprintf('%s\n\nThere will be a reference patch followed by a predictive tone and a second patch. \n\nYour goal is to determine whether the second patch is: \n\n higher contrast and counterclockwise (press 1), \n\n lower contrast and counterclockwise (press 2), \n\lower contrast and clockwise (press 9), \n\nor higher contrast and clockwise (press 0) \n\nwith reference to the first patch!', instructions);
-        DrawFormattedText(window, instructionsFull, 'center', 'center', [1 1 1]*white);
-        Screen('Flip', window); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        %pred_instructions(window, p, devNum);
-        
-        instructionsToneLow ='This is what the low tone will sound like';
-        DrawFormattedText(window, instructionsToneLow, 'center', 'center', [1 1 1]*white);
-        toneLow=cueTones(1,:);
-        PsychPortAudio('FillBuffer', pahandle, toneLow);
-        timeToneLow = PsychPortAudio('Start', pahandle, [], p.toneSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-        Screen('Flip', window); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        
-        instructionsToneHigh ='This is what the high tone will sound like';
-        DrawFormattedText(window, instructionsToneHigh, 'center', 'center', [1 1 1]*white);
-        toneHigh=cueTones(2,:);
-        PsychPortAudio('FillBuffer', pahandle, toneHigh);
-        timeToneHigh = PsychPortAudio('Start', pahandle, [], p.toneSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-        Screen('Flip', window); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        
-        
+        instructions1 = sprintf('%s\n\nThere will be a reference patch followed by a predictive tone and a second patch.\n\nA low tone predicts a CCW orientation.\n\nA high tone predicts a CW orientation. \n\n Press to continue!', instructions);
+        DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
+        timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
+
+        KbWait(devNum);
+       
+        instructions2 ='Your goal is to determine whether the second patch is: \n\n higher contrast and counterclockwise (press 1), \n\nlower contrast and counterclockwise (press 2), \n\nlower contrast and clockwise (press 9), \n\nor higher contrast and clockwise (press 0) with reference to the first patch!\n\nPress to continue!';
+        DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
+        timeInstruct2=Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
         
         KbWait(devNum);
+
+        instructionsToneLow ='This is what the low tone will sound like.\n\nPress to continue!';
+        DrawFormattedText(window, instructionsToneLow, 'center', 'center', [1 1 1]*white);
+        timeToneLowText=Screen('Flip', window,timeInstruct2-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
+
+        toneLow=cueTones(1,:);
+        PsychPortAudio('FillBuffer', pahandle, toneLow);
+        timeToneLow = PsychPortAudio('Start', pahandle, [], timeToneLowText+p.toneSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
+
+        KbWait(devNum);
+
+        instructionsToneHigh ='This is what the high tone will sound like. Press to start demo!';
+        DrawFormattedText(window, instructionsToneHigh, 'center', 'center', [1 1 1]*white);
+        timeToneHighText=Screen('Flip', window,timeToneLow-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
+
+        toneHigh=cueTones(2,:);
+        PsychPortAudio('FillBuffer', pahandle, toneHigh);
+        timeToneHigh = PsychPortAudio('Start', pahandle, [], timeToneHighText+p.toneSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
+        %Screen('Flip', window,timeToneHighText+p.demoInstructDu - slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
+
+        KbWait(devNum);
+
         timeStart = GetSecs;
         correct = [];
         block=1;
@@ -608,7 +633,7 @@ switch p.task % task and demo
                 %Screen('DrawTexture', windowPointer, texturePointer [,sourceRect] [,destinationRect] [,rotationAngle] [, filterMode] [, globalAlpha] [, modulateColor] [, textureShader] [, specialFlags] [, auxParameters]);
             elseif testStatus==0
                 %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-                drawFixation(window, cx, cy, fixSize, white*p.backgroundColor);
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             end
             timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
             sound(click, p.Fs)  %play click
@@ -703,7 +728,7 @@ switch p.task % task and demo
             d.targetResponseKey(iTrial) = targetResponseKey; % response key for trial
             d.timePreStart(iTrial)=timePreStart; % time before standard stimuli presentation
             d.timeFix(iTrial)=timeFix; % time for fixation
-            d.timeS(iTrial)=timeS; % time for standard 
+            d.timeS(iTrial)=timeS; % time for standard
             d.timeBlank1(iTrial)=timeBlank1; % time after standard
             d.timeTone(iTrial)=timeTone; % time at tone
             d.timeT(iTrial)=timeT; % time at test
@@ -745,7 +770,7 @@ switch p.task % task and demo
                     KbWait(-1);
                 end
 
-                block = block+1; 
+                block = block+1;
             end
         end
 

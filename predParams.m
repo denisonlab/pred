@@ -11,6 +11,9 @@ p.dimFactor=0.5;
 p.debugTrials=30*2;
 p.BlockTrialsDebug=2;
 
+%% Demo
+p.demoInstructDur=3;
+
 %% Images
 p.backgroundColor = 0.5; % gray
 p.imPos = [0 0];
