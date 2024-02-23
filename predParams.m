@@ -4,7 +4,7 @@ function p = predParams(p)
 p.screenWidthCm = 20;
 p.viewDistCm = 57;
 %% Fixation
-p.fixSize = 0.2; % degrees visual angle
+p.fixSize = 0.15; % degrees visual angle
 p.fixColor = 1; % white
 p.dimFactor=0.5;
 %% Debug
@@ -18,17 +18,19 @@ p.demoInstructDur=3;
 p.backgroundColor = 0.5; % gray
 p.imPos = [0 0];
 p.gratingSize = 2; % degrees visual angle
-p.gratingSF = 3; % cycles per degree
+p.gratingSF = 3; % cycles per degree90020012200110001190292
 p.gratingOrientations = [-45 45]; % vertical 
 p.phase = 0;
 p.gaborSD = 0.5; % about 4 SDs will be visible at full contrast
 p.aperture = 'gaussian';
 p.gratingDiameter = [2 0];
 % 0.125 0.25 0.5 1
-%p.gratingContrasts = [0.01 0.14678 0.215443 0.316228 0.464159 0.681292 1];
-p.gratingContrasts=[0.0016 0.0032 0.0063 0.0125 0.025 0.5 1]; % 7 contrast levels and 0 (absent stimuli) LOGSPACE(0,2,7)
-p.testStatus=[0 1]; %0 (absent stimuli)
-p.standardContrast = 0.316228; %WHAT SHOULD CONTRAST BE???
+%p.gratingContrasts = [0 0.14678 0.215443 0.316228 0.464159 0.681292 1];
+% 0.25-16%, 6-79% 
+p.gratingContrasts = [0 logspace(log10(0.025),log10(0.5),6)]; % 7 contrast levels and 0 (absent stimuli) 
+%p.gratingContrasts=[1];
+p.testStatus=[1]; %0 (absent stimuli)
+p.standardContrast = p.gratingContrasts(4); %WHAT SHOULD CONTRAST BE???
 p.standardOrientation=0;
 p.imSize=2;
 p.testPhases = linspace(0,2*pi,4); %%PHASE WHAT AM I GONNA DO WITH IT
@@ -49,11 +51,11 @@ p.toneDur = 0.2; % s TONE DURATION 200 ms
 % p.clickFreq=8000;
 %% Timing
 p.fixSOA=0.5; %precue fixation time 
-p.standSOA = 0.5; % standard to tone
+p.standSOA = 1; % standard to tone
 p.toneSOA = 0.5; % tone to test
 p.imDur = 0.03; % image duration s
 p.ITI=0.2;
-p.signalStart=0.5;
+p.signalStart=1;
 p.signalRestDur=1;
 %% Validity
 p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invalid'};

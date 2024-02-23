@@ -11,6 +11,11 @@ function pred
 % Juneau Wang ta-auditory, and Rachel Denison ta-demo
 % __________________________________________________________________
 clear; close all;
+% if ~exist(pahandle,'var')
+%     PsychPortAudio('Stop', pahandle);
+%     PsychPortAudio('Close', pahandle);
+%     Screen('CloseAll');
+% end
 %% Input
 % Subject and session info
 p.subjectID = input('Enter subject ID:  ','s');
@@ -235,13 +240,14 @@ switch p.task % task and demo
         instructions1 = sprintf('%s\n\nThere will be a reference patch followed by a predictive tone and a second patch.\n\nA low tone predicts a CCW orientation.\n\nA high tone predicts a CW orientation. \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
-
-        KbWait(devNum);
        
+        KbWait(devNum);
+        
         instructions2 ='Your goal is to determine whether the second patch is: \n\n higher contrast and counterclockwise (press 1), \n\nlower contrast and counterclockwise (press 2), \n\nlower contrast and clockwise (press 9), \n\nor higher contrast and clockwise (press 0) with reference to the first patch!\n\nPress to start!';
         DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        
+        WaitSecs(1);
+
         %pred_instructions(window, p, devNum);
         KbWait(devNum);
         timeStart = GetSecs;
@@ -322,6 +328,7 @@ switch p.task % task and demo
             %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             if testStatus==1
                 Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 %timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
 
                 %Screen('DrawTexture', windowPointer, texturePointer [,sourceRect] [,destinationRect] [,rotationAngle] [, filterMode] [, globalAlpha] [, modulateColor] [, textureShader] [, specialFlags] [, auxParameters]);
