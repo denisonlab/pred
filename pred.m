@@ -11,6 +11,7 @@ function pred
 % Juneau Wang ta-auditory, and Rachel Denison ta-demo
 % __________________________________________________________________
 clear; close all;
+PsychPortAudio('Close');
 % if ~exist(pahandle,'var')
 %     PsychPortAudio('Stop', pahandle);
 %     PsychPortAudio('Close', pahandle);
