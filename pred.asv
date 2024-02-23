@@ -296,26 +296,31 @@ switch p.task % task and demo
             %% Store stimulus information in trials matrix
 
             trials(trialIdx, precueIdx) = toneVersion;
+
+
             %% %%%% Play the trial %%%%
-            %% Present fixationwhite
+            %% Present white fixation
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             timePreStart = Screen('Flip', window);
+            %% Dim fixation to signal start of trial
             drawFixation(window, cx, cy, fixSize, p.fixColor*white*p.dimFactor);
             timeFix = Screen('Flip', window, p.fixSOA+timePreStart-slack);
-
+            
             %% Present STANDARD image
+            tic
             drawFixation(window, cx, cy, fixSize, p.fixColor*white) % DO I EVEN NEED THIS????
             Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
-            timeS = Screen('Flip', window, timeFix+p.standSOA - slack);
+            %timeS = Screen('Flip', window, timeFix+p.standSOA - slack);
+            timeS = Screen('Flip', window, timeFix+p.imDur - slack);
             sound(click, p.Fs)  %play click
-
+            toc
             % blank
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack);
-
+            %timeBlank1 = Screen('Flip', window, timeS + p.standSOA - slack);
+            timeBlank1 = Screen('Flip', window, timeS + p.standSOA - slack);
             %% Present predictive tone
             PsychPortAudio('FillBuffer', pahandle, tone);
-            timeTone = PsychPortAudio('Start', pahandle, [], timeBlank1 + p.toneSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
+            timeTone = PsychPortAudio('Start', pahandle, [], timeBlank1 + p.toneDur, 1); % waitForStart = 1 in order to return a timestamp of playback
 
             %% Present TEST image
             %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
@@ -325,64 +330,17 @@ switch p.task % task and demo
 
                 %Screen('DrawTexture', windowPointer, texturePointer [,sourceRect] [,destinationRect] [,rotationAngle] [, filterMode] [, globalAlpha] [, modulateColor] [, textureShader] [, specialFlags] [, auxParameters]);
             elseif testStatus==0
-                %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                %drawFixation(window, cx, cy, fixSize, white*p.backgroundColor);
             end
-            timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            sound(click, p.Fs)  %play click
-
+            %timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
+            timeT = Screen('Flip', window, timeTone + p.imDur - slack); % is it p.toneSOA, DIDN'T GET LOGIC
+            sound(click, p.Fs) %play click
             % blank
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            Screen('Flip', window, timeT + p.imDur - slack);
+            %Screen('Flip', window, timeT + p.imDur - slack);
+            Screen('Flip', window, timeT - slack);
             %timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack);
-
-            % %% %%%% Play the trial %%%%
-            % %% Present white fixation
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % timePreStart = Screen('Flip', window);
-            % %% Dim fixation to signal start of trial
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white*p.dimFactor);
-            % timeFix = Screen('Flip', window, p.fixSOA+timePreStart-slack);
-            % 
-            % %% Present STANDARD image
-            % tic
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white) % DO I EVEN NEED THIS????
-            % Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
-            % timeS = Screen('Flip', window, timeFix+p.standSOA - slack);
-            % 
-            % sound(click, p.Fs)  %play click
-            % toc
-            % % blank
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % 
-            % timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack);
-            % %% Present predictive tone
-            % PsychPortAudio('FillBuffer', pahandle, tone);
-            % timeTone = PsychPortAudio('Start', pahandle, [], timeBlank1 + p.toneDur, 1); % waitForStart = 1 in order to return a timestamp of playback
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % %timeBlank1 = Screen('Flip', window, timeS + p.standSOA - slack);
-            % timeBlank2 = Screen('Flip', window, timeTone + p.toneSOA - slack);
-            % %% Present TEST image
-            % tic
-            % %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % if testStatus==1
-            %     Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
-            %     %timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            % 
-            %     %Screen('DrawTexture', windowPointer, texturePointer [,sourceRect] [,destinationRect] [,rotationAngle] [, filterMode] [, globalAlpha] [, modulateColor] [, textureShader] [, specialFlags] [, auxParameters]);
-            % elseif testStatus==0
-            %     drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            %     %drawFixation(window, cx, cy, fixSize, white*p.backgroundColor);
-            % end
-            % timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            % %timeT = Screen('Flip', window, timeBlank2 + p.imDur - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            % sound(click, p.Fs) %play click
-            % toc
-            % % blank
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % %Screen('Flip', window, timeT + p.imDur - slack);
-            % Screen('Flip', window, timeT - slack);
-            % %timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack);
 
             %% Wait for response
             % check only valid response keys
@@ -507,12 +465,10 @@ switch p.task % task and demo
                 if blockStartTrial < 0 % we are doing less than one block
                     blockStartTrial = 1;
                 end
-                
-                current=d.correct(blockStartTrial:iTrial);
-                nan_correctnessIdx= isnan(current);
+
+                non_nan_correctnessIdx= ~isnan(d.correct(blockStartTrial:iTrial));
                 %non_nan_correctness=d.correct(non_nan_correctnessIdx);
-                non_nan_correctness=current(~nan_correctnessIdx);
-                blockCorrectness = mean(non_nan_correctness);
+                blockCorrectness = mean(non_nan_correctnessIdx);
            
                 fprintf('Block %d of %d complete.\n-----\n', block, nBlocks);
                 fprintf('Percent Correct: %.2f (block)', ...
@@ -793,10 +749,8 @@ switch p.task % task and demo
                     blockStartTrial = 1;
                 end
 
-                current=d.correct(blockStartTrial:iTrial);
-                nan_correctnessIdx= isnan(current);
-                %non_nan_correctness=d.correct(non_nan_correctnessIdx);
-                non_nan_correctness=current(~nan_correctnessIdx);
+                non_nan_correctnessIdx= ~isnan(d.correct(blockStartTrial:iTrial));
+                non_nan_correctness=d.correct(non_nan_correctnessIdx);
                 blockCorrectness = mean(non_nan_correctness);
 
                 fprintf('Block %d of %d complete.\n-----\n', block, nBlocks);
