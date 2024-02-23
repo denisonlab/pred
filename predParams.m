@@ -44,16 +44,17 @@ p.toneFreqs = [440 1760]; % Hz
 p.toneDur = 0.2; % s TONE DURATION 200 ms
 
 %% Clicks
-p.clickDur=0.0005;
-p.clickRampDur=p.clickDur/2;
-p.clickFreq=5000;
+% p.clickDur=0.0005;
+% p.clickRampDur=p.clickDur/2;
+% p.clickFreq=8000;
 %% Timing
 p.fixSOA=0.5; %precue fixation time 
 p.standSOA = 0.5; % standard to tone
 p.toneSOA = 0.5; % tone to test
-p.imDur = 0.3; % image duration s
+p.imDur = 0.03; % image duration s
 p.ITI=0.2;
-
+p.signalStart=0.5;
+p.signalRestDur=1;
 %% Validity
 p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invalid'};
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
