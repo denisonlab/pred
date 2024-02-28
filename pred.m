@@ -221,13 +221,13 @@ switch p.task % task and demo
         %if p.debug=="Y" || p.debug=="y"
         %nTrials=p.debugTrials;
         %nBlocks=nTrials/p.BlockTrialsDebug; %60 trials/2 blocks
-        if p.debug=="N" || p.debug=="n" && p.reps==1
-            repmat(trials,p.reps*p.repScale1,1);
+        if (p.debug=="N" || p.debug=="n") && p.reps==1
+            trials=repmat(trials,p.reps*p.repScale1,1);
             nTrials = size(trials,1); %448*2= 896, each trial twice
             nBlocks=nTrials/p.BlockTrials; %((448)*2)/64 = 14 blocks
             %nTrials = p.nTrialsPerContrast*size(trials,1);
             %nBlocks=1400/
-        elseif p.debug=="N" || p.debug=="n" && p.reps==2
+        elseif (p.debug=="N" || p.debug=="n") && p.reps==2
             trials=repmat(trials,p.reps*p.repScale2,1); %((448)*3)=
             nTrials = size(trials,1);
             nBlocks=p.trialsNeeded/nTrials; %21 blocks 3 mins each
