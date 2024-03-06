@@ -125,12 +125,6 @@ black = BlackIndex(window);
 pixelsPerDegree = ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
 fixSize = p.fixSize*pixelsPerDegree;
 
-%% Sound
-% Initialize the sound driver
-InitializePsychSound(1); % 1 for precise timing
-% Open audio device for low-latency output
-reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
-pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
 
 %% Making sounds ...
 % 10^0.5 for every 10dB
@@ -338,6 +332,14 @@ switch p.task % task and demo
             % Start recording
             rd_eyeLink('startrecording',window,{el,fixRect});
         end
+
+        %% Sound
+        % Initialize the sound driver
+        InitializePsychSound(1); % 1 for precise timing
+        % Open audio device for low-latency output
+        reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
+        pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
+
        
         %% Show instruction screen and wait for a button press
         instructions = 'This is the main experiment\n\n';
@@ -716,6 +718,12 @@ switch p.task % task and demo
     case 2 % DEMO
         % Make trials structure
         %% %%%% Generate trials in different conditions %%%%
+        %% Sound
+        % Initialize the sound driver
+        InitializePsychSound(1); % 1 for precise timing
+        % Open audio device for low-latency output
+        reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
+        pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
 
         trials_headers = {'precueValidity','tOrientation','tPhase', 'tContrast','tStatus','precue','responseKey','response','accuracy','rt'};
         % make sure column indices match trials headers
@@ -741,7 +749,7 @@ switch p.task % task and demo
         repmat(trials,p.reps*p.repScaleDemo,1); % demo: 448 trials
         nTrials = size(trials,1); %448, each trial once
         nBlocks=nTrials/p.BlockTrials; %((448)/64 = 7 blocks
-
+        
 
         trialOrder = randperm(nTrials);
         instructions = 'This is a demo of the main experiment\n\n';
