@@ -64,7 +64,7 @@ if p.eyeTracking==1
         mkdir(data.eyeDataDir)
     end
     % Check to see if this eye file already exists
-    if exist(sprintf('%s/%s.edf', eyeDataDir, eyeFile),'file')
+    if exist(sprintf('%s/%s.edf', data.eyeDataDir, eyeFile),'file')
         error('This subject/session already has saved data');
     end
 end
