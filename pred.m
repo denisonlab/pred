@@ -56,8 +56,8 @@ AssertOpenGL;
 
 %% Setup Eyetracking
 if p.eyeTracking==1
-    eyeDataDir = 'eyedata';
-
+    eyeDataDir = 'eyedata';     
+    eyeFile = sprintf('%s%s', subjectID([1:2 end-1:end]), datestr(now, 'mmdd'));
     % eyeFile = sprintf('%s%s', p.subjectID, datestr(now, 'mmdd'));
     % 
     % % Check to see if this eye file already exists
@@ -65,15 +65,15 @@ if p.eyeTracking==1
     % if ~isempty(existingEyeFile) && p.eyeTracking
     %     %     error('eye file already exists! please choose another name.')
     % end
-    eyeFile = sprintf('%s/%s_s%d_eye',eyeDataDir,p.subjectID,p.sessionNum);
-    % eyeFile = [subjectID(1:2) run_st datestr(now, 'mmdd')];
+    %eyeFile = sprintf('%s/%s_s%d_eye',eyeDataDir,p.subjectID,p.sessionNum);
+    % 
     % 
     data.eyeDataDir = sprintf('%s/eyedata',pwd);
     if ~exist(data.eyeDataDir, 'dir')
          mkdir(data.eyeDataDir)
      end
      % Check to see if this eye file already exists
-     if exist(sprintf('%s/%s.edf', data.eyeDataDir, eyeFile),'file')
+     if exist(sprintf('%s/%s.edf',eyeDataDir, eyeFile),'file')
          error('This subject/session already has saved eye data');
      end
 end
