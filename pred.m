@@ -65,7 +65,7 @@ if p.eyeTracking==1
     end
     % Check to see if this eye file already exists
     if exist(sprintf('%s/%s.edf', data.eyeDataDir, eyeFile),'file')
-        error('This subject/session already has saved data');
+        error('This subject/session already has saved eye data');
     end
 end
 %% Display key settings to the experimenter
