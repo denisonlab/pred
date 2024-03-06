@@ -313,7 +313,7 @@ switch p.task % task and demo
 
             % Write subject ID into the edf file
             Eyelink('message', 'BEGIN DESCRIPTIONS');
-            Eyelink('message', 'Subject code: %s', subjectID);
+            Eyelink('message', 'Subject code: %s', p.subjectID);
             Eyelink('message', 'END DESCRIPTIONS');
 
             % No sounds indicating success of calibration
