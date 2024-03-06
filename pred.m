@@ -8,7 +8,7 @@ function pred
 % data = data
 %
 % Code adapted from Angus Chapman triad_attn, Karen Tian hot-adapt,
-% Juneau Wang ta-auditory, and Rachel Denison ta-demo
+% Juneau Wang ta-auditory, and Rachel Denison ta-demo, ta-template
 % __________________________________________________________________
 clear; close all;
 PsychPortAudio('Close');
@@ -27,6 +27,8 @@ p.task = input(['Prediction task run:\n' ...
     '2 - Demo\n']);
 p.reps = input ('How many reps(1/2)? ');
 p.fullScreen = input ('Full screen(0/1)? ');
+p.eyeTracking=input('Eyetracking (0/1)? ');
+p.maskType=input('Masktype: ');
 %% Setup
 % Add paths
 directory = pwd; % get project directory path, set to prediction folder parent level
@@ -52,6 +54,20 @@ end
 % Running on PTB-3? Abort otherwise
 AssertOpenGL;
 
+%% Setup Eyetracking
+if p.eyeTracking==1
+    eyeDataDir = 'eyedata';
+    %eyeFile = sprintf('%s%s', subjectID([1:2 end-1:end]), datestr(now, 'mmdd'));
+
+    data.eyeDataDir = sprintf('%s/eyedata',pwd);
+    if ~exist(data.eyeDataDir, 'dir')
+        mkdir(data.eyeDataDir)
+    end
+    % Check to see if this eye file already exists
+    if exist(sprintf('%s/%s_s%d_eye.edf',data.eyeDataDir,p.subjectID,p.sessionNum),'file')
+        error('This subject/session already has saved data');
+    end
+end
 %% Display key settings to the experimenter
 fprintf('\nExperiment settings:\n')
 fprintf('subject = %s\n', p.subjectID)
@@ -65,7 +81,7 @@ Screen('Preference', 'SkipSyncTests', 1);
 screenNumber = max(Screen('Screens')); %screen to display on
 
 
-% Get window size 
+% Get window size
 %[window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
 
 if p.fullScreen==1
@@ -74,7 +90,7 @@ elseif p.fullScreen==0
     [window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
 end
 
-% Debug settings 
+% Debug settings
 if p.debug=="Y" || p.debug=="y"
     nTrials=p.debugTrials;
     nBlocks=nTrials/p.BlockTrialsDebug;
@@ -119,16 +135,6 @@ for iF = 1:numel(p.toneFreqs)
 end
 %cueTones(iF+1,:) = mean(cueTones,1); % neutral precue, both tones together, DO WE NEED THIS?
 p.cueTones=cueTones;
-%% Make click (from JW ta-auditory)
-% t = linspace(0, 10*p.Fs, 10*p.Fs)/p.Fs; % Time Vector (s)
-% click = sin(2*pi*(t-p.clickRampDur)*p.clickFreq)./(2*pi*(t-p.clickRampDur)*p.clickFreq); % Click
-% % clickRampDurSamples = 0:1/p.Fs:p.clickRampDur - 1/p.Fs;
-% % clickRampDurSamples = length(clickRampDurSamples); % number of samples for onset/offset ramps
-% % click = CosineSquaredRamp(click,clickRampDurSamples);
-% % click = click-mean(click); % Next three lines are setting the overall level
-% % click = click./rms(click);
-% % click = click.*(10.^((80-100)./20));
-% p.click=click;
 
 %% Keyboard
 % Check all "devices" (keyboards, mice) for response input
@@ -136,6 +142,45 @@ devNum = -1;
 
 KbName('UnifyKeyNames');
 validKeys = KbName({'1!','2@','9(','0)'});
+%% Make mask
+switch p.maskType
+    case 'none'
+%         mask = ones(size(t))*p.backgroundColor;
+        mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
+    case 'whitenoise'
+        mask = (rand(size(t))-0.5)*p.maskContrast + 0.5;
+    case 'verticalgrating'
+        m = buildColorGrating(pixelsPerDegree, p.imSize, ...
+            p.spatialFrequency, 0, 0, p.maskContrast, 0, 'bw');
+        mask = maskWithGaussian(m, size(m,1), targetSize);
+    case 'crossedgratings'
+        for i=1:numel(p.targetOrientation)
+            m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
+                p.spatialFrequency, p.targetOrientation(i), 0, p.maskContrast, 0, 'bw');
+        end
+        m = sum(m,3)./numel(p.targetOrientation);
+        mask = maskWithGaussian(m, size(m,1), targetSize);
+    case 'hvgratings'
+        hv = [0 90];
+        for i=1:numel(hv)
+            m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
+                p.spatialFrequency, hv(i), 0, p.maskContrast, 0, 'bw');
+        end
+        m = sum(m,3)./numel(hv);
+        mask = maskWithGaussian(m, size(m,1), targetSize);
+    case 'filterednoise'
+        idx = 1;
+        while idx <= 100
+            masktemp = makeFilteredNoise(p.imSize(1)/1.3, p.maskContrast, ...
+                0, 180, p.spatialFrequency, 2, pixelsPerDegree, 1);
+            if mean(masktemp(:))<0.51 && mean(masktemp(:))>0.49
+                mask{idx} = masktemp;
+                idx = idx+1;
+            end
+        end
+    otherwise
+        error('maskType not recognized')
+end
 
 %% Make TEST stimuli
 
@@ -154,6 +199,15 @@ for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS 
         tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
     end
 end
+
+if iscell(mask)
+    for i=1:numel(mask)
+        maskTexs(i) = Screen('MakeTexture', window, mask{i}*white);
+    end
+else
+    maskTexs = Screen('MakeTexture', window, mask*white);
+end
+
 %Make rects for placing image
 imSize = size(grating);
 imRect = CenterRectOnPoint([0 0 imSize], cx+imPos(1), cy+imPos(2));
@@ -234,16 +288,50 @@ switch p.task % task and demo
         end
 
         trialOrder = randperm(nTrials);
+
+        %% Eyetracker
+        if p.eyeTracking
+            % Initialize eye tracker
+            [el exitFlag] = rd_eyeLink('eyestart', window, eyeFile);
+            if exitFlag
+                return
+            end
+
+            % Write subject ID into the edf file
+            Eyelink('message', 'BEGIN DESCRIPTIONS');
+            Eyelink('message', 'Subject code: %s', subjectID);
+            Eyelink('message', 'END DESCRIPTIONS');
+
+            % No sounds indicating success of calibration
+            %     el.targetbeep = false;
+            %     el.calibration_failed_beep = [0 0 0];
+            %     el.calibration_success_beep = [0 0 0];
+            el.drift_correction_target_beep = [0 0 0];
+            el.drift_correction_failed_beep = [0 0 0];
+            el.drift_correction_success_beep = [0 0 0];
+
+            % Accept input from all keyboards
+            el.devicenumber = -1; %see KbCheck for details of this value
+
+            % Update with custom settings
+            EyelinkUpdateDefaults(el);
+
+            % Calibrate eye tracker
+            [cal exitFlag] = rd_eyeLink('calibrate', window, el);
+            if exitFlag
+                return
+            end
+        end
        
-        instructions = 'This is the main experiment\n\n';
         %% Show instruction screen and wait for a button press
+        instructions = 'This is the main experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
         instructions1 = sprintf('%s\n\nThere will be a reference patch followed by a predictive tone and a second patch.\n\nA low tone predicts a CCW orientation.\n\nA high tone predicts a CW orientation. \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
-       
+
         KbWait(devNum);
-        
+
         instructions2 ='Your goal is to determine whether the second patch is: \n\n higher contrast and counterclockwise (press 1), \n\nlower contrast and counterclockwise (press 2), \n\nlower contrast and clockwise (press 9), \n\nor higher contrast and clockwise (press 0) with reference to the first patch!\n\nPress to start!';
         DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
@@ -254,11 +342,19 @@ switch p.task % task and demo
         timeStart = GetSecs;
         correct = [];
         block=1;
+        eyeSkip = zeros(size(trials,1),1); % trials skipped due to an eye movement, same size as trials matrix
 
         for iTrial = 1:nTrials % the iteration in the trial loop
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
+            
+             %% Initialize for eye tracking trial breaks
+             if trialCounter>1
+                 eyeSkip(trialIdx) = stopThisTrial; % this is for the previous trial
+             end
+             stopThisTrial = 0;
 
-            %%SANTIY CHECK
+
+            %% SANTIY CHECK
             fprintf('Trial %d/%d in block %d, trial %d of %d total \n', ceil(iTrial/p.BlockTrials), p.BlockTrials,iTrial,nTrials);
 
             %% %%%% Present one trial %%%
@@ -310,9 +406,20 @@ switch p.task % task and demo
             %% Present fixation active (white)
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
+            
+            %% Check fixation hold
+            if p.eyeTracking
+                driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
+
+                if driftCorrected
+                    % restart trial
+                    drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                    timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
+                end
+            end
 
             %% Present STANDARD image
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white) 
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
             Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
             timeS = Screen('Flip', window, timeFix+p.signalStart - slack); %timeFix+ how much i want to wait from white(active) to standard
             %sound(click, p.Fs)  %play click
@@ -325,6 +432,26 @@ switch p.task % task and demo
             PsychPortAudio('FillBuffer', pahandle, tone);
             timeTone = PsychPortAudio('Start', pahandle, [], timeS + p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
 
+
+            if p.eyeTracking
+                Eyelink('Message', 'EVENT_CUE');
+            end
+
+            %% Check for eye movements
+            if p.eyeTracking
+                while GetSecs < timeTone + p.standSOA - p.eyeSlack && ~stopThisTrial
+                    WaitSecs(.01);
+                    %             fixation = mod(iTrial,10); %%% for testing
+                    fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
+                    [stopThisTrial trialOrder, nTrials] = fixationBreakTasks(...
+                        fixation, window, white*p.backgroundColor, trialOrder, iTrial, nTrials);
+                end
+                fixCue(iTrial) = fixation;
+                if stopThisTrial
+                    continue
+                end
+            end
+            
             %% Present TEST image
             %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             if testStatus==1
@@ -344,7 +471,24 @@ switch p.task % task and demo
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             Screen('Flip', window, timeT + p.imDur - slack);
             %timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack);
-
+            
+            if p.eyeTracking
+                Eyelink('Message', 'EVENT_RESPCUE');
+            end
+            % %% Check for eye movements
+            % if p.eyeTracking
+            %     while GetSecs < timeCue + p.soas(2) - p.eyeSlack && ~stopThisTrial
+            %         WaitSecs(.01);
+            %         %             fixation = mod(iTrial,10); %%% for testing
+            %         fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
+            %         [stopThisTrial trialOrder, nTrials] = fixationBreakTasks(...
+            %             fixation, window, white*p.backgroundColor, trialOrder, iTrial, nTrials);
+            %     end
+            %     fixT1(iTrial) = fixation;
+            %     if stopThisTrial
+            %         continue
+            %     end
+            % end
             % %% %%%% Play the trial %%%%
             % %% Present white fixation
             % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
@@ -352,18 +496,18 @@ switch p.task % task and demo
             % %% Dim fixation to signal start of trial
             % drawFixation(window, cx, cy, fixSize, p.fixColor*white*p.dimFactor);
             % timeFix = Screen('Flip', window, p.fixSOA+timePreStart-slack);
-            % 
+            %
             % %% Present STANDARD image
             % tic
             % drawFixation(window, cx, cy, fixSize, p.fixColor*white) % DO I EVEN NEED THIS????
             % Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
             % timeS = Screen('Flip', window, timeFix+p.standSOA - slack);
-            % 
+            %
             % sound(click, p.Fs)  %play click
             % toc
             % % blank
             % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % 
+            %
             % timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack);
             % %% Present predictive tone
             % PsychPortAudio('FillBuffer', pahandle, tone);
@@ -377,7 +521,7 @@ switch p.task % task and demo
             % if testStatus==1
             %     Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
             %     %timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            % 
+            %
             %     %Screen('DrawTexture', windowPointer, texturePointer [,sourceRect] [,destinationRect] [,rotationAngle] [, filterMode] [, globalAlpha] [, modulateColor] [, textureShader] [, specialFlags] [, auxParameters]);
             % elseif testStatus==0
             %     drawFixation(window, cx, cy, fixSize, p.fixColor*white);
@@ -409,7 +553,10 @@ switch p.task % task and demo
                 targetResponseKeyName = NaN;
                 correct = NaN;
             end
-            
+            if p.eyeTracking
+                Eyelink('Message', 'TRIAL_END');
+            end
+
             %% Response collected (blue fixation)
             if targetResponseKey
                 drawFixation(window, cx, cy, fixSize,[0 0 1]*p.fixColor*white);
@@ -517,13 +664,13 @@ switch p.task % task and demo
                 if blockStartTrial < 0 % we are doing less than one block
                     blockStartTrial = 1;
                 end
-                
+
                 current=d.correct(blockStartTrial:iTrial);
                 nan_correctnessIdx= isnan(current);
                 %non_nan_correctness=d.correct(non_nan_correctnessIdx);
                 non_nan_correctness=current(~nan_correctnessIdx);
                 blockCorrectness = mean(non_nan_correctness);
-           
+
                 fprintf('Block %d of %d complete.\n-----\n', block, nBlocks);
                 fprintf('Percent Correct: %.2f (block)', ...
                     100*blockCorrectness);
@@ -589,11 +736,11 @@ switch p.task % task and demo
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
 
         KbWait(devNum);
-       
+
         instructions2 ='Your goal is to determine whether the second patch is: \n\n higher contrast and counterclockwise (press 1), \n\nlower contrast and counterclockwise (press 2), \n\nlower contrast and clockwise (press 9), \n\nor higher contrast and clockwise (press 0) with reference to the first patch!\n\nPress to continue!';
         DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         timeInstruct2=Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        
+
         KbWait(devNum);
 
         instructionsToneLow ='This is what the low tone will sound like.\n\nPress to continue!';
@@ -659,7 +806,7 @@ switch p.task % task and demo
 
             trials(trialIdx, precueIdx) = toneVersion;
 
-             %% %%%% Play the trial %%%%
+            %% %%%% Play the trial %%%%
             %% Present fixation rest (grey)
             drawFixation(window, cx, cy, fixSize, p.fixColor*p.dimFactor*white);
             timePreStart = Screen('Flip', window);
@@ -668,7 +815,7 @@ switch p.task % task and demo
             timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
 
             %% Present STANDARD image
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white) 
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
             Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
             timeS = Screen('Flip', window, timeFix+p.signalStart - slack); %timeFix+ how much i want to wait from white(active) to standard
             %sound(click, p.Fs)  %play click
@@ -706,27 +853,27 @@ switch p.task % task and demo
             % timePreStart = Screen('Flip', window);
             % drawFixation(window, cx, cy, fixSize, p.fixColor*white*p.dimFactor);
             % timeFix = Screen('Flip', window, p.fixSOA+timePreStart-slack);
-            % 
+            %
             % %% Present STANDARD image
             % drawFixation(window, cx, cy, fixSize, p.fixColor*white) % DO I EVEN NEED THIS????
             % Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
             % timeS = Screen('Flip', window, timeFix+p.standSOA - slack);
             % %sound(click, p.Fs)  %play click
-            % 
+            %
             % % blank
             % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             % timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack);
-            % 
+            %
             % %% Present predictive tone
             % PsychPortAudio('FillBuffer', pahandle, tone);
             % timeTone = PsychPortAudio('Start', pahandle, [], timeBlank1 + p.toneSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-            % 
+            %
             % %% Present TEST image
             % %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             % if testStatus==1
             %     Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
             %     %timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            % 
+            %
             %     %Screen('DrawTexture', windowPointer, texturePointer [,sourceRect] [,destinationRect] [,rotationAngle] [, filterMode] [, globalAlpha] [, modulateColor] [, textureShader] [, specialFlags] [, auxParameters]);
             % elseif testStatus==0
             %     %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
@@ -734,7 +881,7 @@ switch p.task % task and demo
             % end
             % timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
             % %sound(click, p.Fs)  %play click
-            % 
+            %
             % % blank
             % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             % Screen('Flip', window, timeT + p.imDur - slack);
@@ -877,6 +1024,21 @@ switch p.task % task and demo
         error('Expt stage not found.')
 end
 
+if p.eyeTracking
+    p.eye.fixCue = fixCue;
+    p.eye.fixT1 = fixT1;
+end
+
+%% Save eye data and shut down the eye tracker
+if p.eyeTracking
+    rd_eyeLink('eyestop', window, {eyeFile, eyeDataDir});
+    
+    % rename eye file
+    eyeFileFull = sprintf(sprintf('%s/%s_s%d_eye.edf',data.eyeDataDir,p.subjectID,p.sessionNum),'file');
+    copyfile(sprintf('%s/%s.edf', eyeDataDir, eyeFile), eyeFileFull)
+end
+
+%% Clean Up
 PsychPortAudio('Stop', pahandle);
 PsychPortAudio('Close', pahandle);
 Screen('CloseAll')

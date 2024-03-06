@@ -26,7 +26,7 @@ p.aperture = 'gaussian';
 p.gratingDiameter = [2 0];
 % 0.125 0.25 0.5 1
 %p.gratingContrasts = [0 0.14678 0.215443 0.316228 0.464159 0.681292 1];
-% 0.25-16%, 6-79% 
+% 2.5 to 50 percent, 6-79% 
 p.gratingContrasts = [0 logspace(log10(0.025),log10(0.5),6)]; % 7 contrast levels and 0 (absent stimuli) 
 %p.gratingContrasts=[1];
 p.testStatus=[1]; %0 (absent stimuli)
@@ -67,5 +67,5 @@ p.BlockTrials=64; %64 trials 3 mins, 128 trials approx 6 mins
 p.repScale1=2; % 42 mins for 896 trials
 p.repScale2=3; % 63 mins for 1344 trials
 p.repScaleDemo=1;
-
-
+%% Eyetracking
+p.eyeSlack=0.12;
