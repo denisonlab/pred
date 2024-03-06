@@ -28,7 +28,7 @@ p.task = input(['Prediction task run:\n' ...
 p.reps = input ('How many reps(1/2)? ');
 p.fullScreen = input ('Full screen(0/1)? ');
 p.eyeTracking=input('Eyetracking (0/1)? ');
-p.maskType=input('Masktype: ');
+%p.maskType=input('Masktype: ');
 %% Setup
 % Add paths
 directory = pwd; % get project directory path, set to prediction folder parent level
@@ -142,45 +142,45 @@ devNum = -1;
 
 KbName('UnifyKeyNames');
 validKeys = KbName({'1!','2@','9(','0)'});
-%% Make mask
-switch p.maskType
-    case 'none'
-%         mask = ones(size(t))*p.backgroundColor;
-        mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
-    case 'whitenoise'
-        mask = (rand(size(t))-0.5)*p.maskContrast + 0.5;
-    case 'verticalgrating'
-        m = buildColorGrating(pixelsPerDegree, p.imSize, ...
-            p.spatialFrequency, 0, 0, p.maskContrast, 0, 'bw');
-        mask = maskWithGaussian(m, size(m,1), targetSize);
-    case 'crossedgratings'
-        for i=1:numel(p.targetOrientation)
-            m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-                p.spatialFrequency, p.targetOrientation(i), 0, p.maskContrast, 0, 'bw');
-        end
-        m = sum(m,3)./numel(p.targetOrientation);
-        mask = maskWithGaussian(m, size(m,1), targetSize);
-    case 'hvgratings'
-        hv = [0 90];
-        for i=1:numel(hv)
-            m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-                p.spatialFrequency, hv(i), 0, p.maskContrast, 0, 'bw');
-        end
-        m = sum(m,3)./numel(hv);
-        mask = maskWithGaussian(m, size(m,1), targetSize);
-    case 'filterednoise'
-        idx = 1;
-        while idx <= 100
-            masktemp = makeFilteredNoise(p.imSize(1)/1.3, p.maskContrast, ...
-                0, 180, p.spatialFrequency, 2, pixelsPerDegree, 1);
-            if mean(masktemp(:))<0.51 && mean(masktemp(:))>0.49
-                mask{idx} = masktemp;
-                idx = idx+1;
-            end
-        end
-    otherwise
-        error('maskType not recognized')
-end
+% %% Make mask
+% switch p.maskType
+%     case 'none'
+% %         mask = ones(size(t))*p.backgroundColor;
+%         mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
+%     case 'whitenoise'
+%         mask = (rand(size(t))-0.5)*p.maskContrast + 0.5;
+%     case 'verticalgrating'
+%         m = buildColorGrating(pixelsPerDegree, p.imSize, ...
+%             p.spatialFrequency, 0, 0, p.maskContrast, 0, 'bw');
+%         mask = maskWithGaussian(m, size(m,1), targetSize);
+%     case 'crossedgratings'
+%         for i=1:numel(p.targetOrientation)
+%             m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
+%                 p.spatialFrequency, p.targetOrientation(i), 0, p.maskContrast, 0, 'bw');
+%         end
+%         m = sum(m,3)./numel(p.targetOrientation);
+%         mask = maskWithGaussian(m, size(m,1), targetSize);
+%     case 'hvgratings'
+%         hv = [0 90];
+%         for i=1:numel(hv)
+%             m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
+%                 p.spatialFrequency, hv(i), 0, p.maskContrast, 0, 'bw');
+%         end
+%         m = sum(m,3)./numel(hv);
+%         mask = maskWithGaussian(m, size(m,1), targetSize);
+%     case 'filterednoise'
+%         idx = 1;
+%         while idx <= 100
+%             masktemp = makeFilteredNoise(p.imSize(1)/1.3, p.maskContrast, ...
+%                 0, 180, p.spatialFrequency, 2, pixelsPerDegree, 1);
+%             if mean(masktemp(:))<0.51 && mean(masktemp(:))>0.49
+%                 mask{idx} = masktemp;
+%                 idx = idx+1;
+%             end
+%         end
+%     otherwise
+%         error('maskType not recognized')
+% end
 
 %% Make TEST stimuli
 
@@ -200,13 +200,13 @@ for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS 
     end
 end
 
-if iscell(mask)
-    for i=1:numel(mask)
-        maskTexs(i) = Screen('MakeTexture', window, mask{i}*white);
-    end
-else
-    maskTexs = Screen('MakeTexture', window, mask*white);
-end
+% if iscell(mask)
+%     for i=1:numel(mask)
+%         maskTexs(i) = Screen('MakeTexture', window, mask{i}*white);
+%     end
+% else
+%     maskTexs = Screen('MakeTexture', window, mask*white);
+% end
 
 %Make rects for placing image
 imSize = size(grating);
