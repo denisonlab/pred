@@ -57,7 +57,7 @@ AssertOpenGL;
 %% Setup Eyetracking
 if p.eyeTracking==1
     eyeDataDir = 'eyedata';
-    eyeFile = sprintf('%s/%s_s%d_eye.edf',data.eyeDataDir,p.subjectID,p.sessionNum);
+    eyeFile = sprintf('%s/%s_s%d_eye.edf',eyeDataDir,p.subjectID,p.sessionNum);
 
     data.eyeDataDir = sprintf('%s/eyedata',pwd);
     if ~exist(data.eyeDataDir, 'dir')
