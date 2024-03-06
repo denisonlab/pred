@@ -299,7 +299,7 @@ switch p.task % task and demo
         trialOrder = randperm(nTrials);
 
         %% Eyetracker
-        if p.eyeTracking
+        if p.eyeTracking==1
             % Initialize eye tracker
             [el exitFlag] = rd_eyeLink('eyestart', window, eyeFile);
             if exitFlag
