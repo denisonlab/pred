@@ -253,8 +253,13 @@ imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS
 %         WaitSecs(1); % Adjust the duration as needed
 %     end
 % end
+%% Define fixation box for eyetracker
+fixBoxWidth=5*pixelsPerDegree; %width of fixation box in deg
+fixRect = [cx-.5*fixBoxWidth, cy-.5*fixBoxWidth, cx+.5*fixBoxWidth, cy+.5*fixBoxWidth];
+
 %% RUN expt
 %HideCursor(window,-1);
+
 
 switch p.task % task and demo
     case 1
@@ -330,6 +335,8 @@ switch p.task % task and demo
             if exitFlag
                 return
             end
+            % Start recording
+            rd_eyeLink('startrecording',window,{el,fixRect});
         end
        
         %% Show instruction screen and wait for a button press
