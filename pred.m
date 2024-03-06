@@ -58,7 +58,7 @@ AssertOpenGL;
 if p.eyeTracking==1
     eyeDataDir = 'eyedata';
 
-    eyeFile = sprintf('%s%s', subjectID([1:2 end-1:end]), datestr(now, 'mmdd'));
+    eyeFile = sprintf('%s%s', p.subjectID, datestr(now, 'mmdd'));
 
     % Check to see if this eye file already exists
     existingEyeFile = dir(sprintf('%s/%s.edf', eyeDataDir, eyeFile));
