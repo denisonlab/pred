@@ -1,6 +1,7 @@
-function psychometric(file)
+function psychometric()
 
 subjectID = input('Enter subject ID:  ','s');
+total=input('Enter number of sessions (1,2...) ');
 sessionNum = input('Enter session number (1,2...) ');
 dataDir= sprintf('%s/data',pwd);
 datafile=sprintf('%s/%s_s%d_pred.mat',dataDir,subjectID,sessionNum);

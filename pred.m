@@ -366,7 +366,7 @@ switch p.task % task and demo
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
             
              %% Initialize for eye tracking trial breaks
-             if trialCounter>1
+             if iTrial>1
                  eyeSkip(trialIdx) = stopThisTrial; % this is for the previous trial
              end
              stopThisTrial = 0;
