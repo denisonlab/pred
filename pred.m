@@ -286,8 +286,11 @@ switch p.task % task and demo
         %nBlocks=nTrials/p.BlockTrialsDebug; %60 trials/2 blocks
         if (p.debug=="N" || p.debug=="n") && p.reps==1
             trials=repmat(trials,p.reps*p.repScale1,1);
-            nTrials = size(trials,1); %448*2= 896, each trial twice
-            nBlocks=nTrials/p.BlockTrials; %((448)*2)/64 = 14 blocks
+            %nTrials = size(trials,1); %448*2= 896, each trial twice
+            %eyetracking debug
+            nTrials=5;
+            nBlocks=2;
+            %nBlocks=nTrials/p.BlockTrials; %((448)*2)/64 = 14 blocks
             %nTrials = p.nTrialsPerContrast*size(trials,1);
             %nBlocks=1400/
         elseif (p.debug=="N" || p.debug=="n") && p.reps==2
