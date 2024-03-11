@@ -288,8 +288,8 @@ switch p.task % task and demo
             trials=repmat(trials,p.reps*p.repScale1,1);
             %nTrials = size(trials,1); %448*2= 896, each trial twice
             %eyetracking debug
-            nTrials=5;
-            nBlocks=2;
+            nTrials=10;
+            nBlocks=nTrials/5;
             %nBlocks=nTrials/p.BlockTrials; %((448)*2)/64 = 14 blocks
             %nTrials = p.nTrialsPerContrast*size(trials,1);
             %nBlocks=1400/
@@ -1058,8 +1058,8 @@ switch p.task % task and demo
 end
 
 if p.eyeTracking
-    p.eye.fixCue = fixCue;
-    p.eye.fixT1 = fixT1;
+    p.eyefixCue = fixCue;
+    p.eyefixT1 = timeFix;
 end
 
 %% Save eye data and shut down the eye tracker
