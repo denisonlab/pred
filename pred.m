@@ -250,6 +250,7 @@ imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS
 %% Define fixation box for eyetracker
 fixBoxWidth=5*pixelsPerDegree; %width of fixation box in deg
 fixRect = [cx-.5*fixBoxWidth, cy-.5*fixBoxWidth, cx+.5*fixBoxWidth, cy+.5*fixBoxWidth];
+rad = 70; % radius of allowable eye movement in pixels
 
 %% RUN expt
 %HideCursor(window,-1);
