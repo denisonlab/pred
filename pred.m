@@ -335,14 +335,14 @@ switch p.task % task and demo
         %% Sound
         % Initialize the sound driver
         InitializePsychSound(1); % 1 for precise timing
-        deviceName = p.deviceName; % 'Scarlett'; 'sysdefault'
-
-        % Open audio device for low-latency output
-        reqlatencyclass = 1; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
-        %pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
         PsychPortAudio('Close');
 
-        pahandle = denlab_openAudio(deviceName, reqlatencyclass, p.Fs); 
+        % Open audio device for low-latency output
+        reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
+        pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
+        
+        %deviceName = p.deviceName; % 'Scarlett'; 'sysdefault'
+        %pahandle = denlab_openAudio(deviceName, reqlatencyclass, p.Fs); 
 
        
         %% Show instruction screen and wait for a button press
