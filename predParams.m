@@ -44,7 +44,7 @@ p.ppd = ang2pix(1,  p.screenWidthCm, 1920, p.viewDistCm); %
 p.Fs = 44100; % samples per second
 p.toneFreqs = [440 1760]; % Hz
 p.toneDur = 0.2; % s TONE DURATION 200 ms
-
+p.deviceName = 'Scarlett';
 %% Clicks
 % p.clickDur=0.0005;
 % p.clickRampDur=p.clickDur/2;
