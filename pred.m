@@ -360,7 +360,7 @@ switch p.task % task and demo
         block=1;
         eyeSkip = zeros(size(trials,1),1); % trials skipped due to an eye movement, same size as trials matrix
         % Start recording
-        rd_eyeLink('startrecording',window,{el,fixRect});
+        %rd_eyeLink('startrecording',window,{el,fixRect});
         
         for iTrial = 1:nTrials % the iteration in the trial loop
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
