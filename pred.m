@@ -304,7 +304,7 @@ switch p.task % task and demo
         trialOrder = randperm(nTrials);
 
         %% Eyetracker
-        if p.eyeTracking==1
+        if p.eyeTracking
             % Initialize eye tracker
             [el exitFlag] = rd_eyeLink('eyestart', window, eyeFile);
             if exitFlag
@@ -369,11 +369,12 @@ switch p.task % task and demo
         timeStart = GetSecs;
         correct = [];
         block=1;
-        eyeSkip = zeros(size(trials,1),1); % trials skipped due to an eye movement, same size as trials matrix
+        %eyeSkip = zeros(size(trials,1),1); % trials skipped due to an eye movement, same size as trials matrix
         % Start recording
         %rd_eyeLink('startrecording',window,{el,fixRect});
         skippedTrials = [];
         iTrial=1;
+        completedTrials=0;
         %for iTrial = 1:nTrials % the iteration in the trial loop
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
@@ -386,7 +387,7 @@ switch p.task % task and demo
 
 
             %% SANTIY CHECK
-            fprintf('Trial %d/%d in block %d, trial %d of %d total \n', ceil(iTrial/p.BlockTrials), p.BlockTrials,iTrial,nTrials);
+            fprintf('Trial %d/%d in block %d, trial %d of %d total \n', iTrial, p.BlockTrials, block,iTrial,nTrials);
 
             %% %%%% Present one trial %%%
             %% Get condition information for this trial
@@ -437,7 +438,10 @@ switch p.task % task and demo
             %% Present fixation active (white)
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
-
+            
+            if p.eyeTracking
+                Eyelink('Message', 'FixOn')
+            end
             %% Check fixation hold
             if p.eyeTracking
                 driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
@@ -523,6 +527,11 @@ switch p.task % task and demo
                     else 
                         stopThisTrial = 0;
                     end
+                end
+
+
+                if stopThisTrial
+                    continue
                 end
             end
 
@@ -730,10 +739,12 @@ switch p.task % task and demo
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
             WaitSecs(p.ITI-d.timeSpentSaving(iTrial));
-
-            if mod(iTrial,p.BlockTrials)==0 || iTrial>p.BlockTrials*block
+            
+            completedTrials = completedTrials + 1; 
+            if completedTrials==p.BlockTrials && (mod(iTrial-completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block) 
                 % Calculate block accuracy
-                blockStartTrial = (iTrial/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
+                %blockStartTrial = (iTrial/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
+                blockStartTrial = ((iTrial-completedTrials)/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
                 if blockStartTrial < 0 % we are doing less than one block
                     blockStartTrial = 1;
                 end
@@ -766,6 +777,7 @@ switch p.task % task and demo
                 end
 
                 block = block+1; % keep track of block for block message only
+                completedTrials=0;
             end
             iTrial = iTrial + 1;
         end
