@@ -58,26 +58,26 @@ AssertOpenGL;
 
 %% Setup Eyetracking
 if p.eyeTracking==1
-    eyeDataDir = 'eyedata';
+    eyeDataDir = 'eyedata';     
     eyeFile = sprintf('%s%s', p.subjectID(1:2), datestr(now, 'mmdd'));
     % eyeFile = sprintf('%s%s', p.subjectID, datestr(now, 'mmdd'));
-    %
+    % 
     % % Check to see if this eye file already exists
     % existingEyeFile = dir(sprintf('%s/%s.edf', eyeDataDir, eyeFile));
     % if ~isempty(existingEyeFile) && p.eyeTracking
     %     %     error('eye file already exists! please choose another name.')
     % end
     %eyeFile = sprintf('%s/%s_s%d_eye',eyeDataDir,p.subjectID,p.sessionNum);
-    %
-    %
+    % 
+    % 
     data.eyeDataDir = sprintf('%s/eyedata',pwd);
     if ~exist(data.eyeDataDir, 'dir')
-        mkdir(data.eyeDataDir)
-    end
-    % Check to see if this eye file already exists
-    if exist(sprintf('%s/%s.edf',eyeDataDir, eyeFile),'file')
-        error('This subject/session already has saved eye data');
-    end
+         mkdir(data.eyeDataDir)
+     end
+     % Check to see if this eye file already exists
+     if exist(sprintf('%s/%s.edf',eyeDataDir, eyeFile),'file')
+         error('This subject/session already has saved eye data');
+     end
 end
 %% Display key settings to the experimenter
 fprintf('\nExperiment settings:\n')
@@ -345,11 +345,11 @@ switch p.task % task and demo
         % Open audio device for low-latency output
         reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
         pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
-
+        
         %deviceName = p.deviceName; % 'Scarlett'; 'sysdefault'
-        %pahandle = denlab_openAudio(deviceName, reqlatencyclass, p.Fs);
+        %pahandle = denlab_openAudio(deviceName, reqlatencyclass, p.Fs); 
 
-
+       
         %% Show instruction screen and wait for a button press
         instructions = 'This is the main experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
@@ -373,16 +373,15 @@ switch p.task % task and demo
         % Start recording
         %rd_eyeLink('startrecording',window,{el,fixRect});
         skippedTrials = [];
-        iTrial=1;
-        %for iTrial = 1:nTrials % the iteration in the trial loop
-        while iTrial<=nTrials
-            trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
-            stopThisTrial = 0;
 
-            % %% Initialize for eye tracking trial breaks
-            % if iTrial>1
-            %     eyeSkip(trialIdx) = stopThisTrial; % this is for the previous trial
-            % end
+        for iTrial = 1:nTrials % the iteration in the trial loop
+            trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
+            
+             %% Initialize for eye tracking trial breaks
+             if iTrial>1
+                 eyeSkip(trialIdx) = stopThisTrial; % this is for the previous trial
+             end
+             stopThisTrial = 0;
 
 
             %% SANTIY CHECK
@@ -437,7 +436,7 @@ switch p.task % task and demo
             %% Present fixation active (white)
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
-
+            
             %% Check fixation hold
             if p.eyeTracking
                 driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
@@ -468,7 +467,7 @@ switch p.task % task and demo
                 Eyelink('Message', 'EVENT_CUE');
             end
 
-
+            
             % if p.eyeTracking
             %     while GetSecs < timeTone + p.standSOA - p.eyeSlack && ~stopThisTrial
             %         WaitSecs(.01);
@@ -482,7 +481,7 @@ switch p.task % task and demo
             %         continue
             %     end
             % end
-            if p.eyeTracking
+            if p.eyeTracking==1
                 while GetSecs < timeTone + p.standSOA - p.eyeSlack && ~stopThisTrial
                     WaitSecs(.01);
                     %             fixation = mod(iTrial,10); %%% for testing
@@ -509,23 +508,16 @@ switch p.task % task and demo
                         skippedTrials(end+1) = trialOrder(iTrial);
                         d.timeTargetResponse(iTrial) = NaN;
                         d.correct(iTrial) = NaN;
-                        nTrials = nTrials + 1;
+                        p.nTotalTrials = p.nTotalTrials + 1;
                         iTrial = iTrial + 1;
 
-                        % fixations = [fixations fixation];
-                        %DrawFormattedText(window, 'Fixation lost. Please press space when ready to fixate.', 'center', 'center', [1 1 1]*white);
-                        Screen('FillRect', window, fillColor);
-                        Screen('Flip', window);
-                        WaitSecs(1);
-                        %Screen('Flip', window);
-                        %KbWait(devNum);
 
-                    else 
-                        stopThisTrial = 0;
+                        % fixations = [fixations fixation];
+                        DrawFormattedText(window, 'Fixation lost. Please press space when ready to fixate.', 'center', 'center', [1 1 1]*white);
+                        Screen('Flip', window);
+                        KbWait(devNum);
                     end
                 end
-            end
-
             %% Present TEST image
             %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             if testStatus==1
@@ -545,7 +537,7 @@ switch p.task % task and demo
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             Screen('Flip', window, timeT + p.imDur - slack);
             %timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack);
-
+            
             if p.eyeTracking
                 Eyelink('Message', 'EVENT_RESPCUE');
             end
@@ -724,6 +716,7 @@ switch p.task % task and demo
             d.timeTone(iTrial)=timeTone; % time at tone
             d.timeT(iTrial)=timeT; % time at test
 
+
             %d.trials(iTrial)=trials(trialIdx, : );
             save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
 
@@ -767,7 +760,6 @@ switch p.task % task and demo
 
                 block = block+1; % keep track of block for block message only
             end
-            iTrial = iTrial + 1;
         end
 
         %% CASE 2
@@ -805,7 +797,7 @@ switch p.task % task and demo
         repmat(trials,p.reps*p.repScaleDemo,1); % demo: 448 trials
         nTrials = size(trials,1); %448, each trial once
         nBlocks=nTrials/p.BlockTrials; %((448)/64 = 7 blocks
-
+        
 
         trialOrder = randperm(nTrials);
         instructions = 'This is a demo of the main experiment\n\n';
@@ -1112,7 +1104,7 @@ end
 %% Save eye data and shut down the eye tracker
 if p.eyeTracking
     rd_eyeLink('eyestop', window, {eyeFile, eyeDataDir});
-
+    
     % rename eye file
     eyeFileFull = sprintf(sprintf('%s/%s_s%d_eye.edf',data.eyeDataDir,p.subjectID,p.sessionNum),'file');
     copyfile(sprintf('%s/%s.edf', eyeDataDir, eyeFile), eyeFileFull)
