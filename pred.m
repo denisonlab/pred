@@ -331,10 +331,11 @@ switch p.task % task and demo
             EyelinkUpdateDefaults(el);
 
             % Calibrate eye tracker
-            [cal exitFlag] = rd_eyeLink('calibrate', window, el);
+            [~ exitFlag] = rd_eyeLink('calibrate', window, el);
             if exitFlag
                 return
             end
+            fixations=[];
         end
 
         %% Sound
@@ -518,7 +519,7 @@ switch p.task % task and demo
 
                         % fixations = [fixations fixation];
                         %DrawFormattedText(window, 'Fixation lost. Please press space when ready to fixate.', 'center', 'center', [1 1 1]*white);
-                        Screen('FillRect', window, fillColor);
+                        Screen('FillRect', window, white*p.backgroundColor);
                         Screen('Flip', window);
                         WaitSecs(1);
                         %Screen('Flip', window);
