@@ -331,7 +331,7 @@ switch p.task % task and demo
             EyelinkUpdateDefaults(el);
 
             % Calibrate eye tracker
-            [~ exitFlag] = rd_eyeLink('calibrate', window, el);
+            [~, exitFlag] = rd_eyeLink('calibrate', window, el);
             if exitFlag
                 return
             end
