@@ -58,26 +58,26 @@ AssertOpenGL;
 
 %% Setup Eyetracking
 if p.eyeTracking==1
-    eyeDataDir = 'eyedata';     
+    eyeDataDir = 'eyedata';
     eyeFile = sprintf('%s%s', p.subjectID(1:2), datestr(now, 'mmdd'));
     % eyeFile = sprintf('%s%s', p.subjectID, datestr(now, 'mmdd'));
-    % 
+    %
     % % Check to see if this eye file already exists
     % existingEyeFile = dir(sprintf('%s/%s.edf', eyeDataDir, eyeFile));
     % if ~isempty(existingEyeFile) && p.eyeTracking
     %     %     error('eye file already exists! please choose another name.')
     % end
     %eyeFile = sprintf('%s/%s_s%d_eye',eyeDataDir,p.subjectID,p.sessionNum);
-    % 
-    % 
+    %
+    %
     data.eyeDataDir = sprintf('%s/eyedata',pwd);
     if ~exist(data.eyeDataDir, 'dir')
-         mkdir(data.eyeDataDir)
-     end
-     % Check to see if this eye file already exists
-     if exist(sprintf('%s/%s.edf',eyeDataDir, eyeFile),'file')
-         error('This subject/session already has saved eye data');
-     end
+        mkdir(data.eyeDataDir)
+    end
+    % Check to see if this eye file already exists
+    if exist(sprintf('%s/%s.edf',eyeDataDir, eyeFile),'file')
+        error('This subject/session already has saved eye data');
+    end
 end
 %% Display key settings to the experimenter
 fprintf('\nExperiment settings:\n')
@@ -304,7 +304,7 @@ switch p.task % task and demo
         trialOrder = randperm(nTrials);
 
         %% Eyetracker
-        if p.eyeTracking==1
+        if p.eyeTracking
             % Initialize eye tracker
             [el exitFlag] = rd_eyeLink('eyestart', window, eyeFile);
             if exitFlag
@@ -331,10 +331,11 @@ switch p.task % task and demo
             EyelinkUpdateDefaults(el);
 
             % Calibrate eye tracker
-            [cal exitFlag] = rd_eyeLink('calibrate', window, el);
+            [~, exitFlag] = rd_eyeLink('calibrate', window, el);
             if exitFlag
                 return
             end
+            fixations=[];
         end
 
         %% Sound
@@ -345,11 +346,11 @@ switch p.task % task and demo
         % Open audio device for low-latency output
         reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
         pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
-        
-        %deviceName = p.deviceName; % 'Scarlett'; 'sysdefault'
-        %pahandle = denlab_openAudio(deviceName, reqlatencyclass, p.Fs); 
 
-       
+        %deviceName = p.deviceName; % 'Scarlett'; 'sysdefault'
+        %pahandle = denlab_openAudio(deviceName, reqlatencyclass, p.Fs);
+
+
         %% Show instruction screen and wait for a button press
         instructions = 'This is the main experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
@@ -369,23 +370,24 @@ switch p.task % task and demo
         timeStart = GetSecs;
         correct = [];
         block=1;
-        eyeSkip = zeros(size(trials,1),1); % trials skipped due to an eye movement, same size as trials matrix
+        %eyeSkip = zeros(size(trials,1),1); % trials skipped due to an eye movement, same size as trials matrix
         % Start recording
         %rd_eyeLink('startrecording',window,{el,fixRect});
         skippedTrials = [];
-
-        for iTrial = 1:nTrials % the iteration in the trial loop
+        iTrial=1;
+        completedTrials=0;
+        %for iTrial = 1:nTrials % the iteration in the trial loop
+        while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
+            stopThisTrial = 0;
+
+            % %% Initialize for eye tracking trial breaks
+            % if iTrial>1
+            %     eyeSkip(trialIdx) = stopThisTrial; % this is for the previous trial
+            % end
+
+
             
-             %% Initialize for eye tracking trial breaks
-             if iTrial>1
-                 eyeSkip(trialIdx) = stopThisTrial; % this is for the previous trial
-             end
-             stopThisTrial = 0;
-
-
-            %% SANTIY CHECK
-            fprintf('Trial %d/%d in block %d, trial %d of %d total \n', ceil(iTrial/p.BlockTrials), p.BlockTrials,iTrial,nTrials);
 
             %% %%%% Present one trial %%%
             %% Get condition information for this trial
@@ -437,6 +439,9 @@ switch p.task % task and demo
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
             
+            if p.eyeTracking
+                Eyelink('Message', 'FixOn')
+            end
             %% Check fixation hold
             if p.eyeTracking
                 driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
@@ -467,7 +472,7 @@ switch p.task % task and demo
                 Eyelink('Message', 'EVENT_CUE');
             end
 
-            
+
             % if p.eyeTracking
             %     while GetSecs < timeTone + p.standSOA - p.eyeSlack && ~stopThisTrial
             %         WaitSecs(.01);
@@ -481,7 +486,7 @@ switch p.task % task and demo
             %         continue
             %     end
             % end
-            if p.eyeTracking==1
+            if p.eyeTracking
                 while GetSecs < timeTone + p.standSOA - p.eyeSlack && ~stopThisTrial
                     WaitSecs(.01);
                     %             fixation = mod(iTrial,10); %%% for testing
@@ -508,16 +513,28 @@ switch p.task % task and demo
                         skippedTrials(end+1) = trialOrder(iTrial);
                         d.timeTargetResponse(iTrial) = NaN;
                         d.correct(iTrial) = NaN;
-                        p.nTotalTrials = p.nTotalTrials + 1;
+                        nTrials = nTrials + 1;
                         iTrial = iTrial + 1;
 
-
                         % fixations = [fixations fixation];
-                        DrawFormattedText(window, 'Fixation lost. Please press space when ready to fixate.', 'center', 'center', [1 1 1]*white);
+                        %DrawFormattedText(window, 'Fixation lost. Please press space when ready to fixate.', 'center', 'center', [1 1 1]*white);
+                        Screen('FillRect', window, white*p.backgroundColor);
                         Screen('Flip', window);
-                        KbWait(devNum);
+                        WaitSecs(1);
+                        %Screen('Flip', window);
+                        %KbWait(devNum);
+
+                    else 
+                        stopThisTrial = 0;
                     end
                 end
+
+
+                if stopThisTrial
+                    continue
+                end
+            end
+
             %% Present TEST image
             %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             if testStatus==1
@@ -537,7 +554,7 @@ switch p.task % task and demo
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             Screen('Flip', window, timeT + p.imDur - slack);
             %timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack);
-            
+
             if p.eyeTracking
                 Eyelink('Message', 'EVENT_RESPCUE');
             end
@@ -716,17 +733,22 @@ switch p.task % task and demo
             d.timeTone(iTrial)=timeTone; % time at tone
             d.timeT(iTrial)=timeT; % time at test
 
-
             %d.trials(iTrial)=trials(trialIdx, : );
             save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
 
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
             WaitSecs(p.ITI-d.timeSpentSaving(iTrial));
-
-            if mod(iTrial,p.BlockTrials)==0 || iTrial>p.BlockTrials*block
+            
+            completedTrials = completedTrials + 1; 
+            %% SANTIY CHECK
+            fprintf('Trial %d/%d in block %d, trial %d of %d total \n', completedTrials, p.BlockTrials, block,iTrial,nTrials);
+            %% Blocking
+            %if completedTrials==p.BlockTrials && (mod(iTrial-completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block) 
+            if (mod(completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block)  
                 % Calculate block accuracy
-                blockStartTrial = (iTrial/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
+                %blockStartTrial = (iTrial/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
+                blockStartTrial = ((iTrial-completedTrials)/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
                 if blockStartTrial < 0 % we are doing less than one block
                     blockStartTrial = 1;
                 end
@@ -744,7 +766,7 @@ switch p.task % task and demo
                 accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
                 blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, ceil(nTrials/p.BlockTrials));
                 if iTrial==nTrials
-                    keyMessage = '';
+                    keyMessage = 'All done! THank you for participating!';
                 else
                     keyMessage = 'Press any key to go on.';
                 end
@@ -759,7 +781,9 @@ switch p.task % task and demo
                 end
 
                 block = block+1; % keep track of block for block message only
+                completedTrials=0;
             end
+            iTrial = iTrial + 1;
         end
 
         %% CASE 2
@@ -797,7 +821,7 @@ switch p.task % task and demo
         repmat(trials,p.reps*p.repScaleDemo,1); % demo: 448 trials
         nTrials = size(trials,1); %448, each trial once
         nBlocks=nTrials/p.BlockTrials; %((448)/64 = 7 blocks
-        
+
 
         trialOrder = randperm(nTrials);
         instructions = 'This is a demo of the main experiment\n\n';
@@ -1075,7 +1099,7 @@ switch p.task % task and demo
                 accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
                 blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, ceil(nTrials/p.BlockTrials));
                 if iTrial==nTrials
-                    keyMessage = '';
+                    keyMessage = 'All done! Thank you for participating!';
                 else
                     keyMessage = 'Press any key to go on.';
                 end
@@ -1097,14 +1121,14 @@ switch p.task % task and demo
 end
 
 if p.eyeTracking
-    p.eyefixCue = fixCue;
+    p.eyefixation = fixations;
     p.eyefixT1 = timeFix;
 end
 
 %% Save eye data and shut down the eye tracker
 if p.eyeTracking
     rd_eyeLink('eyestop', window, {eyeFile, eyeDataDir});
-    
+
     % rename eye file
     eyeFileFull = sprintf(sprintf('%s/%s_s%d_eye.edf',data.eyeDataDir,p.subjectID,p.sessionNum),'file');
     copyfile(sprintf('%s/%s.edf', eyeDataDir, eyeFile), eyeFileFull)

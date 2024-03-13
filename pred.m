@@ -288,16 +288,17 @@ switch p.task % task and demo
         %nBlocks=nTrials/p.BlockTrialsDebug; %60 trials/2 blocks
         if (p.debug=="N" || p.debug=="n") && p.reps==1
             trials=repmat(trials,p.reps*p.repScale1,1);
-            %nTrials = size(trials,1); %448*2= 896, each trial twice
+            nTrials = size(trials,1); %448*2= 896, each trial twice
             %eyetracking debug
-            nTrials=10;
-            nBlocks=nTrials/5;
-            %nBlocks=nTrials/p.BlockTrials; %((448)*2)/64 = 14 blocks
+            %nTrials=10;
+            %nBlocks=nTrials/5;
+            nBlocks=nTrials/p.BlockTrials; %((448)*2)/64 = 14 blocks
             %nTrials = p.nTrialsPerContrast*size(trials,1);
             %nBlocks=1400/
         elseif (p.debug=="N" || p.debug=="n") && p.reps==2
             trials=repmat(trials,p.reps*p.repScale2,1); %((448)*3)=
             nTrials = size(trials,1);
+            nTrialsNoSkip=nTrials;
             nBlocks=p.trialsNeeded/nTrials; %21 blocks 3 mins each
         end
 
@@ -387,8 +388,7 @@ switch p.task % task and demo
             % end
 
 
-            %% SANTIY CHECK
-            fprintf('Trial %d/%d in block %d, trial %d of %d total \n', iTrial, p.BlockTrials, block,iTrial,nTrials);
+            
 
             %% %%%% Present one trial %%%
             %% Get condition information for this trial
@@ -427,7 +427,12 @@ switch p.task % task and demo
             % end
 
             %tone = cueTones(toneVersion,:);
-
+            %% Store trial information
+            d.testStatus(iTrial) = testStatus; %absent or present
+            d.testOrientation(iTrial) = testOrientation; %orientation of test stimuli
+            d.testPhase(iTrial) = testPhase; %phase of test stimuli
+            d.testContrast(iTrial) = testContrast; %contrast of test stimuli
+            d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
 
             %% Store stimulus information in trials matrix
 
@@ -718,11 +723,7 @@ switch p.task % task and demo
             d.timeStart(iTrial)=timeStart; % time at which trial starts
             d.timeEnd(iTrial)=timeEnd; % time at which trial ends
             d.timeElapsed(iTrial)=timeEnd-timeStart; % trial duration
-            d.testStatus(iTrial) = testStatus; %absent or present
-            d.testOrientation(iTrial) = testOrientation; %orientation of test stimuli
-            d.testPhase(iTrial) = testPhase; %phase of test stimuli
-            d.testContrast(iTrial) = testContrast; %contrast of test stimuli
-            d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
+            
             d.correct(iTrial) = correct; % response correctness (0/1)
             d.timeTargetResponse(iTrial)=timeTargetResponse; % time at which response was made
             d.targetRT(iTrial) = targetRT; %response time duration
@@ -733,7 +734,7 @@ switch p.task % task and demo
             d.timeBlank1(iTrial)=timeBlank1; % time after standard
             d.timeTone(iTrial)=timeTone; % time at tone
             d.timeT(iTrial)=timeT; % time at test
-
+            d.trialOrder=trialOrder;
             %d.trials(iTrial)=trials(trialIdx, : );
             save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
 
@@ -742,7 +743,11 @@ switch p.task % task and demo
             WaitSecs(p.ITI-d.timeSpentSaving(iTrial));
             
             completedTrials = completedTrials + 1; 
-            if completedTrials==p.BlockTrials && (mod(iTrial-completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block) 
+            %% SANTIY CHECK
+            fprintf('Trial %d/%d in block %d, trial %d of %d total \n', completedTrials, p.BlockTrials, block,iTrial,nTrials);
+            %% Blocking
+            %if completedTrials==p.BlockTrials && (mod(iTrial-completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block) 
+            if (mod(completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block)  
                 % Calculate block accuracy
                 %blockStartTrial = (iTrial/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
                 blockStartTrial = ((iTrial-completedTrials)/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
@@ -761,9 +766,9 @@ switch p.task % task and demo
                     100*blockCorrectness);
 
                 accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
-                blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, ceil(nTrials/p.BlockTrials));
+                blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, nBlocks);
                 if iTrial==nTrials
-                    keyMessage = '';
+                    keyMessage = 'All done! Thank you for participating!';
                 else
                     keyMessage = 'Press any key to go on.';
                 end
@@ -1096,7 +1101,7 @@ switch p.task % task and demo
                 accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
                 blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, ceil(nTrials/p.BlockTrials));
                 if iTrial==nTrials
-                    keyMessage = '';
+                    keyMessage = 'All done! Thank you for participating!';
                 else
                     keyMessage = 'Press any key to go on.';
                 end
