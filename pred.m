@@ -1118,7 +1118,7 @@ switch p.task % task and demo
 end
 
 if p.eyeTracking
-    p.eyefixCue = fixCue;
+    p.eyefixation = fixations;
     p.eyefixT1 = timeFix;
 end
 
