@@ -32,7 +32,6 @@ p.gratingContrasts = [0 logspace(log10(0.025),log10(0.5),6)]; % 7 contrast level
 p.testStatus=[1]; %0 (absent stimuli)
 p.standardContrast = p.gratingContrasts(4); %WHAT SHOULD CONTRAST BE???
 p.standardOrientation=0;
-%p.imSize=[2 2]; %p.imSize=2;
 p.imSize=2;
 p.testPhases = linspace(0,2*pi,4); %%PHASE WHAT AM I GONNA DO WITH IT
 
@@ -59,7 +58,7 @@ p.ITI=0.2;
 p.signalStart=1;
 p.signalRestDur=1;
 p.maskDur=0.02;
-p.maskSOA = 1;
+p.maskSOA = 3;
 %% Validity
 p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invalid'};
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
