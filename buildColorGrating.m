@@ -23,6 +23,7 @@ function grating = buildColorGrating(pixelsPerDegree, sizeDegrees, ...
 % Outputs:
 % grating: 2D black/white or 3D red/green grating with range 0-1 for each
 % color channel
+%
 % Calling the function with zero arguments will generate 100% contrast
 % black/white grating with default parameter values.
 %
