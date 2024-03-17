@@ -48,7 +48,6 @@ end
 % if ~exist(data.subDir, 'dir')
 %     mkdir(data.subDir)
 % end
-
 % are we overwriting data
 if exist(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'file')
     error('This subject/session already has saved data');
@@ -197,48 +196,62 @@ imTexStandard = Screen('MakeTexture', window, imS*white); % multiply by "white" 
 imSizeS = size(imS); % Make the rects for placing the images in the window
 imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS(2));
 
-%% Make STANDARD MASK
-t=imS;
-switch p.maskType
-    case 'none'
-          mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
-    case 'color'
-%         mask = ones(size(t))*p.backgroundColor;
-          mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
-    case 'whitenoise'
-        mask = (rand(size(t))-0.5)*p.standardContrast + 0.5;
-    % case 'verticalgrating'
-    %     m = buildColorGrating(pixelsPerDegree, p.imSize, ...
-    %         p.gratingSF, 0, 0, p.standardContrast, 0, 'bw');
-    %     mask = maskWithGaussian(m, size(m,1), p.imSizeS);
-    % case 'crossedgratings'
-    %     for i=1:numel(p.targetOrientation)
-    %         m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-    %             p.gratingSF, 0, 0, p.standardContrast, 0, 'bw');
-    %     end
-    %     m = sum(m,3)./numel(0);
-    %     mask = maskWithGaussian(m, size(m,1), p.imSizeS);
-    % case 'hvgratings'
-    %     hv = [0 90];
-    %     for i=1:numel(hv)
-    %         m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-    %             p.gratingSF, hv(i), 0, p.standardContrast, 0, 'bw');
-    %     end
-    %     m = sum(m,3)./numel(hv);
-    %     mask = maskWithGaussian(m, size(m,1), p.imSizeS);
-    % case 'filterednoise'
-    %     idx = 1;
-    %     while idx <= 100
-    %         masktemp = makeFilteredNoise(p.imSize/1.3, p.standardContrast, ...
-    %             0, 180, p.gratingSF, 2, pixelsPerDegree, 1);
-    %         if mean(masktemp(:))<0.51 && mean(masktemp(:))>0.49
-    %             mask{idx} = masktemp;
-    %             idx = idx+1;
-    %         end
-    %     end
-    otherwise
-        error('maskType not recognized')
-end
+% %% Make STANDARD MASK OPTION 1
+% t=imS;
+% switch p.maskType
+%     case 'none'
+%           mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
+%     case 'color'
+% %         mask = ones(size(t))*p.backgroundColor;
+%           mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
+%     case 'whitenoise'
+%         mask = (rand(size(t))-0.5)*p.standardContrast + 0.5;
+%     % case 'verticalgrating'
+%     %     m = buildColorGrating(pixelsPerDegree, p.imSize, ...
+%     %         p.gratingSF, 0, 0, p.standardContrast, 0, 'bw');
+%     %     mask = maskWithGaussian(m, size(m,1), p.imSizeS);
+%     % case 'crossedgratings'
+%     %     for i=1:numel(p.targetOrientation)
+%     %         m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
+%     %             p.gratingSF, 0, 0, p.standardContrast, 0, 'bw');
+%     %     end
+%     %     m = sum(m,3)./numel(0);
+%     %     mask = maskWithGaussian(m, size(m,1), p.imSizeS);
+%     % case 'hvgratings'
+%     %     hv = [0 90];
+%     %     for i=1:numel(hv)
+%     %         m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
+%     %             p.gratingSF, hv(i), 0, p.standardContrast, 0, 'bw');
+%     %     end
+%     %     m = sum(m,3)./numel(hv);
+%     %     mask = maskWithGaussian(m, size(m,1), p.imSizeS);
+%     % case 'filterednoise'
+%     %     idx = 1;
+%     %     while idx <= 100
+%     %         masktemp = makeFilteredNoise(p.imSize/1.3, p.standardContrast, ...
+%     %             0, 180, p.gratingSF, 2, pixelsPerDegree, 1);
+%     %         if mean(masktemp(:))<0.51 && mean(masktemp(:))>0.49
+%     %             mask{idx} = masktemp;
+%     %             idx = idx+1;
+%     %         end
+%     %     end
+%     otherwise
+%         error('maskType not recognized')
+% end
+% 
+% if iscell(mask)
+%     for i=1:numel(mask)
+%         maskTexs(i) = Screen('MakeTexture', window, mask{i}*white);
+%     end
+% else
+%     maskTexs = Screen('MakeTexture', window, mask*white);
+% end
+% 
+% maskIdx = randi(numel(maskTexs));
+% maskTex = maskTexs(maskIdx);
+
+%% MAKE STANDARD MASK OPTION 2 (karen's
+[mask, ~, ~]=kt_makeFilteredNoise(imSizeS(1), p.standardContrast,0, 180, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 1);
 
 if iscell(mask)
     for i=1:numel(mask)
@@ -250,6 +263,8 @@ end
 
 maskIdx = randi(numel(maskTexs));
 maskTex = maskTexs(maskIdx);
+
+% maskTex=mask;
 %% SANNITY CHECK: SHOW ALL TEXTURES ONE BY ONE
 % % Loop through each texture and display it
 % for iC = 1:numel(p.gratingContrasts)
@@ -437,45 +452,47 @@ switch p.task % task and demo
 
             %% Make mask
             t=size(tex{testContrast, testPhase});
-            switch p.maskType
-                case 'none'
-                    mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
-                case 'color'
-                    maskT = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
-                case 'whitenoise'
-                    maskT = (rand(size(t))-0.5)*testContrast + 0.5;
-                case 'verticalgrating'
-                    mT = buildColorGrating(pixelsPerDegree, p.imSize(1), ...
-                        p.gratingSF, 0, 0, testContrast, 0, 'bw');
-                    maskT = maskWithGaussian(mT, size(mT,1), p.imSizeS);
-                case 'crossedgratings'
-                    for i=1:numel(p.targetOrientation)
-                        mT(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-                            p.gratingSF, 0, 0, testContrast, 0, 'bw');
-                    end
-                    mT = sum(mT,3)./numel(0);
-                    maskT = maskWithGaussian(mT, size(mT,1), p.imSizeS);
-                case 'hvgratings'
-                    hv = [0 90];
-                    for i=1:numel(hv)
-                        mT(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-                            p.gratingSF, hv(i), 0, testContrast, 0, 'bw');
-                    end
-                    mT = sum(mT,3)./numel(hv);
-                    maskT = maskWithGaussian(mT, size(mT,1), p.imSizeS);
-                case 'filterednoise'
-                    idx = 1;
-                    while idx <= 100
-                        masktemp = makeFilteredNoise(p.imSize/1.3,testContrast, ...
-                            0, 180, p.gratingSF, 2, pixelsPerDegree, 1);
-                        if mean(masktemp(:))<0.51 && mean(masktemp(:))>0.49
-                            maskT{idx} = masktemp;
-                            idx = idx+1;
-                        end
-                    end
-                otherwise
-                    error('maskType not recognized')
-            end
+            % switch p.maskType
+            %     case 'none'
+            %         mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
+            %     case 'color'
+            %         maskT = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
+            %     case 'whitenoise'
+            %         maskT = (rand(size(t))-0.5)*testContrast + 0.5;
+            %     case 'verticalgrating'
+            %         mT = buildColorGrating(pixelsPerDegree, p.imSize(1), ...
+            %             p.gratingSF, 0, 0, testContrast, 0, 'bw');
+            %         maskT = maskWithGaussian(mT, size(mT,1), p.imSizeS);
+            %     case 'crossedgratings'
+            %         for i=1:numel(p.targetOrientation)
+            %             mT(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
+            %                 p.gratingSF, 0, 0, testContrast, 0, 'bw');
+            %         end
+            %         mT = sum(mT,3)./numel(0);
+            %         maskT = maskWithGaussian(mT, size(mT,1), p.imSizeS);
+            %     case 'hvgratings'
+            %         hv = [0 90];
+            %         for i=1:numel(hv)
+            %             mT(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
+            %                 p.gratingSF, hv(i), 0, testContrast, 0, 'bw');
+            %         end
+            %         mT = sum(mT,3)./numel(hv);
+            %         maskT = maskWithGaussian(mT, size(mT,1), p.imSizeS);
+            %     case 'filterednoise'
+            %         idx = 1;
+            %         while idx <= 100
+            %             masktemp = makeFilteredNoise(p.imSize/1.3,testContrast, ...
+            %                 0, 180, p.gratingSF, 2, pixelsPerDegree, 1);
+            %             if mean(masktemp(:))<0.51 && mean(masktemp(:))>0.49
+            %                 maskT{idx} = masktemp;
+            %                 idx = idx+1;
+            %             end
+            %         end
+            %     otherwise
+            %         error('maskType not recognized')
+            % end
+            %SHOULD IT MATCH IN ORIENTATION
+            [maskT, ~, ~]=kt_makeFilteredNoise(imSizeS(1),testContrast ,0, 180, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 1);
 
             if iscell(maskT)
                 for i=1:numel(maskT)
@@ -487,6 +504,7 @@ switch p.task % task and demo
 
              maskTIdx = randi(numel(maskTexsT));
              maskTexT = maskTexsT(maskTIdx);
+            %maskTexT=maskT;
             %% Store trial information
             d.testStatus(iTrial) = testStatus; %absent or present
             d.testOrientation(iTrial) = testOrientation; %orientation of test stimuli
