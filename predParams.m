@@ -27,7 +27,9 @@ p.gratingDiameter = [2 0];
 % 0.125 0.25 0.5 1
 %p.gratingContrasts = [0 0.14678 0.215443 0.316228 0.464159 0.681292 1];
 % 2.5 to 50 percent, 6-79% 
-p.gratingContrasts = [0 logspace(log10(0.025),log10(0.5),6)]; % 7 contrast levels and 0 (absent stimuli) 
+%p.gratingContrasts = [0 logspace(log10(0.025),log10(0.5),6)]; % 7 contrast levels and 0 (absent stimuli) 
+p.gratingContrasts = [0 logspace(log10(0.2),log10(0.8),6)];
+p.maskContrast=0.8;
 %p.gratingContrasts=[1];
 p.testStatus=[1]; %0 (absent stimuli)
 p.standardContrast = p.gratingContrasts(4); %WHAT SHOULD CONTRAST BE???
@@ -54,12 +56,12 @@ p.deviceName = 'Scarlett';
 p.fixSOA=0.5; %precue fixation time 
 p.standSOA = 1; % standard to tone
 p.toneSOA = 0.5; % tone to test
-p.imDur = 0.03; % image duration s
+p.imDur = 0.03; % image duration 0.03
 p.ITI=0.2;
 p.signalStart=1;
 p.signalRestDur=1;
 p.maskDur=0.02;
-p.maskSOA = 1;
+p.maskSOA = 0; % should be 0
 %% Validity
 p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invalid'};
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid

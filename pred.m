@@ -369,6 +369,23 @@ switch p.task % task and demo
         %deviceName = p.deviceName; % 'Scarlett'; 'sysdefault'
         %pahandle = denlab_openAudio(deviceName, reqlatencyclass, p.Fs);
 
+        %% GENERATE MASK FOR EVERY TRIAL AND GENERATE STANDARD MASK FOR EVERY TRIAL TOO, USE RD_aperture
+        tic
+        maskTexs=[]; 
+        masks = []; maskTexs = []; 
+        for i= 1:nTrials
+            for iJ = 1:2 % Standard then test
+                [mask,~,~]=kt_makeFilteredNoise(p.gratingSize, p.maskContrast,0, 0, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 0,'allOrientations');
+                masks1=mask;
+                gratingRadiusM = round(p.gratingDiameter/2*pixelsPerDegree); 
+                mask=rd_aperture(mask, 'gaussian', gratingRadiusM(1)/4);
+                maskTex = Screen('MakeTexture', window, mask*white);
+
+                masks(i,iJ,:,:) = mask; 
+                maskTexs(i,iJ)=maskTex;
+            end
+        end
+        toc
 
         %% Show instruction screen and wait for a button press
         instructions = 'This is the main experiment\n\n';
@@ -396,42 +413,16 @@ switch p.task % task and demo
         iTrial=1;
         completedTrials=0;
 
-        %% GENERATE MASK FOR EVERY TRIAL AND GENERATE STANDARD MASK FOR EVERY TRIAL TOO, USE RD_aperture
-        tic
-        maskTexs=[]; 
-        masks = []; maskTexs = []; 
-        for i= 1:nTrials
-            for iJ = 1:2 % Standard then test
-                [mask,~,~]=kt_makeFilteredNoise(p.gratingSize, 0.5,0, 0, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 0,'allOrientations');
-                mask=rd_aperture(mask, 'gaussian', gratingRadiusS(1)/4);
-                maskTex = Screen('MakeTexture', window, mask*white);
-
-            % 
-            % if iscell(mask)
-            %     for i=1:numel(mask)
-            %         maskTexs(i) = Screen('MakeTexture', window, mask{i}*white);
-            %     end
-            % else
-            %     maskTexs = Screen('MakeTexture', window, mask*white);
-            % end
-                masks(i,iJ,:,:) = mask; 
-                maskTexs(i,iJ)=maskTex;
-            end
-        end
-        toc
+        disp('reached')
 
         %for iTrial = 1:nTrials % the iteration in the trial loop
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
             stopThisTrial = 0;
-
             % %% Initialize for eye tracking trial breaks
             % if iTrial>1
             %     eyeSkip(trialIdx) = stopThisTrial; % this is for the previous trial
             % end
-
-
-            
 
             %% %%%% Present one trial %%%
             %% Get condition information for this trial
@@ -463,61 +454,6 @@ switch p.task % task and demo
 
             %% Set up test mask for this trial
 
-            %% Make mask
-            t=size(tex{testContrast, testPhase});
-            % switch p.maskType
-            %     case 'none'
-            %         mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
-            %     case 'color'
-            %         maskT = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
-            %     case 'whitenoise'
-            %         maskT = (rand(size(t))-0.5)*testContrast + 0.5;
-            %     case 'verticalgrating'
-            %         mT = buildColorGrating(pixelsPerDegree, p.imSize(1), ...
-            %             p.gratingSF, 0, 0, testContrast, 0, 'bw');
-            %         maskT = maskWithGaussian(mT, size(mT,1), p.imSizeS);
-            %     case 'crossedgratings'
-            %         for i=1:numel(p.targetOrientation)
-            %             mT(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-            %                 p.gratingSF, 0, 0, testContrast, 0, 'bw');
-            %         end
-            %         mT = sum(mT,3)./numel(0);
-            %         maskT = maskWithGaussian(mT, size(mT,1), p.imSizeS);
-            %     case 'hvgratings'
-            %         hv = [0 90];
-            %         for i=1:numel(hv)
-            %             mT(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-            %                 p.gratingSF, hv(i), 0, testContrast, 0, 'bw');
-            %         end
-            %         mT = sum(mT,3)./numel(hv);
-            %         maskT = maskWithGaussian(mT, size(mT,1), p.imSizeS);
-            %     case 'filterednoise'
-            %         idx = 1;
-            %         while idx <= 100
-            %             masktemp = makeFilteredNoise(p.imSize/1.3,testContrast, ...
-            %                 0, 180, p.gratingSF, 2, pixelsPerDegree, 1);
-            %             if mean(masktemp(:))<0.51 && mean(masktemp(:))>0.49
-            %                 maskT{idx} = masktemp;
-            %                 idx = idx+1;
-            %             end
-            %         end
-            %     otherwise
-            %         error('maskType not recognized')
-            % end
-            %SHOULD IT MATCH IN ORIENTATION
-            [maskT, ~, ~]=kt_makeFilteredNoise(imSizeS(1),testContrast ,0, 180, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 1);
-
-            if iscell(maskT)
-                for i=1:numel(maskT)
-                    maskTexsT(i) = Screen('MakeTexture', window, maskT{i}*white);
-                end
-            else
-                maskTexsT = Screen('MakeTexture', window, maskT*white);
-            end
-
-             maskTIdx = randi(numel(maskTexsT));
-             maskTexT = maskTexsT(maskTIdx);
-            %maskTexT=maskT;
             %% Store trial information
             d.testStatus(iTrial) = testStatus; %absent or present
             d.testOrientation(iTrial) = testOrientation; %orientation of test stimuli
@@ -552,19 +488,18 @@ switch p.task % task and demo
             end
 
             %% Present STANDARD image
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
             Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
             timeS = Screen('Flip', window, timeFix+p.signalStart - slack); %timeFix+ how much i want to wait from white(active) to standard
             %sound(click, p.Fs)  %play click
-
+            
             % blank
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
-
             %% PRESENT STANDARD MASK
             if ~strcmp(p.maskType,'none')
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 Screen('DrawTexture', window, maskTexs(trialIdx,1), [], imRect);
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 timeMask1 = Screen('Flip', window, timeS + p.maskSOA - slack);
 
                 % blank
@@ -575,6 +510,7 @@ switch p.task % task and demo
                 timeMask1 = NaN;
                 timeMaskBlank1 = NaN;
             end
+            
             %% Present predictive tone
             PsychPortAudio('FillBuffer', pahandle, tone);
             timeTone = PsychPortAudio('Start', pahandle, [], timeS + p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
@@ -661,7 +597,6 @@ switch p.task % task and demo
             end
             timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
             %sound(click, p.Fs)  %play click
-
             % blank
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
             Screen('Flip', window, timeT + p.imDur - slack);
@@ -669,8 +604,8 @@ switch p.task % task and demo
 
             %% PRESENT TEST MASK
             if ~strcmp(p.maskType,'none')
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 Screen('DrawTexture', window, maskTexs(trialIdx,2), [], imRect);
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 timeMask2 = Screen('Flip', window, timeT + p.maskSOA - slack);
 
                 % blank
@@ -681,7 +616,7 @@ switch p.task % task and demo
                 timeMask2 = NaN;
                 timeMaskBlank2 = NaN;
             end
-
+            
             %% Eyetracking 
             if p.eyeTracking
                 Eyelink('Message', 'EVENT_RESPCUE');
