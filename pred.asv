@@ -251,20 +251,9 @@ imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS
 % maskTex = maskTexs(maskIdx);
 
 %% MAKE STANDARD MASK OPTION 2 (karen's
-[mask, ~, ~]=kt_makeFilteredNoise(imSizeS(1), p.standardContrast,0, 180, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 1);
 
-if iscell(mask)
-    for i=1:numel(mask)
-        maskTexs(i) = Screen('MakeTexture', window, mask{i}*white);
-    end
-else
-    maskTexs = Screen('MakeTexture', window, mask*white);
-end
-
-maskIdx = randi(numel(maskTexs));
-maskTex = maskTexs(maskIdx);
-
-%% SANNITY CHECK: SHOW ALL TEXTURES ONE BY ONE
+% maskTex=mask;
+%% SANITY CHECK: SHOW ALL TEXTURES ONE BY ONE
 % % Loop through each texture and display it
 % for iC = 1:numel(p.gratingContrasts)
 %     for iO = 1:numel(p.gratingOrientations)
@@ -406,6 +395,31 @@ switch p.task % task and demo
         skippedTrials = [];
         iTrial=1;
         completedTrials=0;
+
+        %% GENERATE MASK FOR EVERY TRIAL AND GENERATE STANDARD MASK FOR EVERY TRIAL TOO, USE RD_aperture
+        tic
+        maskTexs=[]; 
+        masks = []; maskTexs = []; 
+        for i= 1:nTrials
+            for iJ = 1:2 % Standard then test
+                [mask,~,~]=kt_makeFilteredNoise(p.gratingSize, 0.5,0, 0, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 0,'allOrientations');
+                mask=rd_aperture(mask, 'gaussian', gratingRadiusS(1)/4);
+                maskTex = Screen('MakeTexture', window, mask*white);
+
+            % 
+            % if iscell(mask)
+            %     for i=1:numel(mask)
+            %         maskTexs(i) = Screen('MakeTexture', window, mask{i}*white);
+            %     end
+            % else
+            %     maskTexs = Screen('MakeTexture', window, mask*white);
+            % end
+                masks(i,iJ,:,:) = mask; 
+                maskTexs(i,iJ)=maskTex;
+            end
+        end
+        toc
+
         %for iTrial = 1:nTrials % the iteration in the trial loop
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
@@ -490,8 +504,8 @@ switch p.task % task and demo
             %     otherwise
             %         error('maskType not recognized')
             % end
-
-            [maskT, ~, ~]=kt_makeFilteredNoise(imSizeS(1), p.standardContrast,0, 180, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 1);
+            %SHOULD IT MATCH IN ORIENTATION
+            [maskT, ~, ~]=kt_makeFilteredNoise(imSizeS(1),testContrast ,0, 180, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 1);
 
             if iscell(maskT)
                 for i=1:numel(maskT)
@@ -503,6 +517,7 @@ switch p.task % task and demo
 
              maskTIdx = randi(numel(maskTexsT));
              maskTexT = maskTexsT(maskTIdx);
+            %maskTexT=maskT;
             %% Store trial information
             d.testStatus(iTrial) = testStatus; %absent or present
             d.testOrientation(iTrial) = testOrientation; %orientation of test stimuli
@@ -549,7 +564,7 @@ switch p.task % task and demo
             %% PRESENT STANDARD MASK
             if ~strcmp(p.maskType,'none')
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-                Screen('DrawTexture', window, maskTexT, [], imRect);
+                Screen('DrawTexture', window, maskTexs(trialIdx,1), [], imRect);
                 timeMask1 = Screen('Flip', window, timeS + p.maskSOA - slack);
 
                 % blank
@@ -655,7 +670,7 @@ switch p.task % task and demo
             %% PRESENT TEST MASK
             if ~strcmp(p.maskType,'none')
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-                Screen('DrawTexture', window, maskTexT, [], imRect);
+                Screen('DrawTexture', window, maskTexs(trialIdx,2), [], imRect);
                 timeMask2 = Screen('Flip', window, timeT + p.maskSOA - slack);
 
                 % blank
