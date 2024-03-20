@@ -27,7 +27,7 @@ function [filteredNoiseIm, numGenerated, pass] = kt_makeFilteredNoise(imSize, co
 %       mirrored across vertical axis
 %       - 'allOrientations' will fitler all orientations
 %   - applies a correction to fix mean luminance of the im to input contrast 
-correctionType = 'none'; % 'regenerateUntilPass'; % 'regenerateUntilPass' % 'luminanceMeanShift'
+correctionType ='regenerateUntilPass'; %'none'; % 'regenerateUntilPass'; % 'regenerateUntilPass' % 'luminanceMeanShift'
 
 %% example inputs
 if nargin==0
