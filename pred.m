@@ -792,6 +792,8 @@ switch p.task % task and demo
             d.timeTone(iTrial)=timeTone; % time at tone
             d.timeT(iTrial)=timeT; % time at test
             d.trialOrder=trialOrder;
+            d.testMask(iTrial)=masks(trialIdx,2);
+            d.standardMask(iTrial)=masks(trialIdx,1);
             %d.trials(iTrial)=trials(trialIdx, : );
             save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
 

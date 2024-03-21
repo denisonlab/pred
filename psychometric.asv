@@ -7,11 +7,6 @@ function psychometric()
 % datafile=sprintf('%s/%s_s%d_pred.mat',dataDir,subjectID,sessionNum);
 % file=load(datafile);
 
-% melissa2 has 2 sessions, each of 448 trials for contrast range 2.5 to 50%
-% and no masks
-% testBEH has 1 session, 448 trials with mask contrast = 0.8 and range 20%
-% to 80%
-
 subjectID = input('Enter subject ID:  ', 's');
 dataDir = sprintf('%s/data', pwd);
 
@@ -197,12 +192,11 @@ testContrasts=file.d.testContrast;
 testContrasts(skipRowsCorrect)=[];
 
 corrects=cat(2,testContrasts,corrects);
-nTrials=size(testContrasts,2);
-
+nTrials=size(file.d.testStatus,2);
 corrects=reshape(corrects,[nTrials,2]);
-%corrects = corrects(~any(isnan(corrects), 2), :);
+corrects = corrects(~any(isnan(corrects), 2), :);
 corrects=sortrows(corrects,1);
-%nTrials=length(corrects);
+nTrials=length(corrects);
 prop_con=nTrials/length(file.p.gratingContrasts(1,:));
 %prop_exp=(nTrials/length(file.p.gratingContrasts))*(mean(file.p.precueValidities==1));
 %prop_unexp=(nTrials/length(file.p.gratingContrasts))*(mean(file.p.precueValidities==2));
@@ -219,30 +213,15 @@ ylabel("percent correct");
 title("p(correct)");
 
 %% P(test stronger)
-
-% first we get all responses
-phigher= file.d.targetResponseKey ;
-
-skipRows=find(phigher==0);
-phigher(skipRows)=[];
-
-
-
+phigher= file.d.targetResponseKey 
+phigher(phigher == 0) = NaN;
 phigher= phigher == (1 || 4);
-
-%clean all used variables by removing skipped trials
-testContrasts=file.d.testContrast;
-testContrasts(skipRows)=[];
-
-phigher= cat(2,testContrasts,phigher);
-
-nTrials=size(testContrasts,2);
-
-%phigher = phigher(~any(isnan(phigher), 2), :);
-%nTrials=size(file.d.testStatus,2)-sum(d.stopThisTrial==1);
+phigher= cat(2,file.d.testContrast,phigher);
+phigher = phigher(~any(isnan(phigher), 2), :);
+nTrials=size(file.d.testStatus,2)-sum(d.stopThisTrial==1);
 phigher=reshape(phigher,[nTrials,2]);
 phigher=sortrows(phigher,1);
-%nTrials=length(phigher);
+nTrials=length(phigher);
 prop_con=nTrials/length(file.p.gratingContrasts(1,:));
 cons_high=[];
 for i = 1:length(file.p.gratingContrasts(1,:))
