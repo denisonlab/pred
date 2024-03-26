@@ -923,29 +923,19 @@ switch p.task % task and demo
 
         toneLow=cueTones(1,:);
         PsychPortAudio('FillBuffer', pahandle, toneLow);
-        timeToneLow = PsychPortAudio('Start', pahandle, [], timeToneLowText+p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-        WaitSecs(1);
+        timeToneLow = PsychPortAudio('Start', pahandle, [], timeToneLowText+p.toneSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
 
         KbWait(devNum);
 
-        instructionsToneHigh ='This is what the high tone will sound like. Press to continue!';
+        instructionsToneHigh ='This is what the high tone will sound like. Press to start demo!';
         DrawFormattedText(window, instructionsToneHigh, 'center', 'center', [1 1 1]*white);
-        timeToneHighText=Screen('Flip', window,timeToneLow+p.toneSOA-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        
-        WaitSecs(1);
+        timeToneHighText=Screen('Flip', window,timeToneLow-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
+
         toneHigh=cueTones(2,:);
         PsychPortAudio('FillBuffer', pahandle, toneHigh);
-        timeToneHigh = PsychPortAudio('Start', pahandle, [], timeToneHighText+p.standSOA-slack, 1); % waitForStart = 1 in order to return a timestamp of playback
-        
+        timeToneHigh = PsychPortAudio('Start', pahandle, [], timeToneHighText+p.toneSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
         %Screen('Flip', window,timeToneHighText+p.demoInstructDu - slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        toc
-        WaitSecs(1);
-        KbWait(devNum);
 
-        instructionsStartDemo ='Press to start demo trials!';
-        DrawFormattedText(window, instructionsStartDemo, 'center', 'center', [1 1 1]*white);
-        Screen('Flip', window,timeToneHigh+p.toneSOA-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        WaitSecs(1);
         KbWait(devNum);
 
         timeStart = GetSecs;
