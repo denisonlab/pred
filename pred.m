@@ -1231,7 +1231,7 @@ switch p.task % task and demo
             d.timeTone(iTrial)=timeTone; % time at tone
             d.timeT(iTrial)=timeT; % time at test
 
-            save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
+            save(sprintf('%s/%s_demo_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
 
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
