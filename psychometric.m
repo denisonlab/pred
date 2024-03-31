@@ -96,8 +96,8 @@ phigher(skipRows)=[];
 % if the response was key 1 or key 0 i.e. 1 or 4, participants perceived
 % the test as higher contrast/stronger so make those values 1 and all other
 % values 0
-phigher= phigher == (1 || 4);
-
+phigher= ismember(phigher,[1 4]);
+%phigher= phigher == (1 || 4);
 %clean all used variables by removing skipped trials
 testContrasts=file.d.testContrast;
 testContrasts(skipRows)=[];
@@ -135,7 +135,7 @@ xlabel("contrasts")
 ylabel("percent that answered 0 or 1 aka perceived test as higher contrast");
 title("p(test stronger) for expected/valid vs unexpected/invalid");
 legend("expected","unexpected");
-xscale log;
+%xscale log;
 %% P(correct) for unexpected vs expected
 
 % no need to do this because skipRowsCorrect and skipRows should be the
@@ -182,7 +182,7 @@ xlabel("contrasts")
 ylabel("percent correct");
 title("p(correct) for expected/valid vs unexpected/invalid");
 legend("expected","unexpected");
-xscale log;
+%xscale log;
 %% P(correct)
 
 corrects=file.d.correct;
@@ -217,7 +217,7 @@ plot(allcons(2:7),cons_cor(2:7),'blue-v');
 xlabel("contrasts")
 ylabel("percent correct");
 title("p(correct)");
-xscale log;
+%xscale log;
 %% P(test stronger)
 
 % first we get all responses
@@ -228,8 +228,7 @@ phigher(skipRows)=[];
 
 
 
-phigher= phigher == (1 || 4);
-
+phigher= ismember(phigher,[1 4]);
 %clean all used variables by removing skipped trials
 testContrasts=file.d.testContrast;
 testContrasts(skipRows)=[];
@@ -254,7 +253,7 @@ plot(allcons,cons_high,'blue-v');
 xlabel("contrasts")
 ylabel("percent that answered 0 or 1 aka perceived test as higher contrast");
 title("p(test stronger)");
-xscale log;
+%xscale log;
 
 
 %% Does performance effect go away?
@@ -266,7 +265,7 @@ phigher= file.d.targetResponseKey ;
 skipRows=find(phigher==0);
 % delete skipped trials based on indices
 phigher(skipRows)=[];
-phigher= phigher == (1 || 4);
+phigher= ismember(phigher,[1 4]);
 
 %clean all used variables by removing skipped trials
 testContrasts=file.d.testContrast;
@@ -312,7 +311,7 @@ xlabel("contrasts")
 ylabel("perceived test as higher contrast");
 title("p(test stronger) 1st half for expected/valid vs unexpected/invalid");
 legend("expected","unexpected");
-xscale log;
+%xscale log;
 
 subplot(2,1,2);
 plot(allcons(2:7),cons_ex2(2:7),'blue-v');
@@ -322,7 +321,7 @@ xlabel("contrasts")
 ylabel("perceived test as higher contrast");
 title("p(test stronger) 2nd half for expected/valid vs unexpected/invalid");
 legend("expected","unexpected");
-xscale log;
+%xscale log;
 
 %% Does performance effect go away?
 
@@ -375,7 +374,7 @@ xlabel("contrasts")
 ylabel("p(correct)");
 title("p(correct) 1st half for expected/valid vs unexpected/invalid");
 legend("expected","unexpected");
-xscale log;
+%xscale log;
 subplot(2,1,2);
 plot(allcons(2:7),cons_ex2(2:7),'blue-v');
 hold on
@@ -384,12 +383,12 @@ xlabel("contrasts")
 ylabel("p(correct)");
 title("p(correct) 2nd half for expected/valid vs unexpected/invalid");
 legend("expected","unexpected");
-xscale log;
+%xscale log;
 
 %% D' and criterion (general)
 
-%signal present= +45 (2)
-%signal absent = -45 (1)
+%signal present= -45 (1)
+%signal absent = +45 (1)
 signalPresent=1;
 signalAbsent=2;
 
@@ -421,47 +420,64 @@ fa_rates=[];
 miss=[];
 CR=[];
 for i = 1:length(file.p.gratingContrasts(1,:))
-    hits=(responses(prop_con*i-prop_con+1:prop_con*i,2)==(1||2))==(responses(prop_con*i-prop_con+1:prop_con*i,3)==1);
+    
+    checkrespP=ismember(responses(prop_con*i-prop_con+1:prop_con*i,2),[1 2]);
+    checkOriP=(responses(prop_con*i-prop_con+1:prop_con*i,3)==1);
+
+    hits=checkrespP==1 & checkOriP==1;
     hit_rate=mean(hits);
     hit_rates(i)=hit_rate;
-    fa=(responses(prop_con*i-prop_con+1:prop_con*i,2)==(1||2))==(responses(prop_con*i-prop_con+1:prop_con*i,3)==2);
+
+    checkOriA=(responses(prop_con*i-prop_con+1:prop_con*i,3)==2);
+    fa=checkrespP==1 & checkOriA==1;
     fa_rate=mean(fa);
     fa_rates(i)=fa_rate;
+
     cons_dprime(i)=norminv(hit_rate) - norminv(fa_rate);
     cons_c(i)=-(norminv(hit_rate) + norminv(fa_rate))/2;
-    miss1=(responses(prop_con*i-prop_con+1:prop_con*i,2)==(3||4))==(responses(prop_con*i-prop_con+1:prop_con*i,3)==1);
+
+    checkrespA=ismember(responses(prop_con*i-prop_con+1:prop_con*i,2),[3 4]);
+    miss1= checkrespA==1 & checkOriP==1;
     miss(i)=mean(miss1);
-    CR1=(responses(prop_con*i-prop_con+1:prop_con*i,2)==(3||4))==(responses(prop_con*i-prop_con+1:prop_con*i,3)==2);
+
+    CR1=checkrespA==1 & checkOriA==1;
     CR(i)=mean(CR1);
 end
 
 figure();
 plot(allcons,hit_rates,'blue-v');
 xlabel("contrasts")
-ylabel("hits");
-title("hits");
-xscale log;
-figure();
-plot(allcons,fa_rates,'blue-v');
-xlabel("contrasts")
-ylabel("fa");
-title("fa");
-xscale log;
-
-figure();
-plot(allcons,miss,'blue-v');
-xlabel("contrasts")
-ylabel("miss'");
-title("miss");
-xscale log;
-
-
-figure();
-plot(allcons,CR,'blue-v');
-xlabel("contrasts")
-ylabel("CR'");
-title("CR");
-xscale log;
+ylabel("p");
+title("hits, fa, miss, CR");
+%xscale log;
+hold on
+plot(allcons,fa_rates,'red-v');
+hold on
+plot(allcons,miss,'-v');
+hold on
+plot(allcons,CR,'-v');
+legend("hit","fa","miss","CR");
+% figure();
+% plot(allcons,fa_rates,'blue-v');
+% xlabel("contrasts")
+% ylabel("fa");
+% title("fa");
+% xscale log;
+% 
+% figure();
+% plot(allcons,miss,'blue-v');
+% xlabel("contrasts")
+% ylabel("miss'");
+% title("miss");
+% xscale log;
+% 
+% 
+% figure();
+% plot(allcons,CR,'blue-v');
+% xlabel("contrasts")
+% ylabel("CR'");
+% title("CR");
+% xscale log;
 
 figure();
 subplot(2,1,1);
@@ -469,14 +485,14 @@ plot(allcons(1:7),cons_dprime(1:7),'blue-v');
 xlabel("contrasts")
 ylabel("d'");
 title("d'");
-xscale log;
+%xscale log;
 
 subplot(2,1,2);
 plot(allcons(1:7),cons_c(1:7),'blue-v');
 xlabel("contrasts")
 ylabel("criterion");
 title("criterion");
-xscale log;
+%xscale log;
 
 
 %% Correctness based on perceived contrast actually stronger
@@ -501,29 +517,41 @@ responses=reshape(responses,[nTrials,3]);
 
 
 %sort based on contrast levels
-phigher=sortrows(phigher,1); 
+responses=sortrows(responses,1); 
 % sort based on precue validity
-phigher=sortrows(phigher,3);
+responses=sortrows(responses,3);
 %nTrials=length(phigher);
 prop_exp=(nTrials/length(file.p.gratingContrasts(1,:)))*(mean(file.p.precueValidities(1,:)==1));
 prop_unexp=(nTrials/length(file.p.gratingContrasts(1,:)))*(mean(file.p.precueValidities(1,:)==2));
+
 cons_highex=[];
 cons_highunex=[];
+gratingContrasts=file.p.gratingContrasts(1,:);
+stand=find(gratingContrasts==file.p.standardContrast(1,:));
+
 for i = 1:length(file.p.gratingContrasts(1,:))
-    cons_highex(i)=mean((responses(prop_exp*i-prop_exp+1:prop_exp*i,2)==(1||4))==(responses(prop_exp*i-prop_exp+1:prop_exp*i,3)==(5||6||7)));
-    start=prop_exp*length(file.p.gratingContrasts(1,:))+1;
-    cons_highunex(i)=mean((responses(prop_unexp*i-prop_unexp+1:prop_unexp*i,2)==(1||4))==(responses(prop_unexp*i-prop_unexp+1:prop_unexp*i,3)==(5||6||7)));
+    if i<stand
+        ansExW=ismember(responses(prop_exp*i-prop_exp+1:prop_exp*i,2),[2 3]);
+        cons_highex(i)=mean(ansExW);
+        start=prop_exp*length(file.p.gratingContrasts(1,:))+1;
+        ansUnexW=ismember(responses(prop_unexp*i-prop_unexp+1:prop_unexp*i,2),[2 3]);
+        cons_highunex(i)=mean(ansUnexW);
+    elseif i>=stand
+        ansExW=ismember(responses(prop_exp*i-prop_exp+1:prop_exp*i,2),[1 4]);
+        cons_highex(i)=mean(ansExW);
+        start=prop_exp*length(file.p.gratingContrasts(1,:))+1;
+        ansUnexW=ismember(responses(prop_unexp*i-prop_unexp+1:prop_unexp*i,2),[1 4]);
+        cons_highunex(i)=mean(ansUnexW);
+        
+    end
 end
-
-
-
 figure();
 plot(allcons,cons_highex,'blue-v');
 hold on
 plot(allcons,cons_highunex,'red-v');
 xlabel("contrasts")
-ylabel("p(test stronger correct)");
-title("p(test stronger correct) for expected/valid vs unexpected/invalid");
+ylabel("p(correct strength comparison judgement)");
+title("p(correct strength comparison judgement) for expected/valid vs unexpected/invalid");
 legend("expected","unexpected");
-xscale log;
+%xscale log;
 end
