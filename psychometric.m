@@ -385,116 +385,6 @@ title("p(correct) 2nd half for expected/valid vs unexpected/invalid");
 legend("expected","unexpected");
 %xscale log;
 
-%% D' and criterion (general)
-
-%signal present= -45 (1)
-%signal absent = +45 (1)
-signalPresent=1;
-signalAbsent=2;
-
-
-response=file.d.targetResponseKey;
-%find all indices of elements that were skipped (have zero instead of a response key)
-skipRows=find(response==0);
-response(skipRows)=[];
-
-testOri=file.d.testOrientation;
-testOri(skipRows)=[];
-
-testContrasts=file.d.testContrast;
-testContrasts(skipRows)=[];
-
-%precueValidities=file.d.precueValidity;
-%precueValidities(skipRows)=[];
-
-responses= cat(3,testContrasts,response,testOri);
-nTrials=size(testContrasts,2);
-responses=reshape(responses,[nTrials,3]);
-responses=sortrows(responses,1); 
-
-prop_con=nTrials/length(file.p.gratingContrasts(1,:));
-cons_dprime=[];
-cons_c=[];
-hit_rates=[];
-fa_rates=[];
-miss=[];
-CR=[];
-for i = 1:length(file.p.gratingContrasts(1,:))
-    
-    checkrespP=ismember(responses(prop_con*i-prop_con+1:prop_con*i,2),[1 2]);
-    checkOriP=(responses(prop_con*i-prop_con+1:prop_con*i,3)==1);
-
-    hits=checkrespP==1 & checkOriP==1;
-    hit_rate=mean(hits);
-    hit_rates(i)=hit_rate;
-
-    checkOriA=(responses(prop_con*i-prop_con+1:prop_con*i,3)==2);
-    fa=checkrespP==1 & checkOriA==1;
-    fa_rate=mean(fa);
-    fa_rates(i)=fa_rate;
-
-    cons_dprime(i)=norminv(hit_rate) - norminv(fa_rate);
-    cons_c(i)=-(norminv(hit_rate) + norminv(fa_rate))/2;
-
-    checkrespA=ismember(responses(prop_con*i-prop_con+1:prop_con*i,2),[3 4]);
-    miss1= checkrespA==1 & checkOriP==1;
-    miss(i)=mean(miss1);
-
-    CR1=checkrespA==1 & checkOriA==1;
-    CR(i)=mean(CR1);
-end
-
-figure();
-plot(allcons,hit_rates,'blue-v');
-xlabel("contrasts")
-ylabel("p");
-title("hits, fa, miss, CR");
-%xscale log;
-hold on
-plot(allcons,fa_rates,'red-v');
-hold on
-plot(allcons,miss,'-v');
-hold on
-plot(allcons,CR,'-v');
-legend("hit","fa","miss","CR");
-% figure();
-% plot(allcons,fa_rates,'blue-v');
-% xlabel("contrasts")
-% ylabel("fa");
-% title("fa");
-% xscale log;
-% 
-% figure();
-% plot(allcons,miss,'blue-v');
-% xlabel("contrasts")
-% ylabel("miss'");
-% title("miss");
-% xscale log;
-% 
-% 
-% figure();
-% plot(allcons,CR,'blue-v');
-% xlabel("contrasts")
-% ylabel("CR'");
-% title("CR");
-% xscale log;
-
-figure();
-subplot(2,1,1);
-plot(allcons(1:7),cons_dprime(1:7),'blue-v');
-xlabel("contrasts")
-ylabel("d'");
-title("d'");
-%xscale log;
-
-subplot(2,1,2);
-plot(allcons(1:7),cons_c(1:7),'blue-v');
-xlabel("contrasts")
-ylabel("criterion");
-title("criterion");
-%xscale log;
-
-
 %% Correctness based on perceived contrast actually stronger
 
 % first we get all responses
@@ -552,6 +442,274 @@ plot(allcons,cons_highunex,'red-v');
 xlabel("contrasts")
 ylabel("p(correct strength comparison judgement)");
 title("p(correct strength comparison judgement) for expected/valid vs unexpected/invalid");
+legend("expected","unexpected");
+%xscale log;
+
+%% d' and criterion general
+
+% %signal present= -45 (1)
+% %signal absent = +45 (1)
+signalPresent=1;
+signalAbsent=2;
+
+% first we get all responses
+responses= file.d.targetResponseKey ;
+%find all indices of elements that were skipped (have zero instead of a response key)
+skipRows=find(responses==0);
+% delete skipped trials based on indices
+responses(skipRows)=[];
+
+% get test orientations
+testOri=file.d.testOrientation;
+% delete skipped trials based on indices
+testOri(skipRows)=[];
+
+% get test contrasts
+testContrasts=file.d.testContrast;
+% delete skipped trials based on indices
+testContrasts(skipRows)=[];
+
+
+responses= cat(3,testContrasts,responses,testOri);
+nTrials=size(testContrasts,2);
+responses=reshape(responses,[nTrials,3]);
+responses=sortrows(responses,1); 
+prop_con=nTrials/length(file.p.gratingContrasts(1,:));
+
+
+cons_dprime=[];
+cons_c=[];
+hit_rates=[];
+fa_rates=[];
+miss=[];
+cr=[];
+
+for i = 1:length(file.p.gratingContrasts(1,:))
+    
+    responsePresent=ismember(responses(prop_con*i-prop_con+1:prop_con*i,2),[1 2]);
+    orientationPresent=(responses(prop_con*i-prop_con+1:prop_con*i,3)==1);
+%   get hits
+    hits=responsePresent==1 & orientationPresent==1;
+    hit_rate=mean(hits);
+    hit_rates(i)=hit_rate;
+%   get false alarms
+    orientationAbsent=(responses(prop_con*i-prop_con+1:prop_con*i,3)==2);
+    fa=responsePresent==1 & orientationAbsent==1;
+    fa_rate=mean(fa);
+    fa_rates(i)=fa_rate;
+%   get dprime and criterion    
+    if fa_rate==0
+        fa_rate=1/(length(responses));
+    elseif fa_rate==1 
+        fa_rate=(length(responses)-1)/(length(responses));
+    elseif hit_rate==0 
+        hit_rate=1/(length(responses));
+    elseif hit_rate==1
+        hit_rate=(length(responses)-1)/(length(responses));
+    end
+
+    cons_dprime(i)=norminv(hit_rate) - norminv(fa_rate);
+    cons_c(i)=-(norminv(hit_rate) + norminv(fa_rate))/2;
+   
+%   get misses
+    responseAbsent=ismember(responses(prop_con*i-prop_con+1:prop_con*i,2),[3 4]);
+    miss_1= responseAbsent==1 & orientationPresent==1;
+    miss(i)=mean(miss_1);
+%   get correct rejection
+    cr_1=responseAbsent==1 & orientationAbsent==1;
+    cr(i)=mean(cr_1);
+end
+figure();
+subplot(2,1,1);
+plot(allcons,cons_dprime,'blue-v');
+
+xlabel("contrasts")
+ylabel("d'");
+title("d'");
+%xscale log;
+
+subplot(2,1,2);
+plot(allcons,cons_c,'blue-v');
+
+xlabel("contrasts")
+ylabel("criterion");
+title("criterion");
+
+%xscale log;
+figure();
+plot(allcons,hit_rates,'blue-v');
+xlabel("contrasts")
+ylabel("p");
+title("hits, fa, miss, CR");
+%xscale log;
+hold on
+plot(allcons,fa_rates,'red-v');
+hold on
+plot(allcons,miss,'-v');
+hold on
+plot(allcons,cr,'-v');
+legend("hit","fa","miss","CR");
+
+figure();
+plot(fa_rates,hit_rates,'blue-v');
+xlabel("fa")
+ylabel("hit");
+title("ROC");
+
+
+%% d' and criterion for expected vs unexpected
+
+% %signal present= -45 (1)
+% %signal absent = +45 (1)
+signalPresent=1;
+signalAbsent=2;
+
+% first we get all responses
+responses= file.d.targetResponseKey ;
+%find all indices of elements that were skipped (have zero instead of a response key)
+skipRows=find(responses==0);
+% delete skipped trials based on indices
+responses(skipRows)=[];
+
+% get test orientations
+testOri=file.d.testOrientation;
+% delete skipped trials based on indices
+testOri(skipRows)=[];
+
+% get test contrasts
+testContrasts=file.d.testContrast;
+% delete skipped trials based on indices
+testContrasts(skipRows)=[];
+
+% get precue validities
+precueValidities=file.d.precueValidity;
+% delete skipped trials based on indices
+precueValidities(skipRows)=[];
+
+responses= cat(4,testContrasts,responses,testOri,precueValidities);
+nTrials=size(testContrasts,2);
+responses=reshape(responses,[nTrials,4]);
+responses=sortrows(responses,1); 
+responseEx=[];
+responseUnex=[];
+for i = 1:length(responses) 
+    if responses(i,4)==1
+        responseEx(i,:)=responses(i,:);
+    elseif responses(i,4)==2
+        responseUnex(i,:)=responses(i,:);
+    end
+end
+
+skipRowsEx=find(responseEx(:,1)==0);
+responseEx(skipRowsEx,:)=[];
+
+skipRowsUnex=find(responseUnex(:,1)==0);
+responseUnex(skipRowsUnex,:)=[];
+
+prop_exp=(nTrials/length(file.p.gratingContrasts(1,:)))*(mean(file.p.precueValidities(1,:)==1));
+prop_unexp=(nTrials/length(file.p.gratingContrasts(1,:)))*(mean(file.p.precueValidities(1,:)==2));
+
+cons_dprime_ex=[];
+cons_dprime_unex=[];
+cons_c_ex=[];
+cons_c_unex=[];
+hit_rates_ex=[];
+hit_rates_unex=[];
+fa_rates_ex=[];
+fa_rates_unex=[];
+miss_ex=[];
+miss_unex=[];
+cr_ex=[];
+cr_unex=[];
+
+for i = 1:length(file.p.gratingContrasts(1,:))
+    
+    responsePresent=ismember(responseEx(prop_exp*i-prop_exp+1:prop_exp*i,2),[1 2]);
+    orientationPresent=(responseEx(prop_exp*i-prop_exp+1:prop_exp*i,3)==1);
+%   get hits
+    hitsE=responsePresent==1 & orientationPresent==1;
+    hit_rate_ex=mean(hitsE);
+    hit_rates_ex(i)=hit_rate_ex;
+%   get false alarms
+    orientationAbsent=(responseEx(prop_exp*i-prop_exp+1:prop_exp*i,3)==2);
+    fa_ex=responsePresent==1 & orientationAbsent==1;
+    fa_rate_ex=mean(fa_ex);
+    fa_rates_ex(i)=fa_rate_ex;
+%   get dprime and criterion    
+    if fa_rate_ex==0
+        fa_rate_ex=1/(length(responseEx));
+    elseif fa_rate_ex==1 
+        fa_rate_ex=(length(responseEx)-1)/(length(responseEx));
+    elseif hit_rate_ex==0 
+        hit_rate_ex=1/(length(responseEx));
+    elseif hit_rate_ex==1
+        hit_rate_ex=(length(responseEx)-1)/(length(responseEx));
+    end
+
+    cons_dprime_ex(i)=norminv(hit_rate_ex) - norminv(fa_rate_ex);
+    cons_c_ex(i)=-(norminv(hit_rate_ex) + norminv(fa_rate_ex))/2;
+   
+%   get misses
+    responseAbsent=ismember(responseEx(prop_exp*i-prop_exp+1:prop_exp*i,2),[3 4]);
+    miss_ex1= responseAbsent==1 & orientationPresent==1;
+    miss_ex(i)=mean(miss_ex1);
+%   get correct rejection
+    cr_ex1=responseAbsent==1 & orientationAbsent==1;
+    cr_ex(i)=mean(cr_ex1);
+
+    
+
+    responsePresentUn=ismember(responseUnex(prop_unexp*i-prop_unexp+1:prop_unexp*i,2),[1 2]);
+    orientationPresentUn=(responseUnex(prop_unexp*i-prop_unexp+1:prop_unexp*i,3)==1);
+%   get hits
+    hitsU=responsePresentUn==1 & orientationPresentUn==1;
+    hit_rate_unex=mean(hitsU);
+    hit_rates_unex(i)=hit_rate_unex;
+%   get false alarms
+    orientationAbsentUn=(responseUnex(prop_unexp*i-prop_unexp+1:prop_unexp*i,3)==2);
+    fa_unex=responsePresentUn==1 & orientationAbsentUn==1;
+    fa_rate_unex=mean(fa_unex);
+    fa_rates_unex(i)=fa_rate_unex;
+
+    if fa_rate_unex==0
+        fa_rate_unex=1/(length(responseUnex));
+    elseif fa_rate_unex==1 
+        fa_rate_unex=(length(responseUnex)-1)/(length(responseUnex));
+    elseif hit_rate_unex==0 
+        hit_rate_unex=1/(length(responseUnex));
+    elseif hit_rate_unex==1
+        hit_rate_unex=(length(responseUnex)-1)/(length(responseUnex));
+    end
+%   get dprime and criterion
+    cons_dprime_unex(i)=norminv(hit_rate_unex) - norminv(fa_rate_unex);
+    cons_c_unex(i)=-(norminv(hit_rate_unex) + norminv(fa_rate_unex))/2;
+%   get misses
+    responseAbsentUn=ismember(responseUnex(prop_unexp*i-prop_unexp+1:prop_unexp*i,2),[3 4]);
+    miss_unex1= responseAbsentUn==1 & orientationPresentUn==1;
+    miss_unex(i)=mean(miss_unex1);
+%   get correct rejection
+    cr_unex1=responseAbsentUn==1 & orientationAbsentUn==1;
+    cr_unex(i)=mean(cr_unex1);
+
+end
+figure();
+subplot(2,1,1);
+plot(allcons,cons_dprime_ex,'blue-v');
+hold on
+plot(allcons,cons_dprime_unex,'red-v');
+xlabel("contrasts")
+ylabel("d'");
+title("d' expected vs unexpected");
+legend("expected","unexpected");
+%xscale log;
+
+subplot(2,1,2);
+plot(allcons,cons_c_ex,'blue-v');
+hold on
+plot(allcons,cons_c_unex,'red-v');
+xlabel("contrasts")
+ylabel("criterion");
+title("criterion expected vs unexpected");
 legend("expected","unexpected");
 %xscale log;
 end
