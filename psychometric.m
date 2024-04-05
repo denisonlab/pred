@@ -11,6 +11,8 @@ function psychometric()
 % and no masks
 % testBEH has 2 session, 896 trials with mask contrast = 0.8 and range 20%
 % to 80%
+% pilot002 has 2 session, 896 trials with mask contrast = 0.8 and range 20%
+% to 80%
 
 subjectID = input('Enter subject ID:  ', 's');
 dataDir = sprintf('%s/data', pwd);
@@ -175,9 +177,9 @@ for i = 1:length(file.p.gratingContrasts(1,:))
 end
 
 figure();
-plot(allcons(2:7),cons_ex(2:7),'blue-v');
+plot(allcons,cons_ex,'blue-v');
 hold on
-plot(allcons(2:7),cons_unex(2:7),'red-v');
+plot(allcons,cons_unex,'red-v');
 xlabel("contrasts")
 ylabel("percent correct");
 title("p(correct) for expected/valid vs unexpected/invalid");
@@ -213,7 +215,7 @@ for i = 1:length(file.p.gratingContrasts(1,:))
 end
 
 figure();
-plot(allcons(2:7),cons_cor(2:7),'blue-v');
+plot(allcons,cons_cor,'blue-v');
 xlabel("contrasts")
 ylabel("percent correct");
 title("p(correct)");
@@ -276,8 +278,24 @@ precueValidities(skipRows)=[];
 phigher= cat(3,testContrasts,phigher,precueValidities);
 nTrials=size(testContrasts,2);
 phigher=reshape(phigher,[nTrials,3]);
-phigher1=phigher(1:nTrials/2,:,:);
-phigher2=phigher((nTrials/2+1):nTrials,:,:);
+
+phigher1=[];
+phigher2=[];
+if choice==1
+    phigher1=phigher(1:nTrials/2,:,:);
+    phigher2=phigher((nTrials/2+1):nTrials,:,:);
+
+elseif choice==2
+    n=length(sessionFiles);
+    start=0;
+    for i= 1:n
+        phigher1=[phigher1; phigher(1+start:start+nTrials/(n*2),:,:);];
+        phigher2=[phigher2 ;phigher(start+nTrials/(n*2)+1:start+nTrials/n,:,:)];
+        start=start+nTrials/n;
+    end
+end
+
+
 phigher1=sortrows(phigher1,1); 
 phigher1=sortrows(phigher1,3);
 phigher2=sortrows(phigher2,1); 
@@ -304,9 +322,9 @@ end
 
 figure();
 subplot(2,1,1);
-plot(allcons(2:7),cons_ex1(2:7),'blue-v');
+plot(allcons,cons_ex1,'blue-v');
 hold on
-plot(allcons(2:7),cons_unex1(2:7),'red-v');
+plot(allcons,cons_unex1,'red-v');
 xlabel("contrasts")
 ylabel("perceived test as higher contrast");
 title("p(test stronger) 1st half for expected/valid vs unexpected/invalid");
@@ -314,9 +332,9 @@ legend("expected","unexpected");
 %xscale log;
 
 subplot(2,1,2);
-plot(allcons(2:7),cons_ex2(2:7),'blue-v');
+plot(allcons,cons_ex2,'blue-v');
 hold on
-plot(allcons(2:7),cons_unex2(2:7),'red-v');
+plot(allcons,cons_unex2,'red-v');
 xlabel("contrasts")
 ylabel("perceived test as higher contrast");
 title("p(test stronger) 2nd half for expected/valid vs unexpected/invalid");
@@ -336,11 +354,26 @@ testContrasts(skipRowsCorrect)=[];
 precueValidities=file.d.precueValidity;
 precueValidities(skipRows)=[];
 
+
 corrects= cat(3,testContrasts,corrects,precueValidities);
 nTrials=size(testContrasts,2);
 corrects=reshape(corrects,[nTrials,3]);
-corrects1=corrects(1:nTrials/2,:,:);
-corrects2=corrects((nTrials/2+1):nTrials,:,:);
+corrects1=[];
+corrects2=[];
+if choice==1
+    corrects1=corrects(1:nTrials/2,:,:);
+    corrects2=corrects((nTrials/2+1):nTrials,:,:);
+
+elseif choice==2
+    n=length(sessionFiles);
+    start=0;
+    for i= 1:n
+        corrects1=[corrects1; corrects(1+start:start+nTrials/(n*2),:,:);];
+        corrects2=[corrects2 ;corrects(start+nTrials/(n*2)+1:start+nTrials/n,:,:)];
+        start=start+nTrials/n;
+    end
+end
+
 corrects1=sortrows(corrects1,1); 
 corrects1=sortrows(corrects1,3);
 corrects2=sortrows(corrects2,1); 
@@ -367,18 +400,18 @@ end
 
 figure();
 subplot(2,1,1);
-plot(allcons(2:7),cons_ex1(2:7),'blue-v');
+plot(allcons,cons_ex1,'blue-v');
 hold on
-plot(allcons(2:7),cons_unex1(2:7),'red-v');
+plot(allcons,cons_unex1,'red-v');
 xlabel("contrasts")
 ylabel("p(correct)");
 title("p(correct) 1st half for expected/valid vs unexpected/invalid");
 legend("expected","unexpected");
 %xscale log;
 subplot(2,1,2);
-plot(allcons(2:7),cons_ex2(2:7),'blue-v');
+plot(allcons,cons_ex2,'blue-v');
 hold on
-plot(allcons(2:7),cons_unex2(2:7),'red-v');
+plot(allcons,cons_unex2,'red-v');
 xlabel("contrasts")
 ylabel("p(correct)");
 title("p(correct) 2nd half for expected/valid vs unexpected/invalid");
