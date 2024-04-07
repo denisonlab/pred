@@ -151,56 +151,65 @@ validKeys = KbName({'1!','2@','9(','0)'});
 
 %% Make TEST stimuli
 
-if p.task==1 || p.task==2
+imPos = round(p.imPos*pixelsPerDegree); % image position (pixels)
+gratingRadius = round(p.gratingDiameter/2*pixelsPerDegree); % radius (pixels)
 
-    imPos = round(p.imPos*pixelsPerDegree); % image position (pixels)
-    gratingRadius = round(p.gratingDiameter/2*pixelsPerDegree); % radius (pixels)
-    
-    tex = cell(numel(p.gratingContrasts), numel(p.gratingOrientations));
-    
-    for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS PHASES
-        contrast = p.gratingContrasts(iC);
-        for iP=1:numel(p.testPhases)
-            phase = p.testPhases(iP);
-            grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
-                p.gratingSF, 0, phase, contrast); % 0 to 1
-            [gabor, aps] = rd_aperture(grating, 'gaussian', gratingRadius(1)/4);
-            tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
-        end
+tex = cell(numel(p.gratingContrasts), numel(p.gratingOrientations));
+
+for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS PHASES
+    contrast = p.gratingContrasts(iC);
+    for iP=1:numel(p.testPhases)
+        phase = p.testPhases(iP);
+        grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
+            p.gratingSF, 0, phase, contrast); % 0 to 1
+        [gabor, aps] = rd_aperture(grating, 'gaussian', gratingRadius(1)/4);
+        tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
     end
-    
-    %Make rects for placing image
-    imSize = size(grating);
-    imRect = CenterRectOnPoint([0 0 imSize], cx+imPos(1), cy+imPos(2));
-
-% MAKE PLAID STIMULI FOR VERSION 2 HERE
-elseif p.task==3
-
 end
+
+%Make rects for placing image
+imSize = size(grating);
+imRect = CenterRectOnPoint([0 0 imSize], cx+imPos(1), cy+imPos(2));
 
 %% Make STANDARD stimuli
-if p.task==1 || p.task==2
-    gratingS = rd_grating(pixelsPerDegree, p.gratingSize, p.gratingSF, 0, 0, p.standardContrast); % First make a grating image
-    imPosS = round(p.imPos*pixelsPerDegree); % standard image position (pixels)
-    gratingRadiusS = round(p.gratingDiameter/2*pixelsPerDegree); % standard radius (pixels)
-    
-    % Place an Gaussian aperture on the image to turn it into a Gabor
-    gaborS = rd_aperture(gratingS, 'gaussian', gratingRadiusS(1)/4);
-    
-    
-    % Make an image "texture"
-    % Choose which image you want to make into a texture
-    imS = gaborS;
-    
-    % Make the texture
-    imTexStandard = Screen('MakeTexture', window, imS*white); % multiply by "white" to scale from 0-255
-    imSizeS = size(imS); % Make the rects for placing the images in the window
-    imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS(2));
 
-% MAKE PLAID REFERENCE STIMULI FOR VERSION 2 HERE
-elseif p.task==3 
+gratingS = rd_grating(pixelsPerDegree, p.gratingSize, p.gratingSF, 0, 0, p.standardContrast); % First make a grating image
+imPosS = round(p.imPos*pixelsPerDegree); % standard image position (pixels)
+gratingRadiusS = round(p.gratingDiameter/2*pixelsPerDegree); % standard radius (pixels)
 
+% Place an Gaussian aperture on the image to turn it into a Gabor
+gaborS = rd_aperture(gratingS, 'gaussian', gratingRadiusS(1)/4);
+
+
+% Make an image "texture"
+% Choose which image you want to make into a texture
+imS = gaborS;
+
+% Make the texture
+imTexStandard = Screen('MakeTexture', window, imS*white); % multiply by "white" to scale from 0-255
+imSizeS = size(imS); % Make the rects for placing the images in the window
+imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS(2));
+
+%% MAKE PLAID REFERENCE STIMULI FOR VERSION 2 HERE
+for iC = 1:numel(p.plaidContrasts1) 
+    contrast1 = p.plaidContrasts1(iC);
+    for iP=1:numel(p.testPhases)
+        
+        phase = p.testPhases(iP);
+        grating1 = rd_grating(pixelsPerDegree, p.imSize(1), ...
+            p.gratingSF, p.plaidAxes(1), phase, contrast1); % 0 to 1
+        grating2 = rd_grating(pixelsPerDegree, p.imSize(1), ...
+            p.gratingSF, p.plaidAxes(2), phase, p.plaidContrasts2); % 0 to 1
+        plaid = (grating1 + grating2) - 0.5; 
+        
+        [plaid, aps] = rd_aperture(plaid, 'gaussian', gratingRadius(1)/4);
+        tex_plaid{iC,iP} = Screen('MakeTexture', window, plaid*white);
+        
+    end
 end
+
+imRectL = CenterRectOnPoint([0 0 imSize], cx+imPos(1)-2*p.plaidEcc*p.ppd, cy+imPos(2));
+imRectR = CenterRectOnPoint([0 0 imSize], cx+imPos(1)+2*p.plaidEcc*p.ppd, cy+imPos(2));
 
 %% SANITY CHECK: SHOW ALL TEXTURES ONE BY ONE
 % % Loop through each texture and display it
@@ -463,7 +472,8 @@ switch p.task % task and demo
             %% Present predictive tone
             PsychPortAudio('FillBuffer', pahandle, tone);
             timeTone = PsychPortAudio('Start', pahandle, [], timeS + p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-
+            
+            timeTone = timeS + p.standSOA; 
 
             if p.eyeTracking
                 Eyelink('Message', 'EVENT_CUE');

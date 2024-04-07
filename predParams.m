@@ -3,10 +3,12 @@ function p = predParams(p)
 %% Screen
 p.screenWidthCm = 20;
 p.viewDistCm = 57;
+
 %% Fixation
 p.fixSize = 0.1; % degrees visual angle  0.15 used before making smaller
 p.fixColor = 1; % white
 p.dimFactor=0.5;
+
 %% Debug
 p.debugTrials=30*2;
 p.BlockTrialsDebug=2;
@@ -30,15 +32,21 @@ p.gratingDiameter = [2 0];
 %p.gratingContrasts = [0 logspace(log10(0.025),log10(0.5),6)]; % 7 contrast levels and 0 (absent stimuli) 
 %p.gratingContrasts = [0 logspace(log10(0.2),log10(0.8),6)];
 p.gratingContrasts = [0 logspace(log10(0.1),log10(0.6),6)];
-p.maskContrast=0.8;
+p.maskContrast = 0.8;
 %p.maskContrast=p.gratingContrasts(7);
 %p.gratingContrasts=[1];
-p.testStatus=[1]; %0 (absent stimuli)
+p.testStatus = [1]; %0 (absent stimuli)
 p.standardContrast = p.gratingContrasts(4); %WHAT SHOULD CONTRAST BE???
-p.standardOrientation=0;
+p.standardOrientation = 0;
 %p.imSize=[2 2]; %p.imSize=2;
-p.imSize=2;
+p.imSize = 2;
 p.testPhases = linspace(0,2*pi,4); %%PHASE WHAT AM I GONNA DO WITH IT
+
+% Plaid parameters
+p.plaidContrasts1 = [logspace(log10(0.21),log10(0.7),7)];
+p.plaidContrasts2 = 0.2;
+p.plaidAxes = [0 90]; % base orientations 
+p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli 
 
 %% Calculate pixels per degree
 %pix= ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
@@ -50,10 +58,12 @@ p.Fs = 44100; % samples per second
 p.toneFreqs = [440 1000]; % Hz % try 990 Hz instead ?
 p.toneDur = 0.2; % s TONE DURATION 200 ms10
 p.deviceName = 'Scarlett';
+
 %% Clicks
 % p.clickDur=0.0005;
 % p.clickRampDur=p.clickDur/2;
 % p.clickFreq=8000;
+
 %% Timing
 p.fixSOA=0.5; %precue fixation time 
 p.standSOA = 1; % standard to tone
@@ -64,6 +74,7 @@ p.signalStart=1;
 p.signalRestDur=1;
 p.maskDur=0.02;
 p.maskSOA = 0; % should be 0
+
 %% Validity
 p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invalid'};
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
@@ -75,5 +86,6 @@ p.BlockTrials=64; %64 trials 3 mins, 128 trials approx 6 mins
 p.repScale1=2; % 42 mins for 896 trials
 p.repScale2=3; % 63 mins for 1344 trials
 p.repScaleDemo=1;
+
 %% Eyetracking
 p.eyeSlack=0.12;
