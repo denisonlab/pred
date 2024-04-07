@@ -4,7 +4,7 @@ function p = predParams(p)
 p.screenWidthCm = 20;
 p.viewDistCm = 57;
 %% Fixation
-p.fixSize = 0.15; % degrees visual angle
+p.fixSize = 0.1; % degrees visual angle  0.15 used before making smaller
 p.fixColor = 1; % white
 p.dimFactor=0.5;
 %% Debug

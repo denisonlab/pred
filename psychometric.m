@@ -13,6 +13,8 @@ function psychometric()
 % to 80%
 % pilot002 has 2 session, 896 trials with mask contrast = 0.8 and range 20%
 % to 80%
+clear;
+close all;
 
 subjectID = input('Enter subject ID:  ', 's');
 dataDir = sprintf('%s/data', pwd);
@@ -80,6 +82,31 @@ end
 % Assuming 'allcons' needs the first 7 elements from 'file.p.gratingContrasts'
 allcons = file.p.gratingContrasts(1,1:7);
 
+plotdir = sprintf('%s/plots',pwd);
+if ~exist(plotdir, 'dir')
+    mkdir(plotdir)
+end
+
+plotdir_subjectID = sprintf('%s/plots/%s',pwd,subjectID);
+if ~exist(plotdir_subjectID, 'dir')
+    mkdir(plotdir_subjectID)
+end
+
+if choice==1
+    plotdir_sub = sprintf('%s/plots/%s/session_%d',pwd,subjectID,sessionNum);
+    if ~exist(plotdir_sub, 'dir')
+        mkdir(plotdir_sub)
+    end
+else
+    total=length(sessionFiles);
+    plotdir_sub = sprintf('%s/plots/%s/%d_combined',pwd,subjectID,total);
+    if ~exist(plotdir_sub, 'dir')
+        mkdir(plotdir_sub)
+    end
+end
+
+
+
 %% P(test stronger) for unexpected vs expected
 
 % first we get all responses
@@ -134,9 +161,10 @@ plot(allcons,cons_highex,'blue-v');
 hold on
 plot(allcons,cons_highunex,'red-v');
 xlabel("contrasts")
-ylabel("percent that answered 0 or 1 aka perceived test as higher contrast");
-title("p(test stronger) for expected/valid vs unexpected/invalid");
+ylabel("p(test stronger)");
+title("p(test stronger) for expected vs unexpected ",subjectID);
 legend("expected","unexpected");
+saveas(figure(1),[plotdir_sub,'/pteststronger_cond_' subjectID '.jpg']);
 %xscale log;
 %% P(correct) for unexpected vs expected
 
@@ -177,13 +205,14 @@ for i = 1:length(file.p.gratingContrasts(1,:))
 end
 
 figure();
-plot(allcons,cons_ex,'blue-v');
+plot(allcons(2:7),cons_ex(2:7),'blue-v');
 hold on
-plot(allcons,cons_unex,'red-v');
+plot(allcons(2:7),cons_unex(2:7),'red-v');
 xlabel("contrasts")
 ylabel("percent correct");
-title("p(correct) for expected/valid vs unexpected/invalid");
+title("p(correct) for expected vs unexpected, ",subjectID);
 legend("expected","unexpected");
+saveas(figure(2),[plotdir_sub,'/pcorrect_cond_' subjectID '.jpg']);
 %xscale log;
 %% P(correct)
 
@@ -215,10 +244,12 @@ for i = 1:length(file.p.gratingContrasts(1,:))
 end
 
 figure();
-plot(allcons,cons_cor,'blue-v');
+plot(allcons(2:7),cons_cor(2:7),'blue-v');
 xlabel("contrasts")
 ylabel("percent correct");
 title("p(correct)");
+saveas(figure(3),[plotdir_sub,'/pcorrect_' subjectID '.jpg']);
+
 %xscale log;
 %% P(test stronger)
 
@@ -253,8 +284,10 @@ end
 figure();
 plot(allcons,cons_high,'blue-v');
 xlabel("contrasts")
-ylabel("percent that answered 0 or 1 aka perceived test as higher contrast");
-title("p(test stronger)");
+ylabel("p(test stronger)");
+title("p(test stronger), ",subjectID);
+saveas(figure(4),[plotdir_sub,'/pteststronger_' subjectID '.jpg']);
+
 %xscale log;
 
 
@@ -327,7 +360,7 @@ hold on
 plot(allcons,cons_unex1,'red-v');
 xlabel("contrasts")
 ylabel("perceived test as higher contrast");
-title("p(test stronger) 1st half for expected/valid vs unexpected/invalid");
+title("p(test stronger) 1st half for expected vs unexpected, ",subjectID);
 legend("expected","unexpected");
 %xscale log;
 
@@ -336,10 +369,11 @@ plot(allcons,cons_ex2,'blue-v');
 hold on
 plot(allcons,cons_unex2,'red-v');
 xlabel("contrasts")
-ylabel("perceived test as higher contrast");
-title("p(test stronger) 2nd half for expected/valid vs unexpected/invalid");
+ylabel("p(test stronger)");
+title("p(test stronger) 2nd half for expected vs unexpected, ",subjectID);
 legend("expected","unexpected");
 %xscale log;
+saveas(figure(5),[plotdir_sub,'/pteststronger_split' subjectID '.jpg']);
 
 %% Does performance effect go away?
 
@@ -400,24 +434,24 @@ end
 
 figure();
 subplot(2,1,1);
-plot(allcons,cons_ex1,'blue-v');
+plot(allcons(2:7),cons_ex1(2:7),'blue-v');
 hold on
-plot(allcons,cons_unex1,'red-v');
+plot(allcons(2:7),cons_unex1(2:7),'red-v');
 xlabel("contrasts")
 ylabel("p(correct)");
-title("p(correct) 1st half for expected/valid vs unexpected/invalid");
+title("p(correct) 1st half for expected vs unexpected, ",subjectID);
 legend("expected","unexpected");
 %xscale log;
 subplot(2,1,2);
-plot(allcons,cons_ex2,'blue-v');
+plot(allcons(2:7),cons_ex2(2:7),'blue-v');
 hold on
-plot(allcons,cons_unex2,'red-v');
+plot(allcons(2:7),cons_unex2(2:7),'red-v');
 xlabel("contrasts")
 ylabel("p(correct)");
-title("p(correct) 2nd half for expected/valid vs unexpected/invalid");
+title("p(correct) 2nd half for expected vs unexpected, ",subjectID);
 legend("expected","unexpected");
 %xscale log;
-
+saveas(figure(6),[plotdir_sub,'/pcorrect_split_' subjectID '.jpg']);
 %% Correctness based on perceived contrast actually stronger
 
 % first we get all responses
@@ -474,9 +508,10 @@ hold on
 plot(allcons,cons_highunex,'red-v');
 xlabel("contrasts")
 ylabel("p(correct strength comparison judgement)");
-title("p(correct strength comparison judgement) for expected/valid vs unexpected/invalid");
+title("p(correct strength comparison judgement) for expected vs unexpected, ",subjectID);
 legend("expected","unexpected");
 %xscale log;
+saveas(figure(7),[plotdir_sub,'/pcorrectstrengthjudgement_cond_' subjectID '.jpg']);
 
 %% d' and criterion general
 
@@ -567,13 +602,15 @@ plot(allcons,cons_c,'blue-v');
 xlabel("contrasts")
 ylabel("criterion");
 title("criterion");
+saveas(figure(8),[plotdir_sub,'/dprime_criterion_' subjectID '.jpg']);
+
 
 %xscale log;
 figure();
 plot(allcons,hit_rates,'blue-v');
 xlabel("contrasts")
 ylabel("p");
-title("hits, fa, miss, CR");
+title("hits, fa, miss, CR, ",subjectID);
 %xscale log;
 hold on
 plot(allcons,fa_rates,'red-v');
@@ -582,12 +619,13 @@ plot(allcons,miss,'-v');
 hold on
 plot(allcons,cr,'-v');
 legend("hit","fa","miss","CR");
+saveas(figure(9),[plotdir_sub,'/hit_miss_fa_cr_' subjectID '.jpg']);
 
-figure();
-plot(fa_rates,hit_rates,'blue-v');
-xlabel("fa")
-ylabel("hit");
-title("ROC");
+% figure();
+% plot(fa_rates,hit_rates,'blue-v');
+% xlabel("fa")
+% ylabel("hit");
+% title("ROC");
 
 
 %% d' and criterion for expected vs unexpected
@@ -727,9 +765,9 @@ for i = 1:length(file.p.gratingContrasts(1,:))
 end
 figure();
 subplot(2,1,1);
-plot(allcons,cons_dprime_ex,'blue-v');
+plot(allcons(2:7),cons_dprime_ex(2:7),'blue-v');
 hold on
-plot(allcons,cons_dprime_unex,'red-v');
+plot(allcons(2:7),cons_dprime_unex(2:7),'red-v');
 xlabel("contrasts")
 ylabel("d'");
 title("d' expected vs unexpected");
@@ -737,12 +775,93 @@ legend("expected","unexpected");
 %xscale log;
 
 subplot(2,1,2);
-plot(allcons,cons_c_ex,'blue-v');
+plot(allcons(2:7),cons_c_ex(2:7),'blue-v');
 hold on
-plot(allcons,cons_c_unex,'red-v');
+plot(allcons(2:7),cons_c_unex(2:7),'red-v');
 xlabel("contrasts")
 ylabel("criterion");
-title("criterion expected vs unexpected");
+title("criterion expected vs unexpected, ",subjectID);
 legend("expected","unexpected");
+saveas(figure(10),[plotdir_sub,'/dprime_criterion_split_' subjectID '.jpg']);
 %xscale log;
+
+% %% split by orientation
+% 
+% corrects=file.d.correct;
+% skipRowsCorrect=find(isnan(corrects));
+% % delete skipped trials based on indices
+% corrects(skipRowsCorrect)=[];
+% %clean all used variables by removing skipped trials
+% testContrasts=file.d.testContrast;
+% testContrasts(skipRowsCorrect)=[];
+% 
+% precueValidities=file.d.precueValidity;
+% precueValidities(skipRows)=[];
+% 
+% 
+% corrects= cat(3,testContrasts,corrects,precueValidities);
+% nTrials=size(testContrasts,2);
+% corrects=reshape(corrects,[nTrials,3]);
+% corrects1=[];
+% corrects2=[];
+% if choice==1
+%     corrects1=corrects(1:nTrials/2,:,:);
+%     corrects2=corrects((nTrials/2+1):nTrials,:,:);
+% 
+% elseif choice==2
+%     n=length(sessionFiles);
+%     start=0;
+%     for i= 1:n
+%         corrects1=[corrects1; corrects(1+start:start+nTrials/(n*2),:,:);];
+%         corrects2=[corrects2 ;corrects(start+nTrials/(n*2)+1:start+nTrials/n,:,:)];
+%         start=start+nTrials/n;
+%     end
+% end
+% 
+% corrects1=sortrows(corrects1,1); 
+% corrects1=sortrows(corrects1,3);
+% corrects2=sortrows(corrects2,1); 
+% corrects2=sortrows(corrects2,3);
+% 
+% prop_exp1=((nTrials/2)/length(file.p.gratingContrasts(1,:)))*(mean(file.p.precueValidities(1,:)==1));
+% prop_unexp1=((nTrials/2)/length(file.p.gratingContrasts(1,:)))*(mean(file.p.precueValidities(1,:)==2));
+% prop_exp2=((nTrials/2)/length(file.p.gratingContrasts(1,:)))*(mean(file.p.precueValidities(1,:)==1));
+% prop_unexp2=((nTrials/2)/length(file.p.gratingContrasts(1,:)))*(mean(file.p.precueValidities(1,:)==2));
+% 
+% cons_ex1=[];
+% cons_unex1=[];
+% cons_ex2=[];
+% cons_unex2=[];
+% 
+% for i = 1:length(file.p.gratingContrasts(1,:))
+%     cons_ex1(i)=mean(corrects1(prop_exp1*i-prop_exp1+1:prop_exp1*i,2)==1);
+%     start1=prop_exp1*length(file.p.gratingContrasts(1,:))+1;
+%     cons_unex1(i)=mean(corrects1((start1+prop_unexp1*i)-prop_unexp1:start1+prop_unexp1*i-1,2)==1);
+%     cons_ex2(i)=mean(corrects2(prop_exp2*i-prop_exp2+1:prop_exp2*i,2)==1);
+%     start2=prop_exp2*length(file.p.gratingContrasts(1,:))+1;
+%     cons_unex2(i)=mean(corrects2((start2+prop_unexp2*i)-prop_unexp2:start2+prop_unexp2*i-1,2)==1);
+% end
+% 
+% figure();
+% subplot(2,1,1);
+% plot(allcons(2:7),cons_ex1(2:7),'blue-v');
+% hold on
+% plot(allcons(2:7),cons_unex1(2:7),'red-v');
+% xlabel("contrasts")
+% ylabel("p(correct)");
+% title("p(correct) 1st half for expected vs unexpected, ",subjectID);
+% legend("expected","unexpected");
+% %xscale log;
+% subplot(2,1,2);
+% plot(allcons(2:7),cons_ex2(2:7),'blue-v');
+% hold on
+% plot(allcons(2:7),cons_unex2(2:7),'red-v');
+% xlabel("contrasts")
+% ylabel("p(correct)");
+% title("p(correct) 2nd half for expected vs unexpected, ",subjectID);
+% legend("expected","unexpected");
+% %xscale log;
+% saveas(figure(6),[plotdir_sub,'/pcorrect_split_ori_' subjectID '.jpg']);
+% 
+
 end

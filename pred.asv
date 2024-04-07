@@ -1,4 +1,4 @@
-     0010099920210112991901091function pred
+function pred
 % ___________________________________________________________________
 % pred.m runs experiment
 % Melissa Allouche
@@ -25,8 +25,9 @@ p.subjectID = input('Enter subject ID:  ','s');
 p.sessionNum = input('Enter session number (1,2...) ');
 p.debug = input('Debug? (Y/N) ','s');
 p.task = input(['Prediction task run:\n' ...
-    '1 - Task\n'...
-    '2 - Demo\n']);
+    '1 - Task original\n'...
+    '2 - Demo\n'...
+    '3 - Task version 2']);
 p.reps = input ('How many reps(1/2)? ');
 p.fullScreen = input ('Full screen(0/1)? ');
 p.eyeTracking=input('Eyetracking (0/1)? ');
@@ -150,109 +151,57 @@ validKeys = KbName({'1!','2@','9(','0)'});
 
 %% Make TEST stimuli
 
-imPos = round(p.imPos*pixelsPerDegree); % image position (pixels)
-gratingRadius = round(p.gratingDiameter/2*pixelsPerDegree); % radius (pixels)
+if p.task==1 || p.task==2
 
-tex = cell(numel(p.gratingContrasts), numel(p.gratingOrientations));
-
-for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS PHASES
-    contrast = p.gratingContrasts(iC);
-    for iP=1:numel(p.testPhases)
-        phase = p.testPhases(iP);
-        grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
-            p.gratingSF, 0, phase, contrast); % 0 to 1
-        [gabor, aps] = rd_aperture(grating, 'gaussian', gratingRadius(1)/4);
-        tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
+    imPos = round(p.imPos*pixelsPerDegree); % image position (pixels)
+    gratingRadius = round(p.gratingDiameter/2*pixelsPerDegree); % radius (pixels)
+    
+    tex = cell(numel(p.gratingContrasts), numel(p.gratingOrientations));
+    
+    for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS PHASES
+        contrast = p.gratingContrasts(iC);
+        for iP=1:numel(p.testPhases)
+            phase = p.testPhases(iP);
+            grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
+                p.gratingSF, 0, phase, contrast); % 0 to 1
+            [gabor, aps] = rd_aperture(grating, 'gaussian', gratingRadius(1)/4);
+            tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
+        end
     end
+    
+    %Make rects for placing image
+    imSize = size(grating);
+    imRect = CenterRectOnPoint([0 0 imSize], cx+imPos(1), cy+imPos(2));
+
+% MAKE PLAID STIMULI FOR VERSION 2 HERE
+elseif p.task==3
+
 end
 
-% if iscell(mask)
-%     for i=1:numel(mask)
-%         maskTexs(i) = Screen('MakeTexture', window, mask{i}*white);
-%     end
-% else
-%     maskTexs = Screen('MakeTexture', window, mask*white);
-% end
-
-%Make rects for placing image
-imSize = size(grating);
-imRect = CenterRectOnPoint([0 0 imSize], cx+imPos(1), cy+imPos(2));
-
 %% Make STANDARD stimuli
-gratingS = rd_grating(pixelsPerDegree, p.gratingSize, p.gratingSF, 0, 0, p.standardContrast); % First make a grating image
-imPosS = round(p.imPos*pixelsPerDegree); % standard image position (pixels)
-gratingRadiusS = round(p.gratingDiameter/2*pixelsPerDegree); % standard radius (pixels)
+if p.task==1 || p.task==2
+    gratingS = rd_grating(pixelsPerDegree, p.gratingSize, p.gratingSF, 0, 0, p.standardContrast); % First make a grating image
+    imPosS = round(p.imPos*pixelsPerDegree); % standard image position (pixels)
+    gratingRadiusS = round(p.gratingDiameter/2*pixelsPerDegree); % standard radius (pixels)
+    
+    % Place an Gaussian aperture on the image to turn it into a Gabor
+    gaborS = rd_aperture(gratingS, 'gaussian', gratingRadiusS(1)/4);
+    
+    
+    % Make an image "texture"
+    % Choose which image you want to make into a texture
+    imS = gaborS;
+    
+    % Make the texture
+    imTexStandard = Screen('MakeTexture', window, imS*white); % multiply by "white" to scale from 0-255
+    imSizeS = size(imS); % Make the rects for placing the images in the window
+    imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS(2));
 
-% Place an Gaussian aperture on the image to turn it into a Gabor
-gaborS = rd_aperture(gratingS, 'gaussian', gratingRadiusS(1)/4);
+% MAKE PLAID REFERENCE STIMULI FOR VERSION 2 HERE
+elseif p.task==3 
 
+end
 
-% Make an image "texture"
-% Choose which image you want to make into a texture
-imS = gaborS;
-
-% Make the texture
-imTexStandard = Screen('MakeTexture', window, imS*white); % multiply by "white" to scale from 0-255
-imSizeS = size(imS); % Make the rects for placing the images in the window
-imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS(2));
-
-% %% Make STANDARD MASK OPTION 1
-% t=imS;
-% switch p.maskType
-%     case 'none'
-%           mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
-%     case 'color'
-% %         mask = ones(size(t))*p.backgroundColor;
-%           mask = ones(size(t)); % white so that it will be obvious if it is being presented when it shouldn't be
-%     case 'whitenoise'
-%         mask = (rand(size(t))-0.5)*p.standardContrast + 0.5;
-%     % case 'verticalgrating'
-%     %     m = buildColorGrating(pixelsPerDegree, p.imSize, ...
-%     %         p.gratingSF, 0, 0, p.standardContrast, 0, 'bw');
-%     %     mask = maskWithGaussian(m, size(m,1), p.imSizeS);
-%     % case 'crossedgratings'
-%     %     for i=1:numel(p.targetOrientation)
-%     %         m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-%     %             p.gratingSF, 0, 0, p.standardContrast, 0, 'bw');
-%     %     end
-%     %     m = sum(m,3)./numel(0);
-%     %     mask = maskWithGaussian(m, size(m,1), p.imSizeS);
-%     % case 'hvgratings'
-%     %     hv = [0 90];
-%     %     for i=1:numel(hv)
-%     %         m(:,:,i) = buildColorGrating(pixelsPerDegree, p.imSize, ...
-%     %             p.gratingSF, hv(i), 0, p.standardContrast, 0, 'bw');
-%     %     end
-%     %     m = sum(m,3)./numel(hv);
-%     %     mask = maskWithGaussian(m, size(m,1), p.imSizeS);
-%     % case 'filterednoise'
-%     %     idx = 1;
-%     %     while idx <= 100
-%     %         masktemp = makeFilteredNoise(p.imSize/1.3, p.standardContrast, ...
-%     %             0, 180, p.gratingSF, 2, pixelsPerDegree, 1);
-%     %         if mean(masktemp(:))<0.51 && mean(masktemp(:))>0.49
-%     %             mask{idx} = masktemp;
-%     %             idx = idx+1;
-%     %         end
-%     %     end
-%     otherwise
-%         error('maskType not recognized')
-% end
-% 
-% if iscell(mask)
-%     for i=1:numel(mask)
-%         maskTexs(i) = Screen('MakeTexture', window, mask{i}*white);
-%     end
-% else
-%     maskTexs = Screen('MakeTexture', window, mask*white);
-% end
-% 
-% maskIdx = randi(numel(maskTexs));
-% maskTex = maskTexs(maskIdx);
-
-%% MAKE STANDARD MASK OPTION 2 (karen's
-
-% maskTex=mask;
 %% SANITY CHECK: SHOW ALL TEXTURES ONE BY ONE
 % % Loop through each texture and display it
 % for iC = 1:numel(p.gratingContrasts)
@@ -990,87 +939,6 @@ switch p.task % task and demo
 
             trials(trialIdx, precueIdx) = toneVersion;
 
-            % %% %%%% Play the trial %%%%
-            % %% Present fixation rest (grey)
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*p.dimFactor*white);
-            % timePreStart = Screen('Flip', window);
-            % %% Present fixation active (white)
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
-            % 
-            % %% Present STANDARD image
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-            % Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
-            % timeS = Screen('Flip', window, timeFix+p.signalStart - slack); %timeFix+ how much i want to wait from white(active) to standard
-            % %sound(click, p.Fs)  %play click
-            % 
-            % % blank
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
-            % 
-            % %% Present predictive tone
-            % PsychPortAudio('FillBuffer', pahandle, tone);
-            % timeTone = PsychPortAudio('Start', pahandle, [], timeS + p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-            % 
-            % %% Present TEST image
-            % %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % if testStatus==1
-            %     Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
-            %     %timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            % 
-            %     %Screen('DrawTexture', windowPointer, texturePointer [,sourceRect] [,destinationRect] [,rotationAngle] [, filterMode] [, globalAlpha] [, modulateColor] [, textureShader] [, specialFlags] [, auxParameters]);
-            % elseif testStatus==0
-            %     %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            %     drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % end
-            % timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            % %sound(click, p.Fs)  %play click
-            % 
-            % % blank
-            % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % Screen('Flip', window, timeT + p.imDur - slack);
-            % %timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack);
-            % 
-            % % %% %%%% Play the trial %%%%
-            % % %% Present fixationwhite
-            % % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % % timePreStart = Screen('Flip', window);
-            % % drawFixation(window, cx, cy, fixSize, p.fixColor*white*p.dimFactor);
-            % % timeFix = Screen('Flip', window, p.fixSOA+timePreStart-slack);
-            % %
-            % % %% Present STANDARD image
-            % % drawFixation(window, cx, cy, fixSize, p.fixColor*white) % DO I EVEN NEED THIS????
-            % % Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
-            % % timeS = Screen('Flip', window, timeFix+p.standSOA - slack);
-            % % %sound(click, p.Fs)  %play click
-            % %
-            % % % blank
-            % % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % % timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack);
-            % %
-            % % %% Present predictive tone
-            % % PsychPortAudio('FillBuffer', pahandle, tone);
-            % % timeTone = PsychPortAudio('Start', pahandle, [], timeBlank1 + p.toneSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-            % %
-            % % %% Present TEST image
-            % % %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % % if testStatus==1
-            % %     Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
-            % %     %timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            % %
-            % %     %Screen('DrawTexture', windowPointer, texturePointer [,sourceRect] [,destinationRect] [,rotationAngle] [, filterMode] [, globalAlpha] [, modulateColor] [, textureShader] [, specialFlags] [, auxParameters]);
-            % % elseif testStatus==0
-            % %     %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % %     drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % % end
-            % % timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-            % % %sound(click, p.Fs)  %play click
-            % %
-            % % % blank
-            % % drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            % % Screen('Flip', window, timeT + p.imDur - slack);
-            % % %timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack);
-            
             %% PLAY TRIAL
             %% Present fixation rest (grey)
             drawFixation(window, cx, cy, fixSize, p.fixColor*p.dimFactor*white);
@@ -1231,7 +1099,7 @@ switch p.task % task and demo
             d.timeTone(iTrial)=timeTone; % time at tone
             d.timeT(iTrial)=timeT; % time at test
 
-            save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
+            save(sprintf('%s/%s_demo_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
 
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
@@ -1273,7 +1141,369 @@ switch p.task % task and demo
                 block = block+1;
             end
         end
+    case 3
+        %% 3 TASK version 2
+        % Make trials structure
+        %% %%%% Generate trials in different conditions %%%%
 
+        trials_headers = {'precueValidity','tOrientation','tPhase', 'tContrast','tStatus','precue','responseKey','response','accuracy','rt'};
+        % make sure column indices match trials headers
+        precueValidityIdx = strcmp(trials_headers,'precueValidity');
+        testOrientationIdx = strcmp(trials_headers,'tOrientation'); % 0 (low) or 1 (high)
+        testPhaseIdx = strcmp(trials_headers,'tPhase'); % test phase value
+        testContrastIdx = strcmp(trials_headers,'tContrast'); % test contrast
+        testStatusIdx = strcmp(trials_headers,'tStatus'); % test status absent or present
+        precueIdx=strcmp(trials_headers,'precue'); % precue
+        responseKeyIdx = strcmp(trials_headers,'responseKey');
+        responseIdx = strcmp(trials_headers,'response');
+        accuracyIdx = strcmp(trials_headers,'accuracy');
+        rtIdx = strcmp(trials_headers,'rt');
+
+
+        trials = fullfact([numel(p.precueValidities),...
+            numel(p.gratingOrientations),...
+            numel(p.testPhases),...
+            numel(p.gratingContrasts)...
+            numel(p.testStatus)]);
+        if (p.debug=="N" || p.debug=="n") && p.reps==1
+            trials=repmat(trials,p.reps*p.repScale1,1);
+            nTrials = size(trials,1); %448*2= 896, each trial twice
+            nBlocks=nTrials/p.BlockTrials; %((448)*2)/64 = 14 blocks
+          
+        elseif (p.debug=="N" || p.debug=="n") && p.reps==2
+            trials=repmat(trials,p.reps*p.repScale2,1); %((448)*3)=
+            nTrials = size(trials,1);
+            nTrialsNoSkip=nTrials;
+            nBlocks=p.trialsNeeded/nTrials; %21 blocks 3 mins each
+        end
+
+        trialOrder = randperm(nTrials);
+
+        %% Eyetracker
+        if p.eyeTracking
+            % Initialize eye tracker
+            [el exitFlag] = rd_eyeLink('eyestart', window, eyeFile);
+            if exitFlag
+                return
+            end
+
+            % Write subject ID into the edf file
+            Eyelink('message', 'BEGIN DESCRIPTIONS');
+            Eyelink('message', 'Subject code: %s', p.subjectID);
+            Eyelink('message', 'END DESCRIPTIONS');
+
+            % No sounds indicating success of calibration
+            %     el.targetbeep = false;
+            %     el.calibration_failed_beep = [0 0 0];
+            %     el.calibration_success_beep = [0 0 0];
+            el.drift_correction_target_beep = [0 0 0];
+            el.drift_correction_failed_beep = [0 0 0];
+            el.drift_correction_success_beep = [0 0 0];
+
+            % Accept input from all keyboards
+            el.devicenumber = -1; %see KbCheck for details of this value
+
+            % Update with custom settings
+            EyelinkUpdateDefaults(el);
+
+            % Calibrate eye tracker
+            [~, exitFlag] = rd_eyeLink('calibrate', window, el);
+            if exitFlag
+                return
+            end
+            fixations=[];
+        end
+
+        %% Sound
+        % Initialize the sound driver
+        InitializePsychSound(1); % 1 for precise timing
+        PsychPortAudio('Close');
+
+        % Open audio device for low-latency output
+        reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
+        pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
+
+        %% Show instruction screen and wait for a button press
+        instructions = 'This is the second version of the experiment\n\n';
+        Screen('FillRect', window, white*p.backgroundColor);
+        instructions1 = sprintf('%s\n\nThere will be a predictive tone followed by 2 patches, one on the left and right.\n\nA low tone predicts a CCW orientation as the stronger one.\n\nA high tone predicts a CW orientation as the stronger one. \n\n Press to continue!', instructions);
+        DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
+        timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
+
+        KbWait(devNum);
+
+        instructions2 ='Your goal is to determine whether the left patch is: \n\n higher contrast and counterclockwise (press 1), \n\nlower contrast and counterclockwise (press 2), \n\nlower contrast and clockwise (press 9), \n\nor higher contrast and clockwise (press 0) with reference to the first patch!\n\nPress to start!';
+        DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
+        Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
+        WaitSecs(1);
+
+        KbWait(devNum);
+        timeStart = GetSecs;
+        correct = [];
+        block=1;
+
+        skippedTrials = [];
+        iTrial=1;
+        completedTrials=0;
+
+        disp('reached')
+
+        %for iTrial = 1:nTrials % the iteration in the trial loop
+        while iTrial<=nTrials
+            trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
+            stopThisTrial = 0;
+
+            %% %%%% PRESENT A TRIAL %%%
+            %% Get condition information for this trial
+            precueValidity = p.precueValidities(trials(trialIdx, precueValidityIdx));
+            testOrientation = trials(trialIdx, testOrientationIdx);
+            testPhase = trials(trialIdx, testPhaseIdx);
+            testContrast = trials(trialIdx, testContrastIdx);
+            testStatus=p.testStatus(trials(trialIdx, testStatusIdx));
+
+            % orientation
+            orientation=p.gratingOrientations(testOrientation);
+            % tone
+            toneName = p.precueNames{precueValidity};
+            switch toneName
+                case 'valid'
+                    tone=cueTones(testOrientation,:);
+                    toneVersion=testOrientation;
+                case 'invalid'
+                    if testOrientation==1
+                        tone = cueTones(2,:);
+                        toneVersion=2;
+                    elseif testOrientation==2
+                        tone = cueTones(1,:);
+                        toneVersion=1;
+                    end
+                otherwise
+                    error('precueName not recognized')
+            end
+
+            %% Set up test mask for this trial
+
+            %% Store trial information
+            d.testStatus(iTrial) = testStatus; %absent or present
+            d.testOrientation(iTrial) = testOrientation; %orientation of test stimuli
+            d.testPhase(iTrial) = testPhase; %phase of test stimuli
+            d.testContrast(iTrial) = testContrast; %contrast of test stimuli
+            d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
+
+            %% Store stimulus information in trials matrix
+
+            trials(trialIdx, precueIdx) = toneVersion;
+            %% %%%% Play the trial %%%%
+            %% Present fixation rest (grey)
+            drawFixation(window, cx, cy, fixSize, p.fixColor*p.dimFactor*white);
+            timePreStart = Screen('Flip', window);
+            %% Present fixation active (white)
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+            timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
+            if p.eyeTracking
+                Eyelink('Message', 'FixOn')
+            end
+            %% Check fixation hold
+            if p.eyeTracking
+                driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
+                if driftCorrected
+                    % restart trial
+                    drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                    timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
+                end
+            end
+            %% Present predictive tone
+            PsychPortAudio('FillBuffer', pahandle, tone);
+            timeTone = PsychPortAudio('Start', pahandle, [], timeFix + p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
+
+            %% Present STANDARD image
+            Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
+            timeS = Screen('Flip', window, timeFix+p.signalStart - slack); %timeFix+ how much i want to wait from white(active) to standard
+            
+            % blank
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+            timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
+            
+            if p.eyeTracking
+                Eyelink('Message', 'EVENT_CUE');
+            end
+
+            if p.eyeTracking
+                while GetSecs < timeTone + p.standSOA - p.eyeSlack && ~stopThisTrial
+                    WaitSecs(.01);
+                    fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
+                    fixations = [fixations fixation];
+
+                    if fixation==0
+                        stopThisTrial = 1;
+                        WaitSecs(1);
+                    
+                        % redo this trial at the end of the experiment
+                        % this can be easily done by appending the trial number to the end of
+                        % trialOrder
+                        trialOrder(end+1) = trialOrder(iTrial);
+                        d.stopThisTrial(iTrial) = stopThisTrial;
+                        skippedTrials(end+1) = trialOrder(iTrial);
+                        d.timeTargetResponse(iTrial) = NaN;
+                        d.correct(iTrial) = NaN;
+                        nTrials = nTrials + 1;
+                        iTrial = iTrial + 1;
+
+                        Screen('FillRect', window, white*p.backgroundColor);
+                        Screen('Flip', window);
+                        WaitSecs(1);
+                    else 
+                        stopThisTrial = 0;
+                    end
+                end
+
+                if stopThisTrial
+                    continue
+                end
+            end
+
+            %% Present TEST image
+            if testStatus==1
+                Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+            elseif testStatus==0
+                %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+            end
+            timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+            Screen('Flip', window, timeT + p.imDur - slack);
+ 
+            %% Eyetracking 
+            if p.eyeTracking
+                Eyelink('Message', 'EVENT_RESPCUE');
+            end
+          
+            %% Wait for response
+            % check only valid response keys
+            targetResponseKey = [];
+            while isempty(targetResponseKey)
+                [timeTargetResponse, keyCode] = KbWait(devNum);
+                targetRT = timeTargetResponse - timeMask2;
+                targetResponseKey = find(ismember(validKeys,find(keyCode)));
+                targetResponseKeyName = KbName(validKeys(targetResponseKey));
+                correct = NaN;
+            end
+            if isempty(targetResponseKey)
+                targetRT = NaN; % timeout
+                targetResponseKey = NaN;
+                targetResponseKeyName = NaN;
+                correct = NaN;
+            end
+            if p.eyeTracking
+                Eyelink('Message', 'TRIAL_END');
+            end
+
+            %% Response collected (blue fixation)
+            if targetResponseKey
+                drawFixation(window, cx, cy, fixSize,[0 0 1]*p.fixColor*white);
+                Screen('Flip',window);
+            
+            end
+
+            %% Percent correct for orientation
+
+            if testStatus~=0 && (strcmp('9(',targetResponseKeyName) || strcmp('0)',targetResponseKeyName)) % response CCW
+                if testOrientation==2 % stimuli CW
+                    correct = 1;  % stimuli = response
+                elseif testOrientation==1 % stimuli CCW
+                    correct = 0; % stimuli != response
+                end
+            elseif testStatus~=0 && (strcmp('1!',targetResponseKeyName) || strcmp('2@',targetResponseKeyName)) % response CCW
+                if testOrientation==1 %stimuli CCW
+                    correct = 1; % stimuli = response
+                elseif testOrientation==2 %stimuli CW
+                    correct = 0; % stimuli != response
+                end
+            else
+                responseText = 'Please push one of the buttons: 1 (higher CCW), 2 (lower CCW), 9 (lower CW), 0(higher CW)';
+            end
+
+            timeEnd=GetSecs();
+
+            %% Store trial info
+            trials(trialIdx, rtIdx) = targetRT;
+            trials(trialIdx, responseKeyIdx) = targetResponseKey;
+            p.trials=trials;
+
+            tic
+            % save data
+            d.block(iTrial) = block; %block trial is in
+            d.timeStart(iTrial)=timeStart; % time at which trial starts
+            d.timeEnd(iTrial)=timeEnd; % time at which trial ends
+            d.timeElapsed(iTrial)=timeEnd-timeStart; % trial duration
+            
+            d.correct(iTrial) = correct; % response correctness (0/1)
+            d.timeTargetResponse(iTrial)=timeTargetResponse; % time at which response was made
+            d.targetRT(iTrial) = targetRT; %response time duration
+            d.targetResponseKey(iTrial) = targetResponseKey; % response key for trial
+            d.timePreStart(iTrial)=timePreStart; % time before standard stimuli presentation
+            d.timeFix(iTrial)=timeFix; % time for fixation
+            d.timeS(iTrial)=timeS; % time for standard
+            d.timeBlank1(iTrial)=timeBlank1; % time after standard
+            d.timeTone(iTrial)=timeTone; % time at tone
+            d.timeT(iTrial)=timeT; % time at test
+            d.trialOrder=trialOrder;
+            d.testMask(iTrial)=masks(trialIdx,2);
+            d.standardMask(iTrial)=masks(trialIdx,1);
+            %d.trials(iTrial)=trials(trialIdx, : );
+            save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
+
+            %time between trials after response
+            d.timeSpentSaving(iTrial)=toc;
+            WaitSecs(p.ITI-d.timeSpentSaving(iTrial));
+            
+            completedTrials = completedTrials + 1; 
+            %% SANTIY CHECK
+            fprintf('Trial %d/%d in block %d, trial %d of %d total \n', completedTrials, p.BlockTrials, block,iTrial,nTrials);
+            %% Blocking
+            %if completedTrials==p.BlockTrials && (mod(iTrial-completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block) 
+            if (mod(completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block)  
+                % Calculate block accuracy
+                %blockStartTrial = (iTrial/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
+                blockStartTrial = ((iTrial-completedTrials)/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
+                if blockStartTrial < 0 % we are doing less than one block
+                    blockStartTrial = 1;
+                end
+
+                current=d.correct(blockStartTrial:iTrial);
+                nan_correctnessIdx= isnan(current);
+                %non_nan_correctness=d.correct(non_nan_correctnessIdx);
+                non_nan_correctness=current(~nan_correctnessIdx);
+                blockCorrectness = mean(non_nan_correctness);
+
+                fprintf('Block %d of %d complete.\n-----\n', block, nBlocks);
+                fprintf('Percent Correct: %.2f (block)', ...
+                    100*blockCorrectness);
+
+                accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
+                blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, nBlocks);
+                if iTrial==nTrials
+                    keyMessage = 'All done! Thank you for participating!';
+                else
+                    keyMessage = 'Press any key to go on.';
+                end
+
+                breakMessage = sprintf('%s\n%s\n\n%s', blockMessage, accMessage, keyMessage);
+                DrawFormattedText(window, breakMessage, 'center', 'center', [1 1 1]*white);
+                %         DrawFormattedText(window, cueText, 'center', cy-3*textOffset, white);
+                Screen('Flip', window);
+                WaitSecs(1);
+                if iTrial < nTrials
+                    KbWait(-1);
+                end
+
+                block = block+1; % keep track of block for block message only
+                completedTrials=0;
+            end
+            iTrial = iTrial + 1;
+        end
     otherwise
         error('Expt stage not found.')
 end
