@@ -45,12 +45,23 @@ if ~exist(data.dataDir, 'dir')
     mkdir(data.dataDir)
 end
 
+data.dataDir_subjectID = sprintf('%s/data/%s',pwd,subjectID);
+if ~exist(data.dataDir_subjectID , 'dir')
+    mkdir(data.dataDir_subjectID )
+end
+
+
+data.dataDir_sub = sprintf('%s/data/%s/session_%d',pwd,subjectID,sessionNum);
+if ~exist(data.dataDir_sub, 'dir')
+   mkdir(data.dataDir_sub)
+end
+
 % data.subDir = sprintf('%s/%s',data.dataDir,p.subjectID);
 % if ~exist(data.subDir, 'dir')
 %     mkdir(data.subDir)
 % end
 % are we overwriting data
-if exist(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'file')
+if exist(sprintf('%s/%s_s%d_pred_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,datestr(now, 'mmdd')),'file')
     error('This subject/session already has saved data');
 end
 
@@ -754,7 +765,7 @@ switch p.task % task and demo
             d.testMask(iTrial)=masks(trialIdx,2);
             d.standardMask(iTrial)=masks(trialIdx,1);
             %d.trials(iTrial)=trials(trialIdx, : );
-            save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
+            save(sprintf('%s/%s_s%d_pred_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,datestr(now, 'mmdd')),'d','p');
 
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
@@ -1109,7 +1120,7 @@ switch p.task % task and demo
             d.timeTone(iTrial)=timeTone; % time at tone
             d.timeT(iTrial)=timeT; % time at test
 
-            save(sprintf('%s/%s_demo_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
+            save(sprintf('%s/%s_demo_s%d_pred_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,datestr(now, 'mmdd')),'d','p');
 
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
@@ -1156,12 +1167,15 @@ switch p.task % task and demo
         % Make trials structure
         %% %%%% Generate trials in different conditions %%%%
 
-        trials_headers = {'precueValidity','tOrientation','tPhase', 'tContrast','tStatus','precue','responseKey','response','accuracy','rt'};
+        trials_headers = {'precueValidity','leftOrientation','leftPhase', 'leftContrast','rightPhase', 'rightContrast','tStatus','precue','responseKey','response','accuracy','rt'};
         % make sure column indices match trials headers
         precueValidityIdx = strcmp(trials_headers,'precueValidity');
-        testOrientationIdx = strcmp(trials_headers,'tOrientation'); % 0 (low) or 1 (high)
-        testPhaseIdx = strcmp(trials_headers,'tPhase'); % test phase value
-        testContrastIdx = strcmp(trials_headers,'tContrast'); % test contrast
+        leftOrientationIdx = strcmp(trials_headers,'leftOrientation'); % 0 (low) or 1 (high)
+        leftPhaseIdx = strcmp(trials_headers,'leftPhase'); % test phase value
+        leftContrastIdx = strcmp(trials_headers,'leftContrast'); % test contrast
+        %rightOrientationIdx = strcmp(trials_headers, 'rightOrientation'); % 0 (low) or 1 (high)
+        rightPhaseIdx = strcmp(trials_headers,'rightPhase'); % test phase value
+        rightContrastIdx = strcmp(trials_headers,'rightContrast'); % test contrast
         testStatusIdx = strcmp(trials_headers,'tStatus'); % test status absent or present
         precueIdx=strcmp(trials_headers,'precue'); % precue
         responseKeyIdx = strcmp(trials_headers,'responseKey');
@@ -1171,9 +1185,11 @@ switch p.task % task and demo
 
 
         trials = fullfact([numel(p.precueValidities),...
-            numel(p.gratingOrientations),...
-            numel(p.testPhases),...
-            numel(p.gratingContrasts)...
+            numel(p.gratingOrientations),... %left ori
+            numel(p.testPhases),... %left phase 
+            numel(p.plaidContrasts1)... %left contrast
+            numel(p.testPhases),... % right phase
+            numel(p.plaidContrasts1)... %right contrast
             numel(p.testStatus)]);
         if (p.debug=="N" || p.debug=="n") && p.reps==1
             trials=repmat(trials,p.reps*p.repScale1,1);
@@ -1236,7 +1252,7 @@ switch p.task % task and demo
         %% Show instruction screen and wait for a button press
         instructions = 'This is the second version of the experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
-        instructions1 = sprintf('%s\n\nThere will be a predictive tone followed by 2 patches, one on the left and right.\n\nA low tone predicts a CCW orientation as the stronger one.\n\nA high tone predicts a CW orientation as the stronger one. \n\n Press to continue!', instructions);
+        instructions1 = sprintf('%s\n\nThere will be a predictive tone followed by 2 patches, one on the left and right.\n\nA low tone predicts a CCW orientation as the stronger one on the left.\n\nA high tone predicts a CW orientation as the stronger one on the left.\n\n Remember the tone is only related to the LEFT! \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
 
@@ -1266,24 +1282,26 @@ switch p.task % task and demo
             %% %%%% PRESENT A TRIAL %%%
             %% Get condition information for this trial
             precueValidity = p.precueValidities(trials(trialIdx, precueValidityIdx));
-            testOrientation = trials(trialIdx, testOrientationIdx);
-            testPhase = trials(trialIdx, testPhaseIdx);
-            testContrast = trials(trialIdx, testContrastIdx);
+            leftOrientation = trials(trialIdx, leftOrientationIdx);
+            leftPhase = trials(trialIdx, leftPhaseIdx);
+            leftContrast = trials(trialIdx, leftContrastIdx);
+            rightPhase = trials(trialIdx, rightPhaseIdx);
+            rightContrast = trials(trialIdx, rightContrastIdx);
             testStatus=p.testStatus(trials(trialIdx, testStatusIdx));
 
             % orientation
-            orientation=p.gratingOrientations(testOrientation);
+            orientation=p.gratingOrientations(leftOrientation);
             % tone
             toneName = p.precueNames{precueValidity};
             switch toneName
                 case 'valid'
-                    tone=cueTones(testOrientation,:);
-                    toneVersion=testOrientation;
+                    tone=cueTones(leftOrientation,:);
+                    toneVersion=leftOrientation;
                 case 'invalid'
-                    if testOrientation==1
+                    if leftOrientation==1
                         tone = cueTones(2,:);
                         toneVersion=2;
-                    elseif testOrientation==2
+                    elseif leftOrientation==2
                         tone = cueTones(1,:);
                         toneVersion=1;
                     end
@@ -1294,10 +1312,12 @@ switch p.task % task and demo
             %% Set up test mask for this trial
 
             %% Store trial information
-            d.testStatus(iTrial) = testStatus; %absent or present
-            d.testOrientation(iTrial) = testOrientation; %orientation of test stimuli
-            d.testPhase(iTrial) = testPhase; %phase of test stimuli
-            d.testContrast(iTrial) = testContrast; %contrast of test stimuli
+            d.leftStatus(iTrial) = testStatus; %absent or present
+            d.leftOrientation(iTrial) = leftOrientation; %orientation of test stimuli
+            d.leftPhase(iTrial) = leftPhase; %phase of test stimuli
+            d.leftContrast(iTrial) = leftContrast; %contrast of test stimuli
+            d.rightPhase(iTrial) = rightPhase; %phase of test stimuli
+            d.rightContrast(iTrial) = rightContrast; %contrast of test stimuli
             d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
 
             %% Store stimulus information in trials matrix
@@ -1325,16 +1345,9 @@ switch p.task % task and demo
             %% Present predictive tone
             PsychPortAudio('FillBuffer', pahandle, tone);
             timeTone = PsychPortAudio('Start', pahandle, [], timeFix + p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
+            
+            %% EYE TRACKING
 
-            %% Present STANDARD image
-            Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-            timeS = Screen('Flip', window, timeFix+p.signalStart - slack); %timeFix+ how much i want to wait from white(active) to standard
-            
-            % blank
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
-            
             if p.eyeTracking
                 Eyelink('Message', 'EVENT_CUE');
             end
@@ -1372,19 +1385,21 @@ switch p.task % task and demo
                     continue
                 end
             end
+            %% Present LEFT stimuli
+            Screen('DrawTexture', window, tex_plaid{leftContrast,leftPhase}, [], imRectL, orientation);
+            
+            %% Present RIGHT stimuli
+            Screen('DrawTexture', window, tex_plaid{rightContrast,rightPhase}, [], imRectR, 0);
+            
+            
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
+            
+            timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
 
-            %% Present TEST image
-            if testStatus==1
-                Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            elseif testStatus==0
-                %drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            end
-            timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
+            % blank
             drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            Screen('Flip', window, timeT + p.imDur - slack);
- 
+            timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
+         
             %% Eyetracking 
             if p.eyeTracking
                 Eyelink('Message', 'EVENT_RESPCUE');
@@ -1395,7 +1410,7 @@ switch p.task % task and demo
             targetResponseKey = [];
             while isempty(targetResponseKey)
                 [timeTargetResponse, keyCode] = KbWait(devNum);
-                targetRT = timeTargetResponse - timeMask2;
+                targetRT = timeTargetResponse - timeS;
                 targetResponseKey = find(ismember(validKeys,find(keyCode)));
                 targetResponseKeyName = KbName(validKeys(targetResponseKey));
                 correct = NaN;
@@ -1420,15 +1435,15 @@ switch p.task % task and demo
             %% Percent correct for orientation
 
             if testStatus~=0 && (strcmp('9(',targetResponseKeyName) || strcmp('0)',targetResponseKeyName)) % response CCW
-                if testOrientation==2 % stimuli CW
+                if leftOrientation==2 % stimuli CW
                     correct = 1;  % stimuli = response
-                elseif testOrientation==1 % stimuli CCW
+                elseif leftOrientation==1 % stimuli CCW
                     correct = 0; % stimuli != response
                 end
             elseif testStatus~=0 && (strcmp('1!',targetResponseKeyName) || strcmp('2@',targetResponseKeyName)) % response CCW
-                if testOrientation==1 %stimuli CCW
+                if leftOrientation==1 %stimuli CCW
                     correct = 1; % stimuli = response
-                elseif testOrientation==2 %stimuli CW
+                elseif leftOrientation==2 %stimuli CW
                     correct = 0; % stimuli != response
                 end
             else
