@@ -45,13 +45,13 @@ if ~exist(data.dataDir, 'dir')
     mkdir(data.dataDir)
 end
 
-data.dataDir_subjectID = sprintf('%s/data/%s',pwd,subjectID);
+data.dataDir_subjectID = sprintf('%s/data/%s',pwd,p.subjectID);
 if ~exist(data.dataDir_subjectID , 'dir')
     mkdir(data.dataDir_subjectID )
 end
 
 
-data.dataDir_sub = sprintf('%s/data/%s/session_%d',pwd,subjectID,sessionNum);
+data.dataDir_sub = sprintf('%s/data/%s/session_%d',pwd,p.subjectID,p.sessionNum);
 if ~exist(data.dataDir_sub, 'dir')
    mkdir(data.dataDir_sub)
 end
