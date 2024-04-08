@@ -61,7 +61,8 @@ end
 %     mkdir(data.subDir)
 % end
 % are we overwriting data
-if exist(sprintf('%s/%s_s%d_pred_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,datestr(now, 'mmdd')),'file')
+date = datestr(now, 'yymmdd_HHMM'); 
+if exist(sprintf('%s/%s_s%d_pred_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,date),'file')
     error('This subject/session already has saved data');
 end
 
@@ -138,7 +139,7 @@ black = BlackIndex(window);
 %% Calculate stimulus dimensions (px) and position
 pixelsPerDegree = ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
 fixSize = p.fixSize*pixelsPerDegree;
-
+gaborSD = round(p.gaborSD * p.ppd); 
 
 %% Making sounds ...
 % 10^0.5 for every 10dB
@@ -163,7 +164,7 @@ validKeys = KbName({'1!','2@','9(','0)'});
 %% Make TEST stimuli
 
 imPos = round(p.imPos*pixelsPerDegree); % image position (pixels)
-gratingRadius = round(p.gratingDiameter/2*pixelsPerDegree); % radius (pixels)
+% gratingRadius = round(p.gratingDiameter/2*pixelsPerDegree); % radius (pixels)
 
 tex = cell(numel(p.gratingContrasts), numel(p.gratingOrientations));
 
@@ -173,7 +174,7 @@ for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS 
         phase = p.testPhases(iP);
         grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
             p.gratingSF, 0, phase, contrast); % 0 to 1
-        [gabor, aps] = rd_aperture(grating, 'gaussian', gratingRadius(1)/4);
+        [gabor, aps] = rd_aperture(grating, 'gaussian', gaborSD);
         tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
     end
 end
@@ -186,10 +187,10 @@ imRect = CenterRectOnPoint([0 0 imSize], cx+imPos(1), cy+imPos(2));
 
 gratingS = rd_grating(pixelsPerDegree, p.gratingSize, p.gratingSF, 0, 0, p.standardContrast); % First make a grating image
 imPosS = round(p.imPos*pixelsPerDegree); % standard image position (pixels)
-gratingRadiusS = round(p.gratingDiameter/2*pixelsPerDegree); % standard radius (pixels)
+% gratingRadiusS = round(p.gratingDiameter/2*pixelsPerDegree); % standard radius (pixels)
 
 % Place an Gaussian aperture on the image to turn it into a Gabor
-gaborS = rd_aperture(gratingS, 'gaussian', gratingRadiusS(1)/4);
+gaborS = rd_aperture(gratingS, 'gaussian', gaborSD);
 
 
 % Make an image "texture"
@@ -213,7 +214,7 @@ for iC = 1:numel(p.plaidContrasts1)
             p.gratingSF, p.plaidAxes(2), phase, p.plaidContrasts2); % 0 to 1
         plaid = (grating1 + grating2) - 0.5; 
         
-        [plaid, aps] = rd_aperture(plaid, 'gaussian', gratingRadius(1)/4);
+        [plaid, aps] = rd_aperture(plaid, 'gaussian', gaborSD);
         tex_plaid{iC,iP} = Screen('MakeTexture', window, plaid*white);
         
     end
@@ -346,8 +347,8 @@ switch p.task % task and demo
             for iJ = 1:2 % Standard then test
                 [mask,~,~]=kt_makeFilteredNoise(p.gratingSize, p.maskContrast,0, 0, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 0,'allOrientations');
                 masks1=mask;
-                gratingRadiusM = round(p.gratingDiameter/2*pixelsPerDegree); 
-                mask=rd_aperture(mask, 'gaussian', gratingRadiusM(1)/4);
+                % gratingRadiusM = round(p.gratingDiameter/2*pixelsPerDegree); 
+                mask=rd_aperture(mask, 'gaussian', gaborSD);
                 maskTex = Screen('MakeTexture', window, mask*white);
 
                 masks(i,iJ,:,:) = mask; 
@@ -765,7 +766,7 @@ switch p.task % task and demo
             d.testMask(iTrial)=masks(trialIdx,2);
             d.standardMask(iTrial)=masks(trialIdx,1);
             %d.trials(iTrial)=trials(trialIdx, : );
-            save(sprintf('%s/%s_s%d_pred_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,datestr(now, 'mmdd')),'d','p');
+            save(sprintf('%s/%s_s%d_pred_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,date),'d','p');
 
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
@@ -863,8 +864,8 @@ switch p.task % task and demo
             for iJ = 1:2 % Standard then test
                 [mask,~,~]=kt_makeFilteredNoise(p.gratingSize, p.maskContrast,0, 0, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 0,'allOrientations');
                 masks1=mask;
-                gratingRadiusM = round(p.gratingDiameter/2*pixelsPerDegree); 
-                mask=rd_aperture(mask, 'gaussian', gratingRadiusM(1)/4);
+                % gratingRadiusM = round(p.gratingDiameter/2*pixelsPerDegree); 
+                mask=rd_aperture(mask, 'gaussian', gaborSD);
                 maskTex = Screen('MakeTexture', window, mask*white);
 
                 masks(i,iJ,:,:) = mask; 
@@ -1463,20 +1464,20 @@ switch p.task % task and demo
             d.timeStart(iTrial)=timeStart; % time at which trial starts
             d.timeEnd(iTrial)=timeEnd; % time at which trial ends
             d.timeElapsed(iTrial)=timeEnd-timeStart; % trial duration
-            
-            d.correct(iTrial) = correct; % response correctness (0/1)
-            d.timeTargetResponse(iTrial)=timeTargetResponse; % time at which response was made
-            d.targetRT(iTrial) = targetRT; %response time duration
-            d.targetResponseKey(iTrial) = targetResponseKey; % response key for trial
-            d.timePreStart(iTrial)=timePreStart; % time before standard stimuli presentation
-            d.timeFix(iTrial)=timeFix; % time for fixation
-            d.timeS(iTrial)=timeS; % time for standard
-            d.timeBlank1(iTrial)=timeBlank1; % time after standard
-            d.timeTone(iTrial)=timeTone; % time at tone
-            d.timeT(iTrial)=timeT; % time at test
-            d.trialOrder=trialOrder;
-            d.testMask(iTrial)=masks(trialIdx,2);
-            d.standardMask(iTrial)=masks(trialIdx,1);
+            % 
+            % d.correct(iTrial) = correct; % response correctness (0/1)
+            % d.timeTargetResponse(iTrial)=timeTargetResponse; % time at which response was made
+            % d.targetRT(iTrial) = targetRT; %response time duration
+            % d.targetResponseKey(iTrial) = targetResponseKey; % response key for trial
+            % d.timePreStart(iTrial)=timePreStart; % time before standard stimuli presentation
+            % d.timeFix(iTrial)=timeFix; % time for fixation
+            % d.timeS(iTrial)=timeS; % time for standard
+            % d.timeBlank1(iTrial)=timeBlank1; % time after standard
+            % d.timeTone(iTrial)=timeTone; % time at tone
+            % d.timeT(iTrial)=timeT; % time at test
+            % d.trialOrder=trialOrder;
+            % d.testMask(iTrial)=masks(trialIdx,2);
+            % d.standardMask(iTrial)=masks(trialIdx,1);
             %d.trials(iTrial)=trials(trialIdx, : );
             save(sprintf('%s/%s_s%d_pred.mat',data.dataDir,p.subjectID,p.sessionNum),'d','p');
 
