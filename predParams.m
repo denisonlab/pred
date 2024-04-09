@@ -50,6 +50,7 @@ p.plaidContrasts2 = 0.2;
 p.plaidAxes = [0 90]; % base orientations 
 p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli 
 
+p.plaidOrientations= [-45 45];
 p.plaidStatus=[1 1 1 2]; 
 %% Calculate pixels per degree
 %pix= ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);

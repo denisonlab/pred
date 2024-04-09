@@ -1019,7 +1019,7 @@ switch p.task % task and demo
         %% %%%% Generate trials in different conditions %%%%
         % 43008 trial version 
         trials_headers = {'precueValidity','gratingOrientation','gratingPhase', 'gratingContrast','plaidStatus','plaidOrientation','plaidPhase' 'plaidContrast','precue','responseKey','response','accuracy','rt'};
-        %make sure column indices match trials headers
+        make sure column indices match trials headers
         precueValidityIdx = strcmp(trials_headers,'precueValidity');
         gratingOrientationIdx = strcmp(trials_headers,'gratingOrientation'); % 0 (low) or 1 (high)
         gratingPhaseIdx = strcmp(trials_headers,'gratingPhase'); % test phase value
@@ -1441,8 +1441,7 @@ switch p.task % task and demo
         plaidPhaseIdx = strcmp(trials_headers2,'plaidPhase'); % test phase value
         plaidContrastIdx = strcmp(trials_headers2,'plaidContrast'); % test contrast
        
-        trials2 = fullfact([ numel(p.precueValidities)...
-             numel(p.plaidOrientations),... % 1 plaid ori
+        trials2 = fullfact([numel(p.plaidOrientations),... % 1 plaid ori
              numel(p.testPhases),... % 2 plaid phase 
              numel(p.plaidContrasts1)]); % 3 plaid contrast
         if (p.debug=="N" || p.debug=="n") % && p.reps==1
@@ -1537,24 +1536,22 @@ switch p.task % task and demo
             %% Get condition information for this trial
 
             if trialIdx<=size(trials1,1)
-                plaidStatus=1;
                 precueValidity = p.precueValidities(trials1(trialIdx, precueValidityIdx));
-                gratingOrientation = trials1(trialIdx, gratingOrientationIdx);
-                gratingPhase = trials1(trialIdx, gratingPhaseIdx);
-                gratingContrast = trials1(trialIdx, gratingContrastIdx);
-                gOrientation=p.gratingOrientations(gratingOrientation);
-            elseif trialIdx>size(trials1,1)
-                plaidStatus=2;
-                plaidOrientation = trials(trialIdx, plaidOrientationIdx);
-                plaidPhase = trials(trialIdx, plaidPhaseIdx);
-                plaidContrast = trials(trialIdx, plaidContrastIdx);
-                pOrientation=p.plaidOrientations(plaidOrientation);
-            end
+                gratingOrientation = trials(trialIdx, gratingOrientationIdx);
+                gratingPhase = trials(trialIdx, gratingPhaseIdx);
+                gratingContrast = trials(trialIdx, gratingContrastIdx);
+            elseif trialIdx<=size(trials1,1)
+            
+
+            plaidOrientation = trials(trialIdx, plaidOrientationIdx);
+            plaidPhase = trials(trialIdx, plaidPhaseIdx);
+            plaidContrast = trials(trialIdx, plaidContrastIdx);
+            
             %testStatus=p.testStatus(trials(trialIdx, testStatusIdx));
             
             % orientation
-            
-            
+            gOrientation=p.gratingOrientations(gratingOrientation);
+            pOrientation=p.plaidOrientations(plaidOrientation);
             % tone
             toneName = p.precueNames{precueValidity};
             switch toneName
