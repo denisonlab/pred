@@ -1820,8 +1820,8 @@ switch p.task % task and demo
         end
 
     case 5 
-        %% Kok 2012 + Waffles interleaved
-
+        %% Kok 2012 + Waffles
+         %% 600-ish trial version
         trials_headers1 = {'precueValidity','standardOrientation','standardPhase','standardContrast','standardSPF','gratingOrientation','gratingPhase', 'gratingContrast','gratingSPF','precue','responseKey','response','accuracy','rt'};
         % make sure column indices match trials headers
         precueValidityIdx = strcmp(trials_headers1,'precueValidity');
@@ -1852,13 +1852,15 @@ switch p.task % task and demo
         trials1 = fullfact([numel(p.precueValidities),... % 1
              numel(p.gratingOrientations),... % 2 standard ori
              numel(p.testPhases),... % 3 standard phase 
-             numel(p.standardContrasts)... % 4 standard contrast
+             numel(p.stanContrasts)... % 4 standard contrast
              numel(p.standardSPF)... % 5 standard SPF
-             numel(p.gratingOrientations),... % 6 grating ori
-             numel(p.testPhases),... % 7 grating phase 
-             numel(p.gratingContrasts)...% 8 grating contrasts
-             numel(p.gratingSPF)]); % 9 grating SPF
-            
+             numel(p.gratingOrientations),... % 2 grating ori
+             numel(p.testPhases),... % 3 grating phase 
+             numel(p.gratingContrasts)...
+             ...
+             ]); % 4 grating contrast
+             % 5 plaid status
+       
         trials_headers2 = {'precueValidity','plaidOrientation','plaidPhase' 'plaidContrast'};
         % make sure column indices match trials headers
         precueValidityIdx = strcmp(trials_headers1,'precueValidity');
