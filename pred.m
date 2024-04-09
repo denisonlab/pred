@@ -27,8 +27,8 @@ p.debug = input('Debug? (Y/N) ','s');
 p.task = input(['Prediction task run:\n' ...
     '1 - Task original\n'...
     '2 - Demo\n'...
-    '3 - Task version 2\n'...
-    '4 - Task version 2 600-ish trials\n']);
+    '3 - Task version 2 43008 trials\n'...
+    '4 - Task version 2 800 trials\n']);
 p.reps = input ('How many reps(1/2)? ');
 p.fullScreen = input ('Full screen(0/1)? ');
 p.eyeTracking=input('Eyetracking (0/1)? ');
@@ -1415,7 +1415,7 @@ switch p.task % task and demo
         gratingPhaseIdx = strcmp(trials_headers1,'gratingPhase'); % test phase value
         gratingContrastIdx = strcmp(trials_headers1,'gratingContrast'); % test contrast
         % 
-        plaidStatusIdx = strcmp(trials_headers1,'plaidStatus'); % plaid status absent (1) or present (2)
+        %plaidStatusIdx = strcmp(trials_headers1,'plaidStatus'); % plaid status absent (1) or present (2)
         % plaidOrientationIdx = strcmp(trials_headers,'plaidOrientation'); % 0 (low) or 1 (high)
         % plaidPhaseIdx = strcmp(trials_headers,'plaidPhase'); % test phase value
         % plaidContrastIdx = strcmp(trials_headers,'plaidContrast'); % test contrast
@@ -1434,9 +1434,9 @@ switch p.task % task and demo
              numel(p.gratingContrasts) ]); % 4 grating contrast
              % 5 plaid status
        
-        trials_headers2 = {'plaidOrientation','plaidPhase' 'plaidContrast'};
+        trials_headers2 = {'precueValidity','plaidOrientation','plaidPhase' 'plaidContrast'};
         % make sure column indices match trials headers
-       
+        precueValidityIdx = strcmp(trials_headers1,'precueValidity');
         plaidOrientationIdx = strcmp(trials_headers2,'plaidOrientation'); % 0 (low) or 1 (high)
         plaidPhaseIdx = strcmp(trials_headers2,'plaidPhase'); % test phase value
         plaidContrastIdx = strcmp(trials_headers2,'plaidContrast'); % test contrast
@@ -1447,8 +1447,9 @@ switch p.task % task and demo
              numel(p.plaidContrasts1)]); % 3 plaid contrast
         if (p.debug=="N" || p.debug=="n") % && p.reps==1
             %trials=repmat(trials,p.reps*p.repScale1,1);
+            trials1=repmat(trials1,3,1);
             nTrials = size(trials1,1)+size(trials2,1); 
-            nBlocks=nTrials/78; 
+            nBlocks=nTrials/p.BlockTrials; 
           
         % elseif (p.debug=="N" || p.debug=="n") && p.reps==2
         %     trials=repmat(trials,p.reps*p.repScale2,1); 
@@ -1545,9 +1546,10 @@ switch p.task % task and demo
                 gOrientation=p.gratingOrientations(gratingOrientation);
             elseif trialIdx>size(trials1,1)
                 plaidStatus=2;
-                plaidOrientation = trials(trialIdx, plaidOrientationIdx);
-                plaidPhase = trials(trialIdx, plaidPhaseIdx);
-                plaidContrast = trials(trialIdx, plaidContrastIdx);
+                precueValidity = p.precueValidities(trials2(trialIdx-size(trials1,1), precueValidityIdx));
+                plaidOrientation = trials2(trialIdx-size(trials1,1), plaidOrientationIdx);
+                plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
+                plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);
                 pOrientation=p.plaidOrientations(plaidOrientation);
             end
             %testStatus=p.testStatus(trials(trialIdx, testStatusIdx));
@@ -1589,19 +1591,28 @@ switch p.task % task and demo
 
             %% Store trial information
             %d.testStatus(iTrial) = testStatus; %absent or present
-            
-            d.gratingOrientation(iTrial) = gratingOrientation; %orientation of test stimuli
-            d.gratingPhase(iTrial) = gratingPhase; %phase of test stimuli
-            d.gratingContrast(iTrial) = gratingContrast; %contrast of test stimuli
-            %d.plaidOrientation(iTrial) = plaidOrientation; %orientation of plaid stimuli
-            d.plaidPhase(iTrial) = plaidPhase; %phase of test stimuli
-            d.plaidContrast(iTrial) = plaidContrast; %contrast of test stimuli
-            d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
-            d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
-
+             if plaidStatus==1
+                d.gratingOrientation(iTrial) = gratingOrientation; %orientation of test stimuli
+                d.gratingPhase(iTrial) = gratingPhase; %phase of test stimuli
+                d.gratingContrast(iTrial) = gratingContrast; %contrast of test stimuli
+                d.plaidOrientation(iTrial) = NaN; %orientation of plaid stimuli
+                d.plaidPhase(iTrial) = NaN; %phase of test stimuli
+                d.plaidContrast(iTrial) = NaN; %contrast of test stimuli
+                d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
+                d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
+            elseif plaidStatus==2
+                d.plaidOrientation(iTrial) = plaidOrientation; %orientation of plaid stimuli
+                d.plaidPhase(iTrial) = plaidPhase; %phase of test stimuli
+                d.plaidContrast(iTrial) = plaidContrast; %contrast of test stimuli
+                d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
+                d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
+                d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
+                d.gratingPhase(iTrial) = NaN; %phase of test stimuli
+                d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
+            end
             %% Store stimulus information in trials matrix
 
-            trials(trialIdx, precueIdx) = toneVersion;
+            %trials(trialIdx, precueIdx) = toneVersion;
             %% %%%% Play the trial %%%%
             %% Present fixation rest (grey)
             drawFixation(window, cx, cy, fixSize, p.fixColor*p.dimFactor*white);
