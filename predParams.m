@@ -31,7 +31,9 @@ p.gratingDiameter = [2 0];
 % 2.5 to 50 percent, 6-79% 
 %p.gratingContrasts = [0 logspace(log10(0.025),log10(0.5),6)]; % 7 contrast levels and 0 (absent stimuli) 
 %p.gratingContrasts = [0 logspace(log10(0.2),log10(0.8),6)];
-p.gratingContrasts = [0 logspace(log10(0.1),log10(0.6),6)];
+%p.gratingContrasts = [0 logspace(log10(0.1),log10(0.6),6)];
+
+p.gratingContrasts = [logspace(log10(0.1),log10(0.6),6)];
 p.maskContrast = 0.8;
 %p.maskContrast=p.gratingContrasts(7);
 %p.gratingContrasts=[1];
@@ -48,6 +50,7 @@ p.plaidContrasts2 = 0.2;
 p.plaidAxes = [0 90]; % base orientations 
 p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli 
 
+p.plaidStatus=[1 1 1 2]; 
 %% Calculate pixels per degree
 %pix= ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
 %[p.screenWidthPx, p.screenHeightPx] = Screen('WindowSize', window);
