@@ -29,7 +29,8 @@ p.task = input(['Prediction task run:\n' ...
     '2 - Demo\n'...
     '3 - Task version 2 43008 trials\n'...
     '4 - Task version 2 800 trials\n'...
-    '5 - Task version Kok + Waffles\n']);
+    '5 - Task version Kok + Waffles\n' ...
+    '6 - Demo for Kok + Waffles\n']);
 p.reps = input ('How many reps(1/2)? ');
 p.fullScreen = input ('Full screen(0/1)? ');
 p.eyeTracking=input('Eyetracking (0/1)? ');
@@ -151,8 +152,11 @@ p.cueTones=cueTones;
 devNum = -1;
 
 KbName('UnifyKeyNames');
-validKeys = KbName({'1!','2@','9(','0)'});
-
+if p.task==1 || p.task==2
+    validKeys = KbName({'1!','2@','9(','0)'});
+elseif p.task==3 || p.task==4 ||p.task==5
+    validKeys = KbName({'9(','0)'});
+end
 %% Make TEST stimuli
 
 imPos = round(p.imPos*pixelsPerDegree); % image position (pixels)
@@ -225,10 +229,9 @@ imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS
 for iC = 1:numel(p.plaidContrasts1) 
     contrast1 = p.plaidContrasts1(iC);
     for iP=1:numel(p.testPhases)
-        
         phase = p.testPhases(iP);
         grating1 = rd_grating(pixelsPerDegree, p.imSize(1), ...
-            p.gratingSF, p.plaidAxes(1), phase, contrast1); % 0 to 1
+            p.gratingSF, p.plaidAxes(1), phase, contrast); % 0 to 1
         grating2 = rd_grating(pixelsPerDegree, p.imSize(1), ...
             p.gratingSF, p.plaidAxes(2), phase, p.plaidContrasts2); % 0 to 1
         plaid = (grating1 + grating2) - 0.5; 
@@ -1880,7 +1883,7 @@ switch p.task % task and demo
              numel(p.gratingOrientations),... % 2 standard orientation
              numel(p.testPhases),... % 3 standard phase 
              numel(p.gratingSPF)... % 5 standard SPF
-             numel(p.gratingOrientatioDiff),... % 6 grating orientation
+             numel(p.gratingOrientationDiff),... % 6 grating orientation
              numel(p.gratingContrasts)...% 8 grating contrasts
              numel(p.gratingSPF)]); % 9 grating SPF
             
@@ -1957,7 +1960,7 @@ switch p.task % task and demo
         %% Show instruction screen and wait for a button press
         instructions = 'This is the second version of the experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
-        instructions1 = sprintf('%s\n\nThere will be a reference grating,\n\n followed by a tone and another grating.\n\n You will have to report the orientation of the second grating.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
+        instructions1 = sprintf('%s\n\nThere will be a reference grating,\n\n followed by a tone and another grating.\n\n You will have to report the orientation of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
 
@@ -2000,7 +2003,7 @@ switch p.task % task and demo
                 gratingContrast = trials1(trialIdx, gratingContrastIdx);
                 gratingSPF=trials1(trialIdx, gratingSPFIdx);
 
-                gOrientation=p.gratingOrientations(gratingOrientation);
+                gOrientation=p.gratingOrientationDiff(gratingOrientation);
                 sOrientation=p.gratingOrientations(standardOrientation);
 
             elseif trialIdx>size(trials1,1)
@@ -2166,7 +2169,7 @@ switch p.task % task and demo
     
                 % blank
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-                timeBlank1 = Screen('Flip', window, timeT + p.imDur - slack); %timeS + how long i want stimulus to be presented for
+                timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack); %timeS + how long i want stimulus to be presented for
              
                 %% Eyetracking 
                 if p.eyeTracking
@@ -2283,13 +2286,13 @@ switch p.task % task and demo
 
             %% Percent correct for orientation
 
-            if plaidStatus~=2 && (strcmp('9(',targetResponseKeyName) || strcmp('0)',targetResponseKeyName)) % response CCW
+            if plaidStatus~=2 && strcmp('0)',targetResponseKeyName) % response CCW
                 if gratingOrientation==2 % stimuli CW
                     correct = 1;  % stimuli = response
                 elseif gratingOrientation==1 % stimuli CCW
                     correct = 0; % stimuli != response
                 end
-            elseif plaidStatus~=2 &&(strcmp('1!',targetResponseKeyName) || strcmp('2@',targetResponseKeyName)) % response CCW
+            elseif plaidStatus~=2 && strcmp('9(',targetResponseKeyName)  % response CCW
                 if gratingOrientation==1 %stimuli CCW
                     correct = 1; % stimuli = response
                 elseif gratingOrientation==2 %stimuli CW
@@ -2323,6 +2326,14 @@ switch p.task % task and demo
             d.timeS(iTrial)=timeS; % time for standard
             d.timeBlank1(iTrial)=timeBlank1; % time after standard
             d.timeTone(iTrial)=timeTone; % time at tone
+            if plaidStatus==1
+                d.timeT(iTrial)=timeT;
+                d.timeBlank2(iTrial)=timeBlank2;
+            elseif plaidStatus==2
+                d.timeT(iTrial)=NaN;
+                d.timeBlank2(iTrial)=NaN;
+            end
+
             d.trialOrder=trialOrder;
             save(sprintf('%s/%s_s%d_predv2_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,date),'d','p');
 

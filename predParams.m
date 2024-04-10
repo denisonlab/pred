@@ -58,7 +58,7 @@ p.plaidStatus=[1 1 1 2];
 
 % Waffles+Kok
 p.standardContrast2 = 0.8; %WHAT SHOULD CONTRAST BE???
-p.gratingOrientatioDiff=[-10 10];
+p.gratingOrientationDiff=[-5 5];
 %% Calculate pixels per degree
 %pix= ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
 %[p.screenWidthPx, p.screenHeightPx] = Screen('WindowSize', window);
@@ -92,8 +92,9 @@ p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
 
 %% Trials & Blocks
 p.trialsNeeded=7*50*2*2; %7 contrast levels x 50 trials per contrast level x 2 absent/present x 2 validity
-p.BlockTrials=64; %64 trials 3 mins, 128 trials approx 6 mins
+%p.BlockTrials=64; %64 trials 3 mins, 128 trials approx 6 mins
 %p.BlockTrials=5;%eyetracker testing
+p.BlockTrials=55;
 p.repScale1=2; % 42 mins for 896 trials
 p.repScale2=3; % 63 mins for 1344 trials
 p.repScaleDemo=1;
