@@ -34,16 +34,17 @@ p.gratingDiameter = [2 0];
 %p.gratingContrasts = [0 logspace(log10(0.025),log10(0.5),6)]; % 7 contrast levels and 0 (absent stimuli) 
 %p.gratingContrasts = [0 logspace(log10(0.2),log10(0.8),6)];
 %p.gratingContrasts = [0 logspace(log10(0.1),log10(0.6),6)];
-p.orientationDiff=[-10 10];
+%p.orientationDiff=[-10 10];
 p.gratingContrasts = [logspace(log10(0.1),log10(0.6),6)];
 p.maskContrast = 0.8;
 %p.maskContrast=p.gratingContrasts(7);
 %p.gratingContrasts=[1];
 p.testStatus = [1]; %0 (absent stimuli)
-p.standardContrast = p.gratingContrasts(4); %WHAT SHOULD CONTRAST BE???
+p.standardContrast = p.gratingContrasts(4); 
 p.standardOrientation = 0;
 %p.imSize=[2 2]; %p.imSize=2;
-p.imSize = 2;
+%p.imSize = 2; WOULD THIS BE HOW TO DOUBLE SO THAT THE GRATING IS CIRCULAR 
+p.imSize = 4;
 p.testPhases = linspace(0,2*pi,4); %%PHASE WHAT AM I GONNA DO WITH IT
 p.gratingPhases=p.testPhases+pi;
 % Plaid parameters
@@ -57,7 +58,7 @@ p.plaidStatus=[1 1 1 2];
 
 % Waffles+Kok
 p.standardContrast2 = 0.8; %WHAT SHOULD CONTRAST BE???
-
+p.gratingOrientatioDiff=[-10 10];
 %% Calculate pixels per degree
 %pix= ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
 %[p.screenWidthPx, p.screenHeightPx] = Screen('WindowSize', window);

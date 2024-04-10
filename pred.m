@@ -1880,7 +1880,7 @@ switch p.task % task and demo
              numel(p.gratingOrientations),... % 2 standard orientation
              numel(p.testPhases),... % 3 standard phase 
              numel(p.gratingSPF)... % 5 standard SPF
-             numel(p.gratingOrientations),... % 6 grating orientation
+             numel(p.gratingOrientatioDiff),... % 6 grating orientation
              numel(p.gratingContrasts)...% 8 grating contrasts
              numel(p.gratingSPF)]); % 9 grating SPF
             
@@ -2159,7 +2159,7 @@ switch p.task % task and demo
                     end
                 end
                 %% Present TEST
-                Screen('DrawTexture', window, tex{gratingContrast,gratingPhase,gratingSPF}, [], imRect, gOrientation);
+                Screen('DrawTexture', window, tex{gratingContrast,gratingPhase,gratingSPF}, [], imRect, sOrientation+gOrientation);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 
                 timeT = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
