@@ -45,7 +45,7 @@ p.standardOrientation = 0;
 %p.imSize=[2 2]; %p.imSize=2;
 p.imSize = 2;
 p.testPhases = linspace(0,2*pi,4); %%PHASE WHAT AM I GONNA DO WITH IT
-p.gratingPhases=p.testPhases+pi;
+
 % Plaid parameters
 p.plaidContrasts1 = [logspace(log10(0.21),log10(0.7),7)];
 p.plaidContrasts2 = 0.2;
@@ -56,7 +56,7 @@ p.plaidOrientations= [-45 45];
 p.plaidStatus=[1 1 1 2]; 
 
 % Waffles+Kok
-p.standardContrast2 = 0.8; %WHAT SHOULD CONTRAST BE???
+p.standardContrast = p.gratingContrasts(4); %WHAT SHOULD CONTRAST BE???
 
 %% Calculate pixels per degree
 %pix= ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
