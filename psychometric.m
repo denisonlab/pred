@@ -13,6 +13,9 @@ function psychometric()
 % to 80%
 % pilot002 has 2 session, 896 trials with mask contrast = 0.8 and range 20%
 % to 80%
+% pilot003 has 1 session, 448 trials with mask contrast = 0.8 and range 10%
+% to 60%
+
 clear;
 close all;
 
