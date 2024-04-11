@@ -1,6 +1,6 @@
 function pred
 % ___________________________________________________________________
-% pred.m runs experiment
+% pred.m runs Waffle experiment
 % Melissa Allouche
 % January 2024
 %
@@ -35,7 +35,7 @@ p.reps = input ('How many reps(1/2)? ');
 p.fullScreen = input ('Full screen(0/1)? ');
 p.eyeTracking=input('Eyetracking (0/1)? ');
 p.maskType=input('Masktype (none/color)? ','s');
-%p.maskType=input('Masktype: ');
+
 %% Setup
 % Add paths
 directory = pwd; % get project directory path, set to prediction folder parent level
@@ -1850,11 +1850,13 @@ switch p.task % task and demo
         %% Merge trial count
         if (p.debug=="N" || p.debug=="n") % && p.reps==1
             nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
-            nBlocks=nTrials/p.BlockTrials; 
+            %nBlocks=nTrials/p.BlockTrials; 
+            nBlocks=2;
         end
 
         trialOrder = randperm(nTrials); %randomize trial order
-
+        %dummy 
+        nTrials=92*2;
         %% Eyetracker
         if p.eyeTracking
             % Initialize eye tracker
