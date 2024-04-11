@@ -55,11 +55,12 @@ p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli
 
 p.plaidOrientations= [-45 45];
 p.plaidStatus=[1 1 1 2]; 
-
+p.plaidSPF=1.5;
 % Waffles+Kok
 p.standardContrast2 = 0.8; %WHAT SHOULD CONTRAST BE???
 p.gratingContrast2 = 0.8;
 p.gratingOrientationDiff=[-5 5];
+p.staticGrating=[1 2];
 %% Calculate pixels per degree
 %pix= ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
 %[p.screenWidthPx, p.screenHeightPx] = Screen('WindowSize', window);
@@ -88,7 +89,8 @@ p.maskDur=0.02;
 p.maskSOA = 0; % should be 0
 
 %% Stairs
-p.stairs=[logspace(log10(1),log10(10),7)];
+p.stairs=[logspace(log10(0.1),log10(10),20)];
+p.differenceMultiplier=[-1 1];
 %% Validity
 p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invalid'};
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
