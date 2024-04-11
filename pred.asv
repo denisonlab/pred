@@ -1879,10 +1879,12 @@ switch p.task % task and demo
         rtIdx = strcmp(trials_headers1,'rt');
         % 
         % 
-        trials1 = fullfact([numel(p.precueValidities),... % 1 precue
+        trials1 = fullfact([numel(p.precueValidities),... % 1
              numel(p.gratingOrientations),... % 2 standard orientation
              numel(p.testPhases),... % 3 standard phase 
-             numel(p.gratingSPF)... % 4 standard SPF
+             numel(p.gratingSPF)... % 5 standard SPF
+             numel(p.gratingOrientationDiff),... % 6 grating orientation
+             numel(p.gratingContrasts)...% 8 grating contrasts
              numel(p.gratingSPF)]); % 9 grating SPF
             
         trials_headers2 = {'precueValidity','plaidOrientation','plaidPhase' 'plaidContrast'};
@@ -2111,13 +2113,12 @@ switch p.task % task and demo
 
                 %% Present predictive tone
                 PsychPortAudio('FillBuffer', pahandle, tone);
-                timeTone = PsychPortAudio('Start', pahandle, [], timeFix+p.signalStart, 1); % waitForStart = 1 in order to return a timestamp of playback
+                timeTone = PsychPortAudio('Start', pahandle, [], timeS + p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
                 
-               
                 %% Present STANDARD
                 Screen('DrawTexture', window, tex_stand{standardPhase,standardSPF}, [], imRect, sOrientation);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-                timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+                timeS = Screen('Flip', window, timeFix+p.signalStart - slack); %timeFix+ how much i want to wait from white(active) to standard
                 
                 % blank
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
@@ -2166,7 +2167,7 @@ switch p.task % task and demo
                 Screen('DrawTexture', window, tex{gratingContrast,gratingPhase,gratingSPF}, [], imRect, sOrientation+gOrientation);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 
-                timeT = Screen('Flip', window, timeS + p.standSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+                timeT = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
     
                 % blank
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);

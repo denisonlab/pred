@@ -58,7 +58,6 @@ p.plaidStatus=[1 1 1 2];
 
 % Waffles+Kok
 p.standardContrast2 = 0.8; %WHAT SHOULD CONTRAST BE???
-p.gratingContrast2 = 0.8;
 p.gratingOrientationDiff=[-5 5];
 %% Calculate pixels per degree
 %pix= ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
@@ -67,7 +66,7 @@ p.ppd = ang2pix(1,  p.screenWidthCm, 1920, p.viewDistCm); %
 
 %% Sounds
 p.Fs = 44100; % samples per second
-p.toneFreqs = [450 1000]; % Hz % try 990 Hz instead ?
+p.toneFreqs = [440 1000]; % Hz % try 990 Hz instead ?
 p.toneDur = 0.2; % s TONE DURATION 200 ms10
 p.deviceName = 'Scarlett';
 
@@ -78,17 +77,15 @@ p.deviceName = 'Scarlett';
 
 %% Timing
 p.fixSOA=0.5; %precue fixation time 
-p.standSOA = 0.1; % standard to tone
-p.toneSOA = 0.55; % tone to standard 550
-p.imDur = 0.5; % image duration 0.03
+p.standSOA = 1; % standard to tone
+p.toneSOA = 0.55; % tone to test 550
+p.imDur = 0.03; % image duration 0.03
 p.ITI=0.2;
 p.signalStart=1;
 p.signalRestDur=1;
 p.maskDur=0.02;
 p.maskSOA = 0; % should be 0
 
-%% Stairs
-p.stairs=[logspace(log10(1),log10(10),7)];
 %% Validity
 p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invalid'};
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
