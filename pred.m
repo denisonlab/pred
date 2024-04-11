@@ -2028,7 +2028,7 @@ switch p.task % task and demo
                 d.plaidContrast(iTrial) = plaidContrast; %store contrast of plaid stimuli
                 d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
                 d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
-
+                d.stairIdx(iTrial) = stairIdx;
                 d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
                 d.gratingPhase(iTrial) = NaN; %phase of test stimuli
                 d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
@@ -2240,16 +2240,16 @@ switch p.task % task and demo
 
             %% Percent correct for orientation
 
-            if plaidStatus~=2 && strcmp('0)',targetResponseKeyName) % response CCW
-                if Orientation==2 % stimuli CW
-                    correct = 1;  % stimuli = response
-                elseif Orientation==1 % stimuli CCW
-                    correct = 0; % stimuli != response
-                end
-            elseif plaidStatus~=2 && strcmp('9(',targetResponseKeyName)  % response CCW
-                if Orientation==1 %stimuli CCW
+            if plaidStatus==1 && strcmp('0)',targetResponseKeyName) % response CW
+                if (differenceMultiplier==-1 && staticGrating==1)||(differenceMultiplier==1 && staticGrating==2) % stimuli CCW
+                    correct = 0;  % stimuli != response
+                elseif (differenceMultiplier==1 && staticGrating==1) ||(differenceMultiplier==-1 && staticGrating==2) % stimuli CW
                     correct = 1; % stimuli = response
-                elseif Orientation==2 %stimuli CW
+                end
+            elseif plaidStatus==1 && strcmp('9(',targetResponseKeyName)  % response CCW
+                if (differenceMultiplier==-1 && staticGrating==1) ||(differenceMultiplier==1 && staticGrating==2)%stimuli CCW
+                    correct = 1; % stimuli = response
+                elseif (differenceMultiplier==1 && staticGrating==1) ||(differenceMultiplier==-1 && staticGrating==2)  9 %stimuli CW
                     correct = 0; % stimuli != response
                 end
             elseif plaidStatus==2
