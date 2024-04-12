@@ -1,4 +1,4 @@
-function [string,terminatorChar] = GetEchoStringPreserve(windowPtr, msg, x, y, textColor, bgColor, useKbCheck, varargin)
+function [string,terminatorChar] = GetEchoStringPreserve(windowPtr, msg, x, y, textColor, bgColor,maxNumChar,vLineSpacing, useKbCheck, varargin)
 % [string,terminatorChar] = GetEchoString(window,msg,x,y,[textColor],[bgColor],[useKbCheck=0],[deviceIndex],[untilTime=inf],[KbCheck args...]);
 % 
 % Get a string typed at the keyboard. Entry is terminated by <return> or
@@ -92,13 +92,14 @@ string = '';
 output = [msg, ' ', string];
 
 % Write the initial message:
-Screen('DrawText', windowPtr, double(output), x, y, textColor, bgColor);
+Screen('DrawText', windowPtr, output, x, y, textColor, bgColor);
 Screen('Flip', windowPtr, 0, 1);
 
 % adapted from PTB3 GetEchoString
 while true
     if useKbCheck
         char = GetKbChar(varargin{:});
+        KbName(char)
     else
         char = GetChar;
     end
@@ -107,7 +108,7 @@ while true
         break;
     end
     switch (abs(char))
-        case {13, 3, 10}
+        case {40, 3, 10}
             % ctrl-C, enter, or return
             break;
         case 8
@@ -120,9 +121,11 @@ while true
             string = [string, char];
     end
 
-    output = [msg, ' ', string];
+    output = [msg, '\n\n ', string];
     output=WrapString(output,maxNumChar);
-    DrawFormattedText(windowPtr,output,x,y,textColor,[],0,0,vLineSpacing);
+    Screen('FillRect', windowPtr, bgColor);
+    %DrawFormattedText(windowPtr, instruction, 'center', 'center', textColor);
+    DrawFormattedText(windowPtr,output,'center', 'center',textColor,[],0,0,vLineSpacing);
     Screen('Flip',windowPtr);
 end
 

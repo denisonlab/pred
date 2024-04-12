@@ -33,10 +33,6 @@ slack = flipInterval/2;
 white = WhiteIndex(window);
 black = BlackIndex(window);
 bgColor=0.5;
-%% Calculate stimulus dimensions (px) and position
-pixelsPerDegree = ang2pix(1, p.screenWidthCm, screenWidthPx, p.viewDistCm);
-fixSize = p.fixSize*pixelsPerDegree;
-gaborSD = round(p.gaborSD * p.ppd); 
 
 %% Keyboard
 % Check all "devices" (keyboards, mice) for response input
@@ -44,24 +40,28 @@ devNum = -1;
 
 KbName('UnifyKeyNames');
 
-maxNumChar==200;
-vLineSpacing=2;
-Screen('FillRect', window, white*bgColor);
-instructions = 'Did you notice anything about the experiment?';
-DrawFormattedText(window, instructions, 'center', 'center', [1 1 1]*white);
+maxNumChar=80;
+vLineSpacing=1;
 
-GetEchoStringPreserve(windowPtr, msg, x, y, textColor, bgColor, useKbCheck, varargin,maxNumChar,vLineSpacing);
+x=cx;
+y=cy;
 
-Screen('FillRect', window, white*bgColor);
-instructions2 = 'Did you notice any relationship between tone and stimuli?';
-DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
-
-GetEchoStringPreserve(windowPtr, msg, x, y, textColor, bgColor, useKbCheck, varargin,maxNumChar,vLineSpacing);
+textColor=white;
+useKbCheck=1;
+bgcolor=black;
 
 Screen('FillRect', window, white*bgColor);
-instructions2 = 'There was a relationship between tone and stimuli orientation!\n\n If you said yes, you are correct. Tell us what you think it is. \n\n If you said no, that is okay. Try to guess what the relationship is. ';
-DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
+instructions1='Did you notice anything about the experiment? Please type your answer';
+[response1,temp1]=GetEchoStringPreserve(window,instructions1, x, y, white, white*bgColor,length(instructions1),vLineSpacing,1);
 
-GetEchoStringPreserve(windowPtr, msg, x, y, textColor, bgColor, useKbCheck, varargin,maxNumChar,vLineSpacing);
+Screen('FillRect', window, white*bgColor);
+instructions2 = 'Did you notice any relationship between the tone and stimuli?';
+
+[response2,temp2]=GetEchoStringPreserve(window, instructions2, x, y, textColor, bgColor,length(instructions2),vLineSpacing,1);
+
+Screen('FillRect', window, white*bgColor);
+instructions3 = 'There was a relationship between tone and stimuli orientation! If you said yes, you are correct. Tell us what you think it is or make a guess. ';
+
+[response3,temp3]=GetEchoStringPreserve(window, instructions3, x, y, textColor, bgColor,length(instructions3),vLineSpacing,1);
 
 end
