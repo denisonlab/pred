@@ -14,6 +14,7 @@ function pred
 % __________________________________________________________________
 clear; close all;
 PsychPortAudio('Close');
+rng("shuffle");
 % if ~exist(pahandle,'var')
 %     PsychPortAudio('Stop', pahandle);
 %     PsychPortAudio('Close', pahandle);
@@ -2356,6 +2357,44 @@ if p.eyeTracking
 end
 
 %% Questionnaire
+% adapted from PTB3 GetEchoString
+% maxNumChar==200;
+% vLineSpacing=2;
+%Screen('FillRect', window, white*p.backgroundColor);
+%instructions = 'Did you notice anything about the experiment?';
+%DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
+% while true
+%     if useKbCheck
+%         char = GetKbChar(varargin{:});
+%     else
+%         char = GetChar;
+%     end
+%     if isempty(char)
+%         string = '';
+%         break;
+%     end
+%     switch (abs(char))
+%         case {13, 3, 10}
+%             % ctrl-C, enter, or return
+%             break;
+%         case 8
+%             % backspace
+%             if ~isempty(string)
+%                 % Remove last character from string:
+%                 string = string(1:length(string)-1);
+%             end
+%         otherwise
+%             string = [string, char];
+%     end
+% 
+%     output = [msg, ' ', string];
+%     output=WrapString(output,maxNumChar);
+%     DrawFormattedText(windowPtr,output,x,y,textColor,[],0,0,vLineSpacing);
+%     Screen('Flip',windowPtr);
+% end
+
+
+
 
 
 %% Save eye data and shut down the eye tracker
