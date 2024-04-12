@@ -1852,12 +1852,11 @@ switch p.task % task and demo
         if (p.debug=="N" || p.debug=="n") % && p.reps==1
             nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
             %nBlocks=nTrials/p.BlockTrials; 
-            nBlocks=2;
+            nBlocks=nTrials/p.BlockTrials; 
         end
 
         trialOrder = randperm(nTrials); %randomize trial order
-        %dummy 
-        nTrials=92*2;
+        
         %% Eyetracker
         if p.eyeTracking
             % Initialize eye tracker
@@ -1969,8 +1968,11 @@ switch p.task % task and demo
                 plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
                 plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);
                 pOrientation=p.plaidOrientations(plaidOrientation); %get the orientation value (+/-45) using the plaid orientation index
+                if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial
+                    stairIdx=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
+            
+                end
             end
-          
             % tone
             toneName = p.precueNames{precueValidity};
             switch toneName

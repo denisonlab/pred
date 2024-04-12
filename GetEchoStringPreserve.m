@@ -56,6 +56,7 @@ function [string,terminatorChar] = GetEchoStringPreserve(windowPtr, msg, x, y, t
 % 02/02/18  mk        Improve help text again.
 % 6/20/19   mk        Make sort of compatible with unicode strings. Problem that Octave
 %                     can not store UCS-4 char() remains.
+KbName('UnifyKeyNames');
 
 if nargin < 7
     useKbCheck = [];
@@ -105,11 +106,13 @@ while true
     end
     if isempty(char)
         string = '';
+        terminatorChar='';
         break;
     end
     switch (abs(char))
         case {40, 3, 10}
             % ctrl-C, enter, or return
+            terminatorChar='';
             break;
         case 8
             % backspace

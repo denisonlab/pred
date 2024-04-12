@@ -81,7 +81,7 @@ p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invali
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
 
 %% Trials & Blocks
-p.BlockTrials=92;
+p.BlockTrials=46;
 p.repScale1=2; % 42 mins for 896 trials
 p.repScale2=3; % 63 mins for 1344 trials
 p.repScaleDemo=1;
