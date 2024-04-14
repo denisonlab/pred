@@ -165,10 +165,6 @@ legend("expected","unexpected");
 
 %% subjective report plot
 
-% +45 stronger
-% hits = responsePresent & orientationPresent; they said +45 and was
-% actually +45
-% fa= responsePresent & orientationAbsent;
 
 waffleContrastsIdx=file.d.plaidContrast;
 skipNotWaffle=isnan(waffleContrastsIdx);
@@ -204,26 +200,6 @@ dataMatrix=sortrows(dataMatrix,3);
 allDiff=unique(difference);
 nDiff=length(allDiff);
 
-diff45s=[];
-diff135s=[];
-diff45sEx=[];
-diff135sEx=[];
-diff45sUnex=[];
-diff135sUnex=[];
-
-for i=1:length(allDiff)
-    diff45s{i}=(difference==allDiff(i)& waffleOrientation==2); % positive differences
-    diff135s{i}=((difference==allDiff(i))& waffleOrientation==1); %negative differences
-    
-    diff45sEx{i}=((difference==allDiff(i))& waffleOrientation==2 & precueValidities==1);
-    diff135sEx{i}=((difference==allDiff(i))& waffleOrientation==1 & precueValidities==1);
-    
-    diff45sUnex{i}=((difference==allDiff(i))& waffleOrientation==2 & precueValidities==1);
-    diff135sUnex{i}=((difference==allDiff(i))& waffleOrientation==1 & precueValidities==1);
-end
-
-% prop_exp=(nTrialsWaffle/length(allDiff))*(mean(file.p.precueValidities==1));
-% prop_unexp=(nTrialsWaffle/length(allDiff))*(mean(file.p.precueValidities==2));
 prop_con=nTrialsWaffle/length(allDiff);
 cons_45pex=[];
 cons_45nex=[];
@@ -241,9 +217,7 @@ cons_135p=[];
 cons_135n=[];
 
 for i=1:length(allDiff)
-    %diff45s{i}=diff45s{i}.';
-    %diff135s{i}=diff135s{i}.';
-    cons_45p(i)=mean(dataMatrix(:,1)==2 & dataMatrix(:,4)==allDiff(i) & dataMatrix(:,3)==2);
+    cons_45p(i)=mean(dataMatrix(:,1)==2 & dataMatrix(:,4)==allDiff(i) & dataMatrix(:,3)==2); 
     cons_45n(i)=mean(dataMatrix(:,1)==2 & dataMatrix(:,4)==allDiff(i) & dataMatrix(:,3)==1);
     cons_135p(i)=mean(dataMatrix(:,1)==1 & dataMatrix(:,4)==allDiff(i) & dataMatrix(:,3)==1);
     cons_135n(i)=mean(dataMatrix(:,1)==1 & dataMatrix(:,4)==allDiff(i) & dataMatrix(:,3)==2);
@@ -297,60 +271,79 @@ xlabel("contrasts")
 ylabel("p(reported -45 stronger)");
 title("p(reported +45/-45 stronger), ",subjectID);
 legend("+45 expected","+45 unexpected","-45 expected","-45 unexpected");
-% prop_exp=(nTrialsWaffle/length(allDiff))*(mean(file.p.precueValidities==1));
-% prop_unexp=(nTrialsWaffle/length(allDiff))*(mean(file.p.precueValidities==2));
-% prop_con=nTrialsWaffle/length(allDiff);
-% 
-% 
-% cons_45ex=[];
-% cons_45unex=[];
-% cons_135ex=[];
-% cons_135unex=[];
-% cons_45=[];
-% cons_135=[];
-% 
-% for i=1:length(allDiff)
-% 
-%     cons_45(i)=mean((dataMatrix(prop_con*i-prop_con+1:prop_con*i,1)==1);
-%     cons_135(i)=mean(dataMatrix(prop_con*i-prop_con+1:prop_con*i,1)==2);
-% 
-%     cons_45ex(i)=mean(dataMatrix(prop_exp*i-prop_exp+1:prop_exp*i,1)==1);
-%     cons_135ex(i)=mean(dataMatrix(prop_exp*i-prop_exp+1:prop_exp*i,1)==2);
-%     start=prop_exp*length(allDiff)+1;
-%     cons_45unex(i)=mean(dataMatrix((start+prop_unexp*i)-prop_unexp:start+prop_unexp*i-1,1)==1);
-%     cons_135unex(i)=mean(dataMatrix((start+prop_unexp*i)-prop_unexp:start+prop_unexp*i-1,1)==2);
-% end
-% 
-% figure();
-% yyaxis left
-% plot(allDiff,cons_45);
-% xlabel("contrasts")
-% ylabel("p(reported +45 stronger)");
-% yyaxis right
-% plot(allDiff,cons_135);
-% xlabel("contrasts")
-% ylabel("p(reported -45 stronger)");
-% title("p(reported +45/-45 stronger), ",subjectID);
-% legend("+45","-45");
-% 
-% figure();
-% yyaxis left
-% plot(allDiff,cons_45ex);
-% hold on
-% plot(allDiff,cons_45unex);
-% xlabel("contrasts")
-% ylabel("p(reported +45 stronger)");
-% 
-% yyaxis right
-% plot(allDiff,cons_135ex);
-% hold on
-% plot(allDiff,cons_135unex);
-% xlabel("contrasts")
-% ylabel("p(reported -45 stronger)");
-% title("p(reported +45/-45 stronger) for expected vs unexpected, ",subjectID);
-% legend("expected 45","unexpected 45","expected -45","unexpcted -45");
-% 
+
+%% subjective report plot attempt 2
+
+waffleContrastsIdx=file.d.plaidContrast;
+skipNotWaffle=isnan(waffleContrastsIdx);
+waffleContrastsIdx(skipNotWaffle)=[];
+waffleContrasts=[];
+difference=[];
+waffleOrientation=file.d.plaidOrientation;
+waffleOrientation(skipNotWaffle)=[];
+
+for i=1:length(waffleContrastsIdx)
+    index=waffleContrastsIdx(i);
+    waffleContrasts(i)=file.p.plaidContrasts1(index);
+    if waffleOrientation(i)==2
+        difference(i)=waffleContrasts(i)-file.p.plaidContrasts2;
+    elseif waffleOrientation(i)==1
+        difference(i)=file.p.plaidContrasts2-waffleContrasts(i);
+    end
+end
+
+allDiff=unique(difference);
+nDiff=length(allDiff);
+
+responses= file.d.targetResponseKey;
+responses(skipNotWaffle)=[];
+
+precueValidities=file.d.precueValidity;
+precueValidities(skipNotWaffle)=[];
+cons_45=[];
+cons_135=[];
+cons_45ex=[];
+cons_45unex=[];
+cons_135ex=[];
+cons_135unex=[];
+for i=1:length(allDiff)
+    cons_45(i)=mean((difference==allDiff(i))&(responses(i)==2)); %for X difference they responsed that +45 was stronger
+    cons_135(i)=mean((difference==allDiff(i))&(responses(i)==1)); %for X difference they responsed that -45 was stronger
+
+    cons_45ex(i)=mean((difference==allDiff(i))&(responses(i)==2)&(precueValidities(i)==1));
+    cons_45unex(i)=mean((difference==allDiff(i))&(responses(i)==2)&(precueValidities(i)==2));
+    
+    cons_135ex(i)=mean((difference==allDiff(i))&(responses(i)==1)&(precueValidities(i)==1));
+    cons_135unex(i)=mean((difference==allDiff(i))&(responses(i)==1)&(precueValidities(i)==2));
+end
 
 
+figure();
+yyaxis left
+plot(allDiff,cons_45,"-v");
+xlabel("contrast difference") %grating(45)-grating(135)
+ylabel("p(reported +45 stronger)");
+yyaxis right
+plot(allDiff,cons_135,"-v");
+xlabel("contrasts")
+ylabel("p(reported -45 stronger)");
+title("p(reported +45/-45 stronger), ",subjectID);
+legend("+45","-45");
+
+figure();
+yyaxis left
+plot(allDiff,cons_45ex,"-v");
+hold on
+plot(allDiff,cons_45unex,"--v");
+xlabel("contrast difference") %grating(45)-grating(135)
+ylabel("p(reported +45 stronger)");
+yyaxis right
+plot(allDiff,cons_135ex,"-v");
+hold on
+plot(allDiff,cons_135unex,"--v");
+xlabel("contrasts")
+ylabel("p(reported -45 stronger)");
+title("p(reported +45/-45 stronger), ",subjectID);
+legend("+45 expected","+45 unexpected","-45 expected","-45 unexpected");
 
 end
