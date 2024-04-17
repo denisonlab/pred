@@ -28,10 +28,8 @@ p.debug = input('Debug? (Y/N) ','s');
 p.task = input(['Prediction task run:\n' ...
     '1 - Demo\n'...
     '2 - Task version Kok + Waffles\n']);
-p.reps = input ('How many reps(1/2)? ');
 p.fullScreen = input ('Full screen(0/1)? ');
 p.eyeTracking=input('Eyetracking (0/1)? ');
-p.maskType=input('Masktype (none/color)? ','s');
 
 %% Setup
 % Add paths
@@ -312,7 +310,7 @@ switch p.task % task and demo
              numel(p.testPhases),... % 3 plaid phase 
              numel(p.plaidContrasts1)]); % 4 plaid contrast
         %% Merge trial count
-        if (p.debug=="N" || p.debug=="n") % && p.reps==1
+        if (p.debug=="N" || p.debug=="n")
             nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
             %nBlocks=nTrials/p.BlockTrials; 
             nBlocks=nTrials/p.BlockTrials; 
@@ -502,7 +500,6 @@ switch p.task % task and demo
                     error('precueName not recognized')
             end
 
-            %% Set up test mask for this trial
 
             %% Store trial information
              if plaidStatus==1 % if this is a grating trial
@@ -793,7 +790,7 @@ switch p.task % task and demo
              numel(p.testPhases),... % 3 plaid phase 
              numel(p.plaidContrasts1)]); % 4 plaid contrast
         %% Merge trial count
-        if (p.debug=="N" || p.debug=="n") % && p.reps==1
+        if (p.debug=="N" || p.debug=="n") 
             nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
             %nBlocks=nTrials/p.BlockTrials; 
             nBlocks=nTrials/p.BlockTrials; 
@@ -998,8 +995,6 @@ switch p.task % task and demo
                 otherwise
                     error('precueName not recognized')
             end
-
-            %% Set up test mask for this trial
 
             %% Store trial information
              if plaidStatus==1 % if this is a grating trial
