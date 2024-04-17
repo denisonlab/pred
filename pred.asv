@@ -568,7 +568,7 @@ switch p.task % task and demo
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
                 
-                %% Fixation
+                % blank
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
                 
@@ -576,9 +576,9 @@ switch p.task % task and demo
                 Screen('DrawTexture', window, tex{gratingPhase,gratingSPF}, [], imRect, gOrientation);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 
-                timeT = Screen('Flip', window, timeBlank1 + p.standSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+                timeT = Screen('Flip', window, timeS + p.standSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
     
-                %% Fixation
+                % blank
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack); %timeS + how long i want stimulus to be presented for
              
@@ -1076,7 +1076,7 @@ switch p.task % task and demo
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
                 
-                %% Fixation
+                % blank
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
                 
@@ -1123,9 +1123,9 @@ switch p.task % task and demo
                 Screen('DrawTexture', window, tex{gratingPhase,gratingSPF}, [], imRect, gOrientation);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 
-                timeT = Screen('Flip', window, timeBlank1 + p.standSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+                timeT = Screen('Flip', window, timeS + p.standSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
     
-                %% Fixation
+                % blank
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack); %timeS + how long i want stimulus to be presented for
              
