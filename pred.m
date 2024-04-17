@@ -173,18 +173,18 @@ tex_stand= cell(numel(p.testPhases), numel(p.gratingSPF));
 %         end
 %  end
 
-if p.task ~=5
-    for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS PHASES
-        contrast = p.gratingContrasts(iC);
-        for iP=1:numel(p.testPhases)
-            phase = p.testPhases(iP);
-            grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
-                p.gratingSF, 0, phase, contrast); % 0 to 1
-            [gabor, aps] = rd_aperture(grating, 'gaussian', gaborSD);
-            tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
-        end
-    end
-elseif p.task==5
+% if p.task ~=5
+%     for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS PHASES
+%         contrast = p.gratingContrasts(iC);
+%         for iP=1:numel(p.testPhases)
+%             phase = p.testPhases(iP);
+%             grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
+%                 p.gratingSF, 0, phase, contrast); % 0 to 1
+%             [gabor, aps] = rd_aperture(grating, 'gaussian', gaborSD);
+%             tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
+%         end
+%     end
+% elseif p.task==5
  
     for iP=1:numel(p.gratingPhases) %TEST
         phase = p.testPhases(iP);
@@ -208,7 +208,7 @@ elseif p.task==5
             tex_stand{iP,iS} = Screen('MakeTexture', window, gabor*white);
         end
     end
-end
+
  
 %Make rects for placing image
 imSize = size(grating);
@@ -274,61 +274,62 @@ switch p.task % task and demo
         pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
         
         %% Generate trials in different conditions %%%%
-
-        trials_headers = {'precueValidity','tOrientation','tPhase', 'tContrast','tStatus','precue','responseKey','response','accuracy','rt'};
+        %% Grating Trials
+        trials_headers1 = {'precueValidity','staticGrating','Orientation','standardPhase','standardSPF','gratingSPF','differenceMultiplier','precue','responseKey','response','accuracy','rt'};
         % make sure column indices match trials headers
-        precueValidityIdx = strcmp(trials_headers,'precueValidity');
-        testOrientationIdx = strcmp(trials_headers,'tOrientation'); % 0 (low) or 1 (high)
-        testPhaseIdx = strcmp(trials_headers,'tPhase'); % test phase value
-        testContrastIdx = strcmp(trials_headers,'tContrast'); % test contrast
-        testStatusIdx = strcmp(trials_headers,'tStatus'); % test status absent or present
-        precueIdx=strcmp(trials_headers,'precue'); % precue
-        responseKeyIdx = strcmp(trials_headers,'responseKey');
-        responseIdx = strcmp(trials_headers,'response');
-        accuracyIdx = strcmp(trials_headers,'accuracy');
-        rtIdx = strcmp(trials_headers,'rt');
+        precueValidityIdx1 = strcmp(trials_headers1,'precueValidity'); %precue validity
+        staticGratingIdx=strcmp(trials_headers1,'staticGrating'); % which grating has the constant orientation of +/- 45
+        OrientationIdx=strcmp(trials_headers1,'Orientation'); % orientation
+        standardPhaseIdx=strcmp(trials_headers1,'standardPhase'); %stand grating phase
+        standardSPFIdx=strcmp(trials_headers1,'standardSPF'); % standard grating SPF
+        gratingSPFIdx=strcmp(trials_headers1,'gratingSPF'); % test grating SPF
+        differenceMultiplierIdx=strcmp(trials_headers1,'differenceMultiplier'); % -1 or +1, sign of difference between 2 grating orientations
 
-
-        trials = fullfact([numel(p.precueValidities),...
-            numel(p.gratingOrientations),...
-            numel(p.testPhases),...
-            numel(p.gratingContrasts)...
-            numel(p.testStatus)]);
-
-        repmat(trials,p.reps*p.repScaleDemo,1); % demo: 448 trials
-        nTrials = size(trials,1); %448, each trial once
-        nBlocks=nTrials/p.BlockTrials; %((448)/64 = 7 blocks
-
-
-        trialOrder = randperm(nTrials);
-
-          %% generate mask for every trial and generate standard mask for every trial 
-        tic
-        maskTexs=[]; 
-        masks = []; maskTexs = []; 
-        for i= 1:nTrials
-            for iJ = 1:2 % Standard then test
-                [mask,~,~]=kt_makeFilteredNoise(p.gratingSize, p.maskContrast,0, 0, p.gratingSF/2, p.gratingSF*2,pixelsPerDegree, 0,'allOrientations');
-                masks1=mask;
-
-                mask=rd_aperture(mask, 'gaussian', gaborSD);
-                maskTex = Screen('MakeTexture', window, mask*white);
-
-                masks(i,iJ,:,:) = mask; 
-                maskTexs(i,iJ)=maskTex;
-            end
+        precueIdx=strcmp(trials_headers1,'precue'); % precue
+        responseKeyIdx = strcmp(trials_headers1,'responseKey');
+        responseIdx = strcmp(trials_headers1,'response');
+        accuracyIdx = strcmp(trials_headers1,'accuracy');
+        rtIdx = strcmp(trials_headers1,'rt');
+        
+        trials1 = fullfact([numel(p.precueValidities),... %1 precue
+             numel(p.staticGrating),... % 2 static grating
+             numel(p.gratingOrientations),... % 3 standard orientation
+             numel(p.testPhases),... % 4 standard phase 
+             numel(p.gratingSPF)... % 5 standard SPF
+             numel(p.gratingSPF)...% 6 grating SPF
+             numel(p.differenceMultiplier)]); % 7 grating diff multiplier
+        
+        %% Plaid (waffles) trials
+        trials_headers2 = {'precueValidity','plaidOrientation','plaidPhase' 'plaidContrast'};
+        % make sure column indices match trials headers
+        precueValidityIdx2 = strcmp(trials_headers2,'precueValidity'); %precue validity for plaid
+        plaidOrientationIdx = strcmp(trials_headers2,'plaidOrientation'); % plaid orientation
+        plaidPhaseIdx = strcmp(trials_headers2,'plaidPhase'); % plaid phase value
+        plaidContrastIdx = strcmp(trials_headers2,'plaidContrast'); % plaid contrast
+       
+        trials2 = fullfact([ numel(p.precueValidities)... % 1 precue validity
+             numel(p.plaidOrientations),... % 2 plaid ori
+             numel(p.testPhases),... % 3 plaid phase 
+             numel(p.plaidContrasts1)]); % 4 plaid contrast
+        %% Merge trial count
+        if (p.debug=="N" || p.debug=="n") % && p.reps==1
+            nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
+            %nBlocks=nTrials/p.BlockTrials; 
+            nBlocks=nTrials/p.BlockTrials; 
         end
-        toc
+
+        trialOrder = randperm(nTrials); %randomize trial order
+
         instructions = 'This is a demo of the main experiment\n\n';
         %% Show instruction screen and wait for a button press
         Screen('FillRect', window, white*p.backgroundColor);
-        instructions1 = sprintf('%s\n\nThere will be a reference patch followed by a predictive tone and a second patch.\n\nA low tone predicts a CCW orientation.\n\nA high tone predicts a CW orientation. \n\n Press to continue!', instructions);
+        instructions1 = sprintf('%s\n\nThere will be a tone followed by 2 gratings.\n\n You will have to report the orientation of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
 
         KbWait(devNum);
 
-        instructions2 ='Your goal is to determine whether the second patch is: \n\n higher contrast and counterclockwise (press 1), \n\nlower contrast and counterclockwise (press 2), \n\nlower contrast and clockwise (press 9), \n\nor higher contrast and clockwise (press 0) with reference to the first patch!\n\nPress to continue!';
+        instructions2 ='\n\n At random, a plaid patch will appear instead. \n\n For those trials you must report which of the two orientations in the plaid is stronger in contrast. \n\n For counterclockwise (press 9).  \n\n For clockwise (press 0)! \n\n  Press to continue!';
         DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         timeInstruct2=Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
         WaitSecs(1);
@@ -367,34 +368,133 @@ switch p.task % task and demo
         timeStart = GetSecs;
         correct = [];
         block=1;
-
+        firstNonWaffle=0; % tracking the first trial that is a non-waffle trial
+        completedTrials=0;
         for iTrial = 1:nTrials % the iteration in the trial loop
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
+            stopThisTrial = 0;
 
-            %% Santiy Check
-            fprintf('Trial %d/%d in block %d, trial %d of %d total \n\n', ceil(iTrial/p.BlockTrials), p.BlockTrials,iTrial,nTrials);
-
-            %% %%%% Present one trial %%%
             %% Get condition information for this trial
-            precueValidity = p.precueValidities(trials(trialIdx, precueValidityIdx));
-            testOrientation = trials(trialIdx, testOrientationIdx);
-            testPhase = trials(trialIdx, testPhaseIdx);
-            testContrast = trials(trialIdx, testContrastIdx);
-            testStatus=p.testStatus(trials(trialIdx, testStatusIdx));
 
-            % orientation
-            orientation=p.gratingOrientations(testOrientation);
-            % tone
+            if trialIdx<=size(trials1,1)
+
+                plaidStatus=1; % if the trial id is a value <= the number of grating trials, this trial will be a grating trial
+                
+                differenceMultiplier=p.differenceMultiplier(trials1(trialIdx, differenceMultiplierIdx)); % get difference multiplier
+                precueValidity = p.precueValidities(trials1(trialIdx, precueValidityIdx1)); % get precue validity (1: valid, 2: invalid)
+                staticGrating=trials1(trialIdx, staticGratingIdx); % find out which of the gratings has the +/-45 "static" orientation
+                Orientation = trials1(trialIdx, OrientationIdx); % get the orientation index
+                standardPhase = trials1(trialIdx, standardPhaseIdx); % get the index for the phase of the standard grating
+                gratingPhase=standardPhase; % the index of the phase of the test is the same as the index of the standard
+                standardSPF= trials1(trialIdx, standardSPFIdx); % get index of standard SPF
+                gratingSPF=trials1(trialIdx, gratingSPFIdx); % get index of test SPF
+        
+                % separate staircasing for expected and unexpected
+                if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial
+                    if precueValidity==1 %if expected first non-waffle, stair exp is hightest
+                        stairIdxExp=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
+                        lastFewAccExp=[]; % no previous grating trials have occured so this is empty
+                    elseif precueValidity==2 %if unexpected first non-waffle, stair unexp is highest
+                        stairIdxUn=length(p.stairs);
+                        lastFewAccUnexp=[];  % no previous grating trials have occured so this is empty
+                    end
+                    firstNonWaffle=1; % firstNonWaffle becomes 1 because this is officially the first grating trial
+                
+                elseif firstNonWaffle==1 % if this variable is 1, this trial is not the first grating trial
+                    corrects=d.correct; %get all corrects
+                    skipRowsCorrect=isnan(corrects); %find the NaN values
+                    corrects(skipRowsCorrect)=[];% delete the NaN values associated with the waffle trials
+                    
+                    if precueValidity==1
+                        expTrials=d.precueValidity==1;
+                        expTrials(skipRowsCorrect)=[];
+                        if (expTrials==0)
+                            stairIdxExp=length(p.stairs);
+                            lastFewAccExp=[];
+                        else
+                            stairIdxExp_all=d.stairIdxExp;
+                            skipUnexp=isnan(stairIdxExp_all);
+                            stairIdxExp_all(skipUnexp)=[];
+                            stairIdxExp_last=stairIdxExp_all(length(stairIdxExp_all));
+                            whichExp=find(expTrials);
+                            corrects_exp= (corrects(whichExp));
+                            [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, corrects_exp, correct); % get new stair index value
+                        end
+                    
+
+                    elseif precueValidity==2
+                        unexpTrials=d.precueValidity==2;
+                        unexpTrials(skipRowsCorrect)=[];
+                        if (unexpTrials==0) 
+                            stairIdxUn=length(p.stairs);
+                            lastFewAccUnexp=[]; 
+                        else
+                            stairIdxUnexp_all=d.stairIdxUn;
+                            skipExp=isnan(stairIdxUnexp_all);
+                            stairIdxUnexp_all(skipExp)=[];
+                            stairIdxUn_last=stairIdxUnexp_all(length(stairIdxUnexp_all));
+                            whichUnex=find(unexpTrials);
+                            corrects_unexp= (corrects(whichUnex));  
+                            [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, corrects_unexp, correct); % get new stair index value
+                    
+                        end
+                    end
+                end
+
+                if staticGrating==1 % standard is +/-45 and test is slightly different
+                    if precueValidity==1
+                        stairIdx=stairIdxExp;
+                    elseif precueValidity==2
+                        stairIdx=stairIdxUn;
+                    end
+                    sOrientation=p.gratingOrientations(Orientation);
+                    gOrientation=sOrientation+p.stairs(stairIdx)*differenceMultiplier;
+                elseif staticGrating==2 %test is +/-45 and standard is slightly different
+                    if precueValidity==1
+                        stairIdx=stairIdxExp;
+                    elseif precueValidity==2
+                        stairIdx=stairIdxUn;
+                    end
+                    gOrientation=p.gratingOrientations(Orientation);
+                    sOrientation=gOrientation+p.stairs(stairIdx)*differenceMultiplier;
+                end
+
+            elseif trialIdx>size(trials1,1) 
+                plaidStatus=2; % if the trial id is a value > the number of grating trials, this trial will be a waffle trial
+                precueValidity = p.precueValidities(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
+                plaidOrientation = trials2(trialIdx-size(trials1,1), plaidOrientationIdx);
+                plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
+                plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);
+                pOrientation=p.plaidOrientations(plaidOrientation); %get the orientation value (+/-45) using the plaid orientation index
+                if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial hasn't happened yet
+                    stairIdx=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
+                    stairIdxExp=length(p.stairs);
+                    stairIdxUn=length(p.stairs);
+                end
+            end
+            % tone related to overall orientation
             toneName = p.precueNames{precueValidity};
             switch toneName
                 case 'valid'
-                    tone=cueTones(testOrientation,:);
-                    toneVersion=testOrientation;
+                    if plaidStatus==1
+                        tone=cueTones(Orientation,:);
+                        toneVersion=Orientation;
+                    elseif plaidStatus==2
+                        tone=cueTones(plaidOrientation,:);
+                        toneVersion=plaidOrientation;
+                    end
                 case 'invalid'
-                    if testOrientation==1
+                    if plaidStatus==1 && Orientation==1
                         tone = cueTones(2,:);
                         toneVersion=2;
-                    elseif testOrientation==2
+                    elseif plaidStatus==1 && Orientation==2
+                        tone = cueTones(1,:);
+                        toneVersion=1;
+ 
+                    elseif plaidStatus==2 && plaidOrientation==1
+                        tone = cueTones(2,:);
+                        toneVersion=2;
+                    elseif plaidStatus==2 && plaidOrientation==2
                         tone = cueTones(1,:);
                         toneVersion=1;
                     end
@@ -402,81 +502,122 @@ switch p.task % task and demo
                     error('precueName not recognized')
             end
 
+            %% Set up test mask for this trial
+
+            %% Store trial information
+             if plaidStatus==1 % if this is a grating trial
+                d.stairIdx(iTrial) = stairIdx; %store stair index stimuli
+                if precueValidity==1
+                    d.stairIdxExp(iTrial) = stairIdxExp; %store stair index stimuli expected
+                    d.stairIdxUn(iTrial)=NaN;
+                elseif precueValidity==2
+                    d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                    d.stairIdxUn(iTrial)=stairIdxUn;
+                end
+
+                d.stair(iTrial)= p.stairs(stairIdx); %store stair value
+                d.differenceMultiplier(iTrial)=differenceMultiplier; %store difference multiplier
+                d.staticGrating(iTrial)=staticGrating; %store the static grating index
+                d.gratingContrast(iTrial) = p.gratingContrast2; %store contrast of test stimuli
+                d.gratingSPF(iTrial) = gratingSPF; %store SPF of test stimuli
+
+                d.orientation(iTrial) = Orientation; %store orientation of trial
+                d.standardPhase(iTrial) = standardPhase; %store phase of standard stimuli
+                d.standardContrast(iTrial) = p.standardContrast2; % store contrast of standard stimuli
+                d.standardSPF(iTrial) = standardSPF; %store SPF of standard stimuli
+                d.precueValidity(iTrial) = precueValidity; % store cue validity (1:valid, 2: invalid)
+                
+                d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
+                d.plaidOrientation(iTrial) = NaN; % keep orientation of plaid stimuli as NaN
+                d.plaidPhase(iTrial) = NaN; %keep phase of plaid stimuli as NaN
+                d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
+
+             elseif plaidStatus==2 %if this is a waffle trial
+                d.plaidOrientation(iTrial) = plaidOrientation; %store orientation of plaid stimuli
+                d.plaidPhase(iTrial) = plaidPhase; %store phase of plaid stimuli
+                d.plaidContrast(iTrial) = plaidContrast; %store contrast of plaid stimuli
+                d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
+                d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
+                d.stairIdx(iTrial) = NaN;
+                d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                d.stairIdxUn(iTrial)=NaN;
+                d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
+                d.gratingPhase(iTrial) = NaN; %phase of test stimuli
+                d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
+                d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
+                d.standardPhase(iTrial) = NaN; %phase of test stimuli
+                d.standardContrast(iTrial) = NaN; %contrast of test stimuli
+                d.standardSPF(iTrial) = NaN; %contrast of test stimuli
+            end
             %% Store stimulus information in trials matrix
 
-            trials(trialIdx, precueIdx) = toneVersion;
+            %trials(trialIdx, precueIdx) = toneVersion;
+            %% %%%% Play the trial %%%%
 
-            %% PLAY TRIAL
-            %% Present fixation rest (grey)
-            drawFixation(window, cx, cy, fixSize, p.fixColor*p.dimFactor*white);
-            timePreStart = Screen('Flip', window);
-            %% Present fixation active (white)
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
-            
-            %% Present STANDARD image
-            Screen('DrawTexture', window, imTexStandard, [], imRectS, 0);
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-            timeS = Screen('Flip', window, timeFix+p.signalStart - slack); %timeFix+ how much i want to wait from white(active) to standard
-            %sound(click, p.Fs)  %play click
-            
-            % blank
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
-            %% PRESENT STANDARD MASK
-            if ~strcmp(p.maskType,'none')
-                Screen('DrawTexture', window, maskTexs(trialIdx,1), [], imRect);
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-                timeMask1 = Screen('Flip', window, timeS + p.maskSOA - slack);
-
-                % blank
-                Screen('FillRect', window, white*p.backgroundColor);
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white)                
-                timeMaskBlank1 = Screen('Flip', window, timeMask1 + p.maskDur - slack);
-            else
-                timeMask1 = NaN;
-                timeMaskBlank1 = NaN;
-            end
-            
-            %% Present predictive tone
-            PsychPortAudio('FillBuffer', pahandle, tone);
-            timeTone = PsychPortAudio('Start', pahandle, [], timeS + p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-
-            %% Present TEST image
-            if testStatus==1
-                Screen('DrawTexture', window, tex{testContrast, testPhase}, [], imRect, orientation);
+            if plaidStatus==1
+                %% Present fixation rest (grey)
+                drawFixation(window, cx, cy, fixSize, p.fixColor*p.dimFactor*white);
+                timePreStart = Screen('Flip', window);
+                %% Present fixation active (white)
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want resT
 
-            elseif testStatus==0
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            end
-            timeT = Screen('Flip', window, timeTone + p.toneSOA - slack); % is it p.toneSOA, DIDN'T GET LOGIC
-
-            % blank
-            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-            Screen('Flip', window, timeT + p.imDur - slack);
-
-            %% PRESENT TEST MASK
-            if ~strcmp(p.maskType,'none')
-                Screen('DrawTexture', window, maskTexs(trialIdx,2), [], imRect);
+                %% Present predictive tone
+                PsychPortAudio('FillBuffer', pahandle, tone);
+                timeTone = PsychPortAudio('Start', pahandle, [], timeFix+p.signalStart, 1); % waitForStart = 1 in order to return a timestamp of playback
+           
+                %% Present STANDARD
+                Screen('DrawTexture', window, tex_stand{standardPhase,standardSPF}, [], imRect, sOrientation);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-                timeMask2 = Screen('Flip', window, timeT + p.maskSOA - slack);
-
+                timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+                
                 % blank
-                Screen('FillRect', window, white*p.backgroundColor);
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white)                
-                timeMaskBlank2 = Screen('Flip', window, timeMask2 + p.maskDur - slack);
-            else
-                timeMask2 = NaN;
-                timeMaskBlank2 = NaN;
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
+                
+                %% Present TEST
+                Screen('DrawTexture', window, tex{gratingPhase,gratingSPF}, [], imRect, gOrientation);
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white)
+                
+                timeT = Screen('Flip', window, timeS + p.standSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+    
+                % blank
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack); %timeS + how long i want stimulus to be presented for
+             
+            elseif plaidStatus==2
+                % Present fixation rest (grey)
+                drawFixation(window, cx, cy, fixSize, p.fixColor*p.dimFactor*white);
+                timePreStart = Screen('Flip', window);
+                % Present fixation active (white)
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
+                
+                %% Present predictive tone
+                PsychPortAudio('FillBuffer', pahandle, tone);
+                timeTone = PsychPortAudio('Start', pahandle, [], timeFix + p.signalStart, 1); % waitForStart = 1 in order to return a timestamp of playback
+                
+                %% Present stimuli
+                Screen('DrawTexture', window, tex_plaid{plaidContrast,plaidPhase}, [], imRect, pOrientation);
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white)
+                
+                timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+    
+                % blank
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
             end
-            
+
             %% Wait for response
             % check only valid response keys
             targetResponseKey = [];
             while isempty(targetResponseKey)
                 [timeTargetResponse, keyCode] = KbWait(devNum);
-                targetRT = timeTargetResponse - timeT;
+                if plaidStatus==2
+                    targetRT = timeTargetResponse - timeS;
+                elseif plaidStatus==1
+                    targetRT = timeTargetResponse - timeT;
+                end
                 targetResponseKey = find(ismember(validKeys,find(keyCode)));
                 targetResponseKeyName = KbName(validKeys(targetResponseKey));
                 correct = NaN;
@@ -487,60 +628,61 @@ switch p.task % task and demo
                 targetResponseKeyName = NaN;
                 correct = NaN;
             end
-
-            if targetResponseKey
-                drawFixation(window, cx, cy, fixSize,p.dimFactor*p.fixColor*white);
-                Screen('Flip',window);
-            end
-
+          
             %% Percent correct for orientation
-
-            if testStatus~=0 && (strcmp('9(',targetResponseKeyName) || strcmp('0)',targetResponseKeyName)) % response CCW
-                if testOrientation==2 % stimuli CW
-                    correct = 1;  % stimuli = response
-                elseif testOrientation==1 % stimuli CCW
-                    correct = 0; % stimuli != response
-                end
-            elseif testStatus~=0 && (strcmp('1!',targetResponseKeyName) || strcmp('2@',targetResponseKeyName)) % response CCW
-
-                if testOrientation==1 %stimuli CCW
+            if plaidStatus==1 && strcmp('0)',targetResponseKeyName) % response CW
+                if (differenceMultiplier==-1 && staticGrating==1)||(differenceMultiplier==1 && staticGrating==2) % stimuli CCW
+                    correct = 0;  % stimuli != response
+                elseif (differenceMultiplier==1 && staticGrating==1) ||(differenceMultiplier==-1 && staticGrating==2) % stimuli CW
                     correct = 1; % stimuli = response
-                elseif testOrientation==2 %stimuli CW
+                end
+            elseif plaidStatus==1 && strcmp('9(',targetResponseKeyName)  % response CCW
+                if (differenceMultiplier==-1 && staticGrating==1) ||(differenceMultiplier==1 && staticGrating==2)%stimuli CCW
+                    correct = 1; % stimuli = response
+                elseif (differenceMultiplier==1 && staticGrating==1) ||(differenceMultiplier==-1 && staticGrating==2)  9 %stimuli CW
                     correct = 0; % stimuli != response
                 end
+            elseif plaidStatus==2
+                correct_p=NaN;
             else
-                responseText = 'Please push one of the buttons: 1 (higher CCW), 2 (lower CCW), 9 (lower CW), 0(higher CW)';
+                responseText = 'Please push one of the buttons: 9 (CW), 0(CW)';
             end
 
             %% Response Acceptance Marker based on Correctness of Response
-            if targetResponseKey && correct==1
+            if targetResponseKey && plaidStatus==1 && correct==1
                 drawFixation(window, cx, cy, fixSize,[0 1 0]*p.fixColor*white);    
                 Screen('Flip',window);
      
-            elseif targetResponseKey && correct==0
+            elseif targetResponseKey && plaidStatus==1 && correct==0
                 drawFixation(window, cx, cy, fixSize,[1 0 0]*p.fixColor*white);
+                Screen('Flip',window);
+            elseif targetResponseKey && plaidStatus==2
+                drawFixation(window, cx, cy, fixSize,[0 0 1]*p.fixColor*white);
                 Screen('Flip',window);
             end
 
             timeEnd=GetSecs();
 
-            %% Store trial info
-            trials(trialIdx, rtIdx) = targetRT;
-            trials(trialIdx, responseKeyIdx) = targetResponseKey;
-            p.trials=trials;
+            %% Keep track of last 3 trials
+            if plaidStatus==1  
+                if precueValidity==1
+                    lastFewAccExp=[lastFewAccExp correct];
+                elseif precueValidity==2
+                    lastFewAccUnexp=[lastFewAccUnexp correct];
+                end
+            end
 
+            %% Store trial info
+            %trials(trialIdx, rtIdx) = targetRT;
+            %trials(trialIdx, responseKeyIdx) = targetResponseKey;
+            p.trials1=trials1;
+            p.trials2=trials2;
             tic
             % save data
             d.block(iTrial) = block; %block trial is in
             d.timeStart(iTrial)=timeStart; % time at which trial starts
             d.timeEnd(iTrial)=timeEnd; % time at which trial ends
             d.timeElapsed(iTrial)=timeEnd-timeStart; % trial duration
-            d.testStatus(iTrial) = testStatus; %absent or present
-            d.testOrientation(iTrial) = testOrientation; %orientation of test stimuli
-            d.testPhase(iTrial) = testPhase; %phase of test stimuli
-            d.testContrast(iTrial) = testContrast; %contrast of test stimuli
-            d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
-            d.correct(iTrial) = correct; % response correctness (0/1)
             d.timeTargetResponse(iTrial)=timeTargetResponse; % time at which response was made
             d.targetRT(iTrial) = targetRT; %response time duration
             d.targetResponseKey(iTrial) = targetResponseKey; % response key for trial
@@ -549,17 +691,32 @@ switch p.task % task and demo
             d.timeS(iTrial)=timeS; % time for standard
             d.timeBlank1(iTrial)=timeBlank1; % time after standard
             d.timeTone(iTrial)=timeTone; % time at tone
-            d.timeT(iTrial)=timeT; % time at test
 
-            save(sprintf('%s/%s_demo_s%d_pred_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,datestr(now, 'mmdd')),'d','p');
+            if plaidStatus==1
+                d.timeT(iTrial)=timeT;
+                d.timeBlank2(iTrial)=timeBlank2;
+                d.correct(iTrial) = correct; % response correctness (0/1)
+            elseif plaidStatus==2
+                d.timeT(iTrial)=NaN;
+                d.timeBlank2(iTrial)=NaN;
+                d.correct(iTrial) = correct_p;
+            end
+
+            d.trialOrder=trialOrder;
+            save(sprintf('%s/%s_s%d_demo_predv2_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,date),'d','p');
 
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
             WaitSecs(p.ITI-d.timeSpentSaving(iTrial));
-
-            if mod(iTrial,p.BlockTrials)==0 || iTrial>p.BlockTrials*block
+            
+            completedTrials = completedTrials + 1; 
+            %% SANTIY CHECK
+            fprintf('Trial %d/%d in block %d, trial %d of %d total \n', completedTrials, p.BlockTrials, block,iTrial,nTrials);
+            %% Blocking
+            %if completedTrials==p.BlockTrials && (mod(iTrial-completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block) 
+            if (mod(completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block)  
                 % Calculate block accuracy
-                blockStartTrial = (iTrial/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
+                blockStartTrial = ((iTrial-completedTrials)/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
                 if blockStartTrial < 0 % we are doing less than one block
                     blockStartTrial = 1;
                 end
@@ -570,11 +727,11 @@ switch p.task % task and demo
                 blockCorrectness = mean(non_nan_correctness);
 
                 fprintf('Block %d of %d complete.\n-----\n', block, nBlocks);
-                fprintf('Percent Correct: %.2f / %.2f (block/total)', ...
-                    100*blockCorrectness, 100*mean(d.correct));
+                fprintf('Percent Correct: %.2f (block)', ...
+                    100*blockCorrectness);
 
                 accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
-                blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, ceil(nTrials/p.BlockTrials));
+                blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, nBlocks);
                 if iTrial==nTrials
                     keyMessage = 'All done! Thank you for participating!';
                 else
@@ -583,13 +740,15 @@ switch p.task % task and demo
 
                 breakMessage = sprintf('%s\n%s\n\n%s', blockMessage, accMessage, keyMessage);
                 DrawFormattedText(window, breakMessage, 'center', 'center', [1 1 1]*white);
+                %         DrawFormattedText(window, cueText, 'center', cy-3*textOffset, white);
                 Screen('Flip', window);
                 WaitSecs(1);
                 if iTrial < nTrials
                     KbWait(-1);
                 end
 
-                block = block+1;
+                block = block+1; % keep track of block for block message only
+                completedTrials=0;
             end
         end
 
@@ -683,7 +842,7 @@ switch p.task % task and demo
         pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
 
         %% Show instruction screen and wait for a button press
-        instructions = 'This is the second version of the experiment\n\n';
+        instructions = 'This is the main version of the experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
         instructions1 = sprintf('%s\n\nThere will be a tone followed by 2 gratings.\n\n You will have to report the orientation of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
@@ -727,32 +886,72 @@ switch p.task % task and demo
                 standardSPF= trials1(trialIdx, standardSPFIdx); % get index of standard SPF
                 gratingSPF=trials1(trialIdx, gratingSPFIdx); % get index of test SPF
         
+                % separate staircasing for expected and unexpected
                 if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial
-                    stairIdx=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
-                    lastFewAcc=[]; % no previous grating trials have occured so this is empty
+                    if precueValidity==1 %if expected first non-waffle, stair exp is hightest
+                        stairIdxExp=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
+                        lastFewAccExp=[]; % no previous grating trials have occured so this is empty
+                    elseif precueValidity==2 %if unexpected first non-waffle, stair unexp is highest
+                        stairIdxUn=length(p.stairs);
+                        lastFewAccUnexp=[];  % no previous grating trials have occured so this is empty
+                    end
                     firstNonWaffle=1; % firstNonWaffle becomes 1 because this is officially the first grating trial
+                
                 elseif firstNonWaffle==1 % if this variable is 1, this trial is not the first grating trial
                     corrects=d.correct; %get all corrects
                     skipRowsCorrect=isnan(corrects); %find the NaN values
                     corrects(skipRowsCorrect)=[];% delete the NaN values associated with the waffle trials
+                    
                     if precueValidity==1
-                        validTrials=d.precueValidities==1;
-                        whichValid=find(validTrials);
-                        corrects_exp= (corrects(whichValid));
-                        [stairIdx lastFewAcc]=updateStaircase(p.stairs, stairIdx, corrects_exp, correct); % get new stair index value
-                    end
-                    if precueValidity==2
-                        invalidTrials=d.precueValidities==2;
-                        corrects_unexp= (corrects());
-                        [stairIdx lastFewAcc]=updateStaircase(p.stairs, stairIdx, corrects_unexp, correct); % get new stair index value
-                    end
+                        expTrials=d.precueValidity==1;
+                        expTrials(skipRowsCorrect)=[];
+                        if (expTrials==0)
+                            stairIdxExp=length(p.stairs);
+                            lastFewAccExp=[];
+                        else
+                            stairIdxExp_all=d.stairIdxExp;
+                            skipUnexp=isnan(stairIdxExp_all);
+                            stairIdxExp_all(skipUnexp)=[];
+                            stairIdxExp_last=stairIdxExp_all(length(stairIdxExp_all));
+                            whichExp=find(expTrials);
+                            corrects_exp= (corrects(whichExp));
+                            [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, corrects_exp, correct); % get new stair index value
+                        end
+                    
 
+                    elseif precueValidity==2
+                        unexpTrials=d.precueValidity==2;
+                        unexpTrials(skipRowsCorrect)=[];
+                        if (unexpTrials==0) 
+                            stairIdxUn=length(p.stairs);
+                            lastFewAccUnexp=[]; 
+                        else
+                            stairIdxUnexp_all=d.stairIdxUn;
+                            skipExp=isnan(stairIdxUnexp_all);
+                            stairIdxUnexp_all(skipExp)=[];
+                            stairIdxUn_last=stairIdxUnexp_all(length(stairIdxUnexp_all));
+                            whichUnex=find(unexpTrials);
+                            corrects_unexp= (corrects(whichUnex));  
+                            [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, corrects_unexp, correct); % get new stair index value
+                    
+                        end
+                    end
                 end
 
                 if staticGrating==1 % standard is +/-45 and test is slightly different
+                    if precueValidity==1
+                        stairIdx=stairIdxExp;
+                    elseif precueValidity==2
+                        stairIdx=stairIdxUn;
+                    end
                     sOrientation=p.gratingOrientations(Orientation);
                     gOrientation=sOrientation+p.stairs(stairIdx)*differenceMultiplier;
                 elseif staticGrating==2 %test is +/-45 and standard is slightly different
+                    if precueValidity==1
+                        stairIdx=stairIdxExp;
+                    elseif precueValidity==2
+                        stairIdx=stairIdxUn;
+                    end
                     gOrientation=p.gratingOrientations(Orientation);
                     sOrientation=gOrientation+p.stairs(stairIdx)*differenceMultiplier;
                 end
@@ -764,12 +963,13 @@ switch p.task % task and demo
                 plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
                 plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);
                 pOrientation=p.plaidOrientations(plaidOrientation); %get the orientation value (+/-45) using the plaid orientation index
-                if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial
+                if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial hasn't happened yet
                     stairIdx=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
-            
+                    stairIdxExp=length(p.stairs);
+                    stairIdxUn=length(p.stairs);
                 end
             end
-            % tone
+            % tone related to overall orientation
             toneName = p.precueNames{precueValidity};
             switch toneName
                 case 'valid'
@@ -804,6 +1004,14 @@ switch p.task % task and demo
             %% Store trial information
              if plaidStatus==1 % if this is a grating trial
                 d.stairIdx(iTrial) = stairIdx; %store stair index stimuli
+                if precueValidity==1
+                    d.stairIdxExp(iTrial) = stairIdxExp; %store stair index stimuli expected
+                    d.stairIdxUn(iTrial)=NaN;
+                elseif precueValidity==2
+                    d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                    d.stairIdxUn(iTrial)=stairIdxUn;
+                end
+
                 d.stair(iTrial)= p.stairs(stairIdx); %store stair value
                 d.differenceMultiplier(iTrial)=differenceMultiplier; %store difference multiplier
                 d.staticGrating(iTrial)=staticGrating; %store the static grating index
@@ -827,7 +1035,9 @@ switch p.task % task and demo
                 d.plaidContrast(iTrial) = plaidContrast; %store contrast of plaid stimuli
                 d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
                 d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
-                d.stairIdx(iTrial) = stairIdx;
+                d.stairIdx(iTrial) = NaN;
+                d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                d.stairIdxUn(iTrial)=NaN;
                 d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
                 d.gratingPhase(iTrial) = NaN; %phase of test stimuli
                 d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
@@ -1054,14 +1264,18 @@ switch p.task % task and demo
             elseif plaidStatus==2
                 correct_p=NaN;
             else
-                responseText = 'Please push one of the buttons: 1 (higher CCW), 2 (lower CCW), 9 (lower CW), 0(higher CW)';
+                responseText = 'Please push one of the buttons: 9 (CW), 0 (CW)';
             end
 
             timeEnd=GetSecs();
 
             %% Keep track of last 3 trials
             if plaidStatus==1  
-                lastFewAcc=[lastFewAcc correct];
+                if precueValidity==1
+                    lastFewAccExp=[lastFewAccExp correct];
+                elseif precueValidity==2
+                    lastFewAccUnexp=[lastFewAccUnexp correct];
+                end
             end
 
             %% Store trial info
