@@ -4,10 +4,10 @@ clear;
 close all;
 
 dataDir = sprintf('%s/data', pwd);
-subjectID="waffles_pilot001";
+subjectID="S0003";
 sessionNum=1;
 datafileDir=sprintf('%s/%s/session_%d/',dataDir,subjectID,sessionNum);
-date="240412_1707";
+date="240417_1610";
 datafile = sprintf('%s/%s_s%d_predv2_s%s.mat', datafileDir, subjectID, sessionNum,date);
 file = load(datafile);
 %% check that staircase is staircasing
