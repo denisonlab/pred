@@ -27,7 +27,8 @@ p.sessionNum = input('Enter session number (1,2...) ');
 p.debug = input('Debug? (Y/N) ','s');
 p.task = input(['Prediction task run:\n' ...
     '1 - Demo\n'...
-    '2 - Task version Kok + Waffles\n']);
+    '2 - Training 2 Blocks\n'...
+    '3 - Task version Kok + Waffles\n']);
 p.fullScreen = input ('Full screen(0/1)? ');
 p.eyeTracking=input('Eyetracking (0/1)? ');
 
@@ -749,6 +750,11 @@ switch p.task % task and demo
             end
         end
     case 2
+        
+      
+          
+
+    case 3
         %% Kok 2012 + Waffles interleaved
 
         %% Grating Trials

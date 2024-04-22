@@ -28,9 +28,6 @@ p.phase = 0;
 p.gaborSD = 0.5; % about 4 SDs will be visible at full contrast
 p.aperture = 'gaussian';
 p.gratingDiameter = [2 0];
-
-p.gratingContrasts = [logspace(log10(0.1),log10(0.6),6)];
-p.maskContrast = 0.8;
 p.testStatus = [1]; %0 (absent stimuli)
 p.standardContrast = p.gratingContrasts(4); 
 p.standardOrientation = 0;
@@ -42,7 +39,8 @@ p.gratingPhases=p.testPhases+pi;
 %% Plaid parameters
 % p.plaidContrasts1 = [logspace(log10(0.21),log10(0.6),7)];
 % p.plaidContrasts2 = 0.2;
-p.plaidContrasts1 = [logspace(log10(0.1),log10(0.2),3) 0.2 0.2 logspace(log10(0.2),log10(0.4),3)];
+p.plaidContrastsRange=[logspace(log10(.1333),log10(.3),5)];
+p.plaidContrasts1=[p.plaidContrastsRange(1) p.plaidContrastsRange(2) p.plaidContrastsRange(3) p.plaidContrastsRange(3) p.plaidContrastsRange(3) p.plaidContrastsRange(3) p.plaidContrastsRange(4) p.plaidContrastsRange(5)];
 p.plaidContrasts2 = 0.2;
 p.plaidAxes = [0 90]; % base orientations 
 p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli 
@@ -82,7 +80,7 @@ p.differenceMultiplier=[-1 1];
 %% Validity
 p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invalid'};
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
-p.precueValiditiesTrain=[1];
+
 %% Trials & Blocks
 p.BlockTrials=46;
 p.BlockTrialsTrain=64;
