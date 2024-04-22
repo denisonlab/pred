@@ -27,7 +27,8 @@ p.sessionNum = input('Enter session number (1,2...) ');
 p.debug = input('Debug? (Y/N) ','s');
 p.task = input(['Prediction task run:\n' ...
     '1 - Demo\n'...
-    '2 - Task version Kok + Waffles\n']);
+    '2 - Training 2 Blocks\n'...
+    '3 - Task version Kok + Waffles\n']);
 p.fullScreen = input ('Full screen(0/1)? ');
 p.eyeTracking=input('Eyetracking (0/1)? ');
 
@@ -748,8 +749,471 @@ switch p.task % task and demo
                 completedTrials=0;
             end
         end
-
     case 2
+        %% Kok 2012 Training
+        %% Grating Trials
+        trials_headers1 = {'precueValidity','staticGrating','Orientation','standardPhase','standardSPF','gratingSPF','differenceMultiplier','precue','responseKey','response','accuracy','rt'};
+        % make sure column indices match trials headers
+        precueValidityIdx1 = strcmp(trials_headers1,'precueValidity'); %precue validity
+        staticGratingIdx=strcmp(trials_headers1,'staticGrating'); % which grating has the constant orientation of +/- 45
+        OrientationIdx=strcmp(trials_headers1,'Orientation'); % orientation
+        standardPhaseIdx=strcmp(trials_headers1,'standardPhase'); %stand grating phase
+        standardSPFIdx=strcmp(trials_headers1,'standardSPF'); % standard grating SPF
+        gratingSPFIdx=strcmp(trials_headers1,'gratingSPF'); % test grating SPF
+        differenceMultiplierIdx=strcmp(trials_headers1,'differenceMultiplier'); % -1 or +1, sign of difference between 2 grating orientations
+
+        precueIdx=strcmp(trials_headers1,'precue'); % precue
+        responseKeyIdx = strcmp(trials_headers1,'responseKey');
+        responseIdx = strcmp(trials_headers1,'response');
+        accuracyIdx = strcmp(trials_headers1,'accuracy');
+        rtIdx = strcmp(trials_headers1,'rt');
+        
+        trials1 = fullfact([numel(p.precueValiditiesTrain),... %1 precue
+             numel(p.staticGrating),... % 2 static grating
+             numel(p.gratingOrientations),... % 3 standard orientation
+             numel(p.testPhases),... % 4 standard phase 
+             numel(p.gratingSPF)... % 5 standard SPF
+             numel(p.gratingSPF)...% 6 grating SPF
+             numel(p.differenceMultiplier)]); % 7 grating diff multiplier
+        
+        %% Merge trial count
+        if (p.debug=="N" || p.debug=="n") 
+            nTrials = size(trials1,1);  % total trials = number of grating trials + number of waffle trials
+            %nBlocks=nTrials/p.BlockTrials; 
+            nBlocks=nTrials/p.BlockTrialsTrain; 
+        end
+
+        trialOrder = randperm(nTrials); %randomize trial order
+        
+        %% Eyetracker
+        if p.eyeTracking
+            % Initialize eye tracker
+            [el exitFlag] = rd_eyeLink('eyestart', window, eyeFile);
+            if exitFlag
+                return
+            end
+
+            % Write subject ID into the edf file
+            Eyelink('message', 'BEGIN DESCRIPTIONS');
+            Eyelink('message', 'Subject code: %s', p.subjectID);
+            Eyelink('message', 'END DESCRIPTIONS');
+
+            el.drift_correction_target_beep = [0 0 0];
+            el.drift_correction_failed_beep = [0 0 0];
+            el.drift_correction_success_beep = [0 0 0];
+
+            % Accept input from all keyboards
+            el.devicenumber = -1; %see KbCheck for details of this value
+
+            % Update with custom settings
+            EyelinkUpdateDefaults(el);
+
+            % Calibrate eye tracker
+            [~, exitFlag] = rd_eyeLink('calibrate', window, el);
+            if exitFlag
+                return
+            end
+            fixations=[];
+        end
+
+        %% Sound
+        % Initialize the sound driver
+        InitializePsychSound(1); % 1 for precise timing
+        PsychPortAudio('Close');
+
+        % Open audio device for low-latency output
+        reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
+        pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
+
+        %% Show instruction screen and wait for a button press
+        instructions = 'This is the first part of the experiment\n\n';
+        Screen('FillRect', window, white*p.backgroundColor);
+        instructions1 = sprintf('%s\n\nThere will be a tone followed by 2 gratings.\n\n You will have to report the orientation of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
+        DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
+        timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
+
+        KbWait(devNum);
+
+        instructions2 =' \n\n There will be 2 blocks. Press to start!';
+        DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
+        Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack);
+        WaitSecs(1);
+
+        KbWait(devNum);
+        timeStart = GetSecs;
+        correct = [];
+        block=1;
+
+        skippedTrials = [];
+        iTrial=1;
+        completedTrials=0;
+
+        disp('reached')
+        firstNonWaffle=0; % tracking the first trial that is a non-waffle trial
+        while iTrial<=nTrials
+            trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
+            stopThisTrial = 0;
+          
+            %% Get condition information for this trial
+            plaidStatus=1; % if the trial id is a value <= the number of grating trials, this trial will be a grating trial
+            
+            differenceMultiplier=p.differenceMultiplier(trials1(trialIdx, differenceMultiplierIdx)); % get difference multiplier
+            precueValidity = p.precueValidities(trials1(trialIdx, precueValidityIdx1)); % get precue validity (1: valid, 2: invalid)
+            staticGrating=trials1(trialIdx, staticGratingIdx); % find out which of the gratings has the +/-45 "static" orientation
+            Orientation = trials1(trialIdx, OrientationIdx); % get the orientation index
+            standardPhase = trials1(trialIdx, standardPhaseIdx); % get the index for the phase of the standard grating
+            gratingPhase=standardPhase; % the index of the phase of the test is the same as the index of the standard
+            standardSPF= trials1(trialIdx, standardSPFIdx); % get index of standard SPF
+            gratingSPF=trials1(trialIdx, gratingSPFIdx); % get index of test SPF
+    
+            % separate staircasing for expected and unexpected
+            if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial
+                if precueValidity==1 %if expected first non-waffle, stair exp is hightest
+                    stairIdxExp=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
+                    lastFewAccExp=[]; % no previous grating trials have occured so this is empty
+                elseif precueValidity==2 %if unexpected first non-waffle, stair unexp is highest
+                    stairIdxUn=length(p.stairs);
+                    lastFewAccUnexp=[];  % no previous grating trials have occured so this is empty
+                end
+                firstNonWaffle=1; % firstNonWaffle becomes 1 because this is officially the first grating trial
+            
+            elseif firstNonWaffle==1 % if this variable is 1, this trial is not the first grating trial
+                corrects=d.correct; %get all corrects
+                skipRowsCorrect=isnan(corrects); %find the NaN values
+                corrects(skipRowsCorrect)=[];% delete the NaN values associated with the waffle trials
+                
+                if precueValidity==1
+                    expTrials=d.precueValidity==1;
+                    expTrials(skipRowsCorrect)=[];
+                    if (expTrials==0)
+                        stairIdxExp=length(p.stairs);
+                        lastFewAccExp=[];
+                    else
+                        stairIdxExp_all=d.stairIdxExp;
+                        skipUnexp=isnan(stairIdxExp_all);
+                        stairIdxExp_all(skipUnexp)=[];
+                        stairIdxExp_last=stairIdxExp_all(length(stairIdxExp_all));
+                        whichExp=find(expTrials);
+                        corrects_exp= (corrects(whichExp));
+                        [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, corrects_exp, correct); % get new stair index value
+                    end
+                
+
+                elseif precueValidity==2
+                    unexpTrials=d.precueValidity==2;
+                    unexpTrials(skipRowsCorrect)=[];
+                    if (unexpTrials==0) 
+                        stairIdxUn=length(p.stairs);
+                        lastFewAccUnexp=[]; 
+                    else
+                        stairIdxUnexp_all=d.stairIdxUn;
+                        skipExp=isnan(stairIdxUnexp_all);
+                        stairIdxUnexp_all(skipExp)=[];
+                        stairIdxUn_last=stairIdxUnexp_all(length(stairIdxUnexp_all));
+                        whichUnex=find(unexpTrials);
+                        corrects_unexp= (corrects(whichUnex));  
+                        [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, corrects_unexp, correct); % get new stair index value
+                
+                    end
+                end
+            end
+
+            if staticGrating==1 % standard is +/-45 and test is slightly different
+                if precueValidity==1
+                    stairIdx=stairIdxExp;
+                elseif precueValidity==2
+                    stairIdx=stairIdxUn;
+                end
+                sOrientation=p.gratingOrientations(Orientation);
+                gOrientation=sOrientation+p.stairs(stairIdx)*differenceMultiplier;
+            elseif staticGrating==2 %test is +/-45 and standard is slightly different
+                if precueValidity==1
+                    stairIdx=stairIdxExp;
+                elseif precueValidity==2
+                    stairIdx=stairIdxUn;
+                end
+                gOrientation=p.gratingOrientations(Orientation);
+                sOrientation=gOrientation+p.stairs(stairIdx)*differenceMultiplier;
+            end
+
+            %% tone related to overall orientation
+            toneName = p.precueNames{precueValidity};
+            switch toneName
+                case 'valid'
+                    if plaidStatus==1
+                        tone=cueTones(Orientation,:);
+                        toneVersion=Orientation;
+                    end
+                case 'invalid'
+                    if plaidStatus==1 && Orientation==1
+                        tone = cueTones(2,:);
+                        toneVersion=2;
+                    elseif plaidStatus==1 && Orientation==2
+                        tone = cueTones(1,:);
+                        toneVersion=1;
+                    end
+                otherwise
+                    error('precueName not recognized')
+            end
+
+            %% Store trial information
+            if plaidStatus==1 % if this is a grating trial
+                d.stairIdx(iTrial) = stairIdx; %store stair index stimuli
+                if precueValidity==1
+                    d.stairIdxExp(iTrial) = stairIdxExp; %store stair index stimuli expected
+                    d.stairIdxUn(iTrial)=NaN;
+                elseif precueValidity==2
+                    d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                    d.stairIdxUn(iTrial)=stairIdxUn;
+                end
+    
+                d.stair(iTrial)= p.stairs(stairIdx); %store stair value
+                d.differenceMultiplier(iTrial)=differenceMultiplier; %store difference multiplier
+                d.staticGrating(iTrial)=staticGrating; %store the static grating index
+                d.gratingContrast(iTrial) = p.gratingContrast2; %store contrast of test stimuli
+                d.gratingSPF(iTrial) = gratingSPF; %store SPF of test stimuli
+    
+                d.orientation(iTrial) = Orientation; %store orientation of trial
+                d.standardPhase(iTrial) = standardPhase; %store phase of standard stimuli
+                d.standardContrast(iTrial) = p.standardContrast2; % store contrast of standard stimuli
+                d.standardSPF(iTrial) = standardSPF; %store SPF of standard stimuli
+                d.precueValidity(iTrial) = precueValidity; % store cue validity (1:valid, 2: invalid)
+                
+                d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
+                d.plaidOrientation(iTrial) = NaN; % keep orientation of plaid stimuli as NaN
+                d.plaidPhase(iTrial) = NaN; %keep phase of plaid stimuli as NaN
+                d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
+            end
+            %% Store stimulus information in trials matrix
+
+            %trials(trialIdx, precueIdx) = toneVersion;
+            %% %%%% Play the trial %%%%
+            %% Present fixation rest (grey)
+            drawFixation(window, cx, cy, fixSize, p.fixColor*p.dimFactor*white);
+            timePreStart = Screen('Flip', window);
+            %% Present fixation active (white)
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+            timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
+            if p.eyeTracking
+                Eyelink('Message', 'FixOn')
+            end
+            %% Check fixation hold
+            if p.eyeTracking
+                driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
+                if driftCorrected
+                    % restart trial
+                    drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                    timeFix = Screen('Flip', window, timePreStart+p.signalRestDur-slack); %timePreStart + how long i want rest
+                end
+            end
+
+            %% Present predictive tone
+            PsychPortAudio('FillBuffer', pahandle, tone);
+            timeTone = PsychPortAudio('Start', pahandle, [], timeFix+p.signalStart, 1); % waitForStart = 1 in order to return a timestamp of playback
+            
+           
+            %% Present STANDARD
+            Screen('DrawTexture', window, tex_stand{standardPhase,standardSPF}, [], imRect, sOrientation);
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
+            timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+            
+            %% Fixation
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+            timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
+            
+            %% EYE TRACKING
+
+            if p.eyeTracking
+                Eyelink('Message', 'EVENT_CUE');
+            end
+
+            if p.eyeTracking
+                while GetSecs < timeTone + p.standSOA - p.eyeSlack && ~stopThisTrial
+                    WaitSecs(.01);
+                    fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
+                    fixations = [fixations fixation];
+
+                    if fixation==0
+                        stopThisTrial = 1;
+                        WaitSecs(1);
+                    
+                        % redo this trial at the end of the experiment
+                        % this can be easily done by appending the trial number to the end of
+                        % trialOrder
+                        trialOrder(end+1) = trialOrder(iTrial);
+                        d.stopThisTrial(iTrial) = stopThisTrial;
+                        skippedTrials(end+1) = trialOrder(iTrial);
+                        d.timeTargetResponse(iTrial) = NaN;
+                        d.correct(iTrial) = NaN;
+                        nTrials = nTrials + 1;
+                        iTrial = iTrial + 1;
+
+                        Screen('FillRect', window, white*p.backgroundColor);
+                        Screen('Flip', window);
+                        WaitSecs(1);
+                    else 
+                        stopThisTrial = 0;
+                    end
+                end
+
+                if stopThisTrial
+                    continue
+                end
+            end
+            %% Present TEST
+            Screen('DrawTexture', window, tex{gratingPhase,gratingSPF}, [], imRect, gOrientation);
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white)
+            
+            timeT = Screen('Flip', window, timeBlank1 + p.standSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+
+            %% Fixation
+            drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+            timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack); %timeS + how long i want stimulus to be presented for
+         
+            %% Eyetracking 
+            if p.eyeTracking
+                Eyelink('Message', 'EVENT_RESPCUE');
+            end
+            
+             
+            %% Wait for response
+            % check only valid response keys
+            targetResponseKey = [];
+            while isempty(targetResponseKey)
+                [timeTargetResponse, keyCode] = KbWait(devNum);
+                if plaidStatus==2
+                    targetRT = timeTargetResponse - timeS;
+                elseif plaidStatus==1
+                    targetRT = timeTargetResponse - timeT;
+                end
+                targetResponseKey = find(ismember(validKeys,find(keyCode)));
+                targetResponseKeyName = KbName(validKeys(targetResponseKey));
+                correct = NaN;
+            end
+            if isempty(targetResponseKey)
+                targetRT = NaN; % timeout
+                targetResponseKey = NaN;
+                targetResponseKeyName = NaN;
+                correct = NaN;
+            end
+            if p.eyeTracking
+                Eyelink('Message', 'TRIAL_END');
+            end
+
+            %% Response collected (blue fixation)
+            if targetResponseKey
+                drawFixation(window, cx, cy, fixSize,[0 0 1]*p.fixColor*white);
+                Screen('Flip',window);
+            
+            end
+
+            %% Percent correct for orientation
+
+            if plaidStatus==1 && strcmp('0)',targetResponseKeyName) % response CW
+                if (differenceMultiplier==-1 && staticGrating==1)||(differenceMultiplier==1 && staticGrating==2) % stimuli CCW
+                    correct = 0;  % stimuli != response
+                elseif (differenceMultiplier==1 && staticGrating==1) ||(differenceMultiplier==-1 && staticGrating==2) % stimuli CW
+                    correct = 1; % stimuli = response
+                end
+            elseif plaidStatus==1 && strcmp('9(',targetResponseKeyName)  % response CCW
+                if (differenceMultiplier==-1 && staticGrating==1) ||(differenceMultiplier==1 && staticGrating==2)%stimuli CCW
+                    correct = 1; % stimuli = response
+                elseif (differenceMultiplier==1 && staticGrating==1) ||(differenceMultiplier==-1 && staticGrating==2)  9 %stimuli CW
+                    correct = 0; % stimuli != response
+                end
+            else
+                responseText = 'Please push one of the buttons: 9 (CW), 0 (CW)';
+            end
+
+            timeEnd=GetSecs();
+
+            %% Keep track of last 3 trials
+            if plaidStatus==1  
+                if precueValidity==1
+                    lastFewAccExp=[lastFewAccExp correct];
+                elseif precueValidity==2
+                    lastFewAccUnexp=[lastFewAccUnexp correct];
+                end
+            end
+
+            %% Store trial info
+            %trials(trialIdx, rtIdx) = targetRT;
+            %trials(trialIdx, responseKeyIdx) = targetResponseKey;
+            p.trials1=trials1;
+            p.trials2=trials2;
+            tic
+            % save data
+            d.block(iTrial) = block; %block trial is in
+            d.timeStart(iTrial)=timeStart; % time at which trial starts
+            d.timeEnd(iTrial)=timeEnd; % time at which trial ends
+            d.timeElapsed(iTrial)=timeEnd-timeStart; % trial duration
+            d.timeTargetResponse(iTrial)=timeTargetResponse; % time at which response was made
+            d.targetRT(iTrial) = targetRT; %response time duration
+            d.targetResponseKey(iTrial) = targetResponseKey; % response key for trial
+            d.timePreStart(iTrial)=timePreStart; % time before standard stimuli presentation
+            d.timeFix(iTrial)=timeFix; % time for fixation
+            d.timeS(iTrial)=timeS; % time for standard
+            d.timeBlank1(iTrial)=timeBlank1; % time after standard
+            d.timeTone(iTrial)=timeTone; % time at tone
+
+            if plaidStatus==1
+                d.timeT(iTrial)=timeT;
+                d.timeBlank2(iTrial)=timeBlank2;
+                d.correct(iTrial) = correct; % response correctness (0/1)
+            end
+
+            d.trialOrder=trialOrder;
+            save(sprintf('%s/%s_s%d_train_predv2_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,date),'d','p');
+
+            %time between trials after response
+            d.timeSpentSaving(iTrial)=toc;
+            WaitSecs(p.ITI-d.timeSpentSaving(iTrial));
+            
+            completedTrials = completedTrials + 1; 
+            %% SANTIY CHECK
+            fprintf('Trial %d/%d in block %d, trial %d of %d total \n', completedTrials, p.BlockTrials, block,iTrial,nTrials);
+            %% Blocking
+            %if completedTrials==p.BlockTrials && (mod(iTrial-completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block) 
+            if (mod(completedTrials,p.BlockTrialsTrain)==0 || (iTrial-completedTrials)>p.BlockTrialsTrain*block)  
+                % Calculate block accuracy
+                blockStartTrial = ((iTrial-completedTrials)/p.BlockTrialsTrain)*p.BlockTrialsTrain - p.BlockTrialsTrain + 1;
+                if blockStartTrial < 0 % we are doing less than one block
+                    blockStartTrial = 1;
+                end
+
+                current=d.correct(blockStartTrial:iTrial);
+                nan_correctnessIdx= isnan(current);
+                non_nan_correctness=current(~nan_correctnessIdx);
+                blockCorrectness = mean(non_nan_correctness);
+
+                fprintf('Block %d of %d complete.\n-----\n', block, nBlocks);
+                fprintf('Percent Correct: %.2f (block)', ...
+                    100*blockCorrectness);
+
+                accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
+                blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, nBlocks);
+                if iTrial==nTrials
+                    keyMessage = 'All done! Thank you for participating!';
+                else
+                    keyMessage = 'Press any key to go on.';
+                end
+
+                breakMessage = sprintf('%s\n%s\n\n%s', blockMessage, accMessage, keyMessage);
+                DrawFormattedText(window, breakMessage, 'center', 'center', [1 1 1]*white);
+                %         DrawFormattedText(window, cueText, 'center', cy-3*textOffset, white);
+                Screen('Flip', window);
+                WaitSecs(1);
+                if iTrial < nTrials
+                    KbWait(-1);
+                end
+
+                block = block+1; % keep track of block for block message only
+                completedTrials=0;
+            end
+            iTrial = iTrial + 1;
+        end
+
+    case 3
         %% Kok 2012 + Waffles interleaved
 
         %% Grating Trials
@@ -863,10 +1327,39 @@ switch p.task % task and demo
 
         disp('reached')
         firstNonWaffle=0; % tracking the first trial that is a non-waffle trial
-
+        twoBlocksKok=0;
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
             stopThisTrial = 0;
+            %% skip if first 2 blocks and not a Kok trial
+            % if trialIdx>size(trials1,1) && twoBlocksKok<=p.BlockTrials*2
+            %     stopThisTrial=1;
+            %     trialOrder(end+1) = trialOrder(iTrial);
+            %     d.stopThisTrial(iTrial) = stopThisTrial;
+            %     skippedTrials(end+1) = trialOrder(iTrial);
+            %     d.timeTargetResponse(iTrial) = NaN;
+            %     d.correct(iTrial) = NaN;
+            %     d.plaidOrientation(iTrial) = NaN; %store orientation of plaid stimuli
+            %     d.plaidPhase(iTrial) = NaN; %store phase of plaid stimuli
+            %     d.plaidContrast(iTrial) = NaN; %store contrast of plaid stimuli
+            %     d.plaidStatus(iTrial) = NaN; %is it a plaid this time?
+            %     d.precueValidity(iTrial) = NaN; % cue validity (valid/invalid)
+            %     d.stairIdx(iTrial) = NaN;
+            %     d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+            %     d.stairIdxUn(iTrial)=NaN;
+            %     d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
+            %     d.gratingPhase(iTrial) = NaN; %phase of test stimuli
+            %     d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
+            %     d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
+            %     d.standardPhase(iTrial) = NaN; %phase of test stimuli
+            %     d.standardContrast(iTrial) = NaN; %contrast of test stimuli
+            %     d.standardSPF(iTrial) = NaN; %contrast of test stimuli
+            %     nTrials = nTrials + 1;
+            %     iTrial = iTrial + 1;
+            % end
+            % if stopThisTrial
+            %     continue
+            % end
 
             %% Get condition information for this trial
 
@@ -966,7 +1459,11 @@ switch p.task % task and demo
                     stairIdxUn=length(p.stairs);
                 end
             end
-            % tone related to overall orientation
+            % %% First 2 blocks are Kok with 75% validity
+            % if twoBlocksKok<=p.BlockTrials*2
+            %     twoBlocksKok=twoBlocksKok+1;
+            % end
+            %% tone related to overall orientation
             toneName = p.precueNames{precueValidity};
             switch toneName
                 case 'valid'

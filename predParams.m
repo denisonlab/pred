@@ -40,7 +40,9 @@ p.testPhases = linspace(0,2*pi,4);
 p.gratingPhases=p.testPhases+pi;
 
 %% Plaid parameters
-p.plaidContrasts1 = [logspace(log10(0.21),log10(0.6),7)];
+% p.plaidContrasts1 = [logspace(log10(0.21),log10(0.6),7)];
+% p.plaidContrasts2 = 0.2;
+p.plaidContrasts1 = [logspace(log10(0.1),log10(0.2),3) 0.2 0.2 logspace(log10(0.2),log10(0.4),3)];
 p.plaidContrasts2 = 0.2;
 p.plaidAxes = [0 90]; % base orientations 
 p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli 
@@ -80,9 +82,10 @@ p.differenceMultiplier=[-1 1];
 %% Validity
 p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invalid'};
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
-
+p.precueValiditiesTrain=[1];
 %% Trials & Blocks
 p.BlockTrials=46;
+p.BlockTrialsTrain=64;
 p.repScale1=2; % 42 mins for 896 trials
 p.repScale2=3; % 63 mins for 1344 trials
 p.repScaleDemo=1;
