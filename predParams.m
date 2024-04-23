@@ -20,17 +20,13 @@ p.demoInstructDur=3;
 p.backgroundColor = 0.5; % gray
 p.imPos = [0 0];
 p.gratingSize = 2; % degrees visual angle
-p.gratingSF = 3; % cycles per degree
 
 p.gratingSPF=[1.0 1.5];
 p.gratingOrientations = [-45 45]; % vertical 
-p.phase = 0;
 p.gaborSD = 0.5; % about 4 SDs will be visible at full contrast
 p.aperture = 'gaussian';
 p.gratingDiameter = [2 0];
 p.testStatus = [1]; %0 (absent stimuli)
-p.standardContrast = p.gratingContrasts(4); 
-p.standardOrientation = 0;
 
 p.imSize = 4;
 p.testPhases = linspace(0,2*pi,4);
@@ -82,8 +78,7 @@ p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invali
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
 
 %% Trials & Blocks
-p.BlockTrials=46;
-p.BlockTrialsTrain=64;
+p.BlockTrials=48;
 p.repScale1=2; % 42 mins for 896 trials
 p.repScale2=3; % 63 mins for 1344 trials
 p.repScaleDemo=1;

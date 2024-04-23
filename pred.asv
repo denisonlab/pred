@@ -27,8 +27,7 @@ p.sessionNum = input('Enter session number (1,2...) ');
 p.debug = input('Debug? (Y/N) ','s');
 p.task = input(['Prediction task run:\n' ...
     '1 - Demo\n'...
-    '2 - Training 2 Blocks\n'...
-    '3 - Task version Kok + Waffles\n']);
+    '2 - Task version Kok + Waffles\n']);
 p.fullScreen = input ('Full screen(0/1)? ');
 p.eyeTracking=input('Eyetracking (0/1)? ');
 
@@ -156,35 +155,10 @@ end
 %% Make TEST stimuli
 
 imPos = round(p.imPos*pixelsPerDegree); % image position (pixels)
-% gratingRadius = round(p.gratingDiameter/2*pixelsPerDegree); % radius (pixels)
 
 tex = cell(numel(p.gratingPhases), numel(p.gratingSPF));
 tex_stand= cell(numel(p.testPhases), numel(p.gratingSPF));
 
-% for iP=1:numel(p.testPhases)
-%         phase = p.testPhases(iP);
-%         for iS=1:numel(p.gratingSPF)
-%             SPF = p.gratingSPF(iS);
-%             grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
-%                 SPF, 0, phase, p.standardContrast2); % 0 to 1
-%             [gabor, aps] = rd_aperture(grating, 'gaussian', gaborSD);
-%             tex{iP,iS} = Screen('MakeTexture', window, gabor*white);
-%         end
-%  end
-
-% if p.task ~=5
-%     for iC = 1:numel(p.gratingContrasts)  %HOW TO LOOP THROUGH PHASE OR VARY ACROSS PHASES
-%         contrast = p.gratingContrasts(iC);
-%         for iP=1:numel(p.testPhases)
-%             phase = p.testPhases(iP);
-%             grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
-%                 p.gratingSF, 0, phase, contrast); % 0 to 1
-%             [gabor, aps] = rd_aperture(grating, 'gaussian', gaborSD);
-%             tex{iC,iP} = Screen('MakeTexture', window, gabor*white);
-%         end
-%     end
-% elseif p.task==5
- 
     for iP=1:numel(p.gratingPhases) %TEST
         phase = p.testPhases(iP);
         for iS=1:numel(p.gratingSPF)
@@ -212,26 +186,6 @@ tex_stand= cell(numel(p.testPhases), numel(p.gratingSPF));
 %Make rects for placing image
 imSize = size(grating);
 imRect = CenterRectOnPoint([0 0 imSize], cx+imPos(1), cy+imPos(2));
-
-
-%% Make STANDARD stimuli
-
-gratingS = rd_grating(pixelsPerDegree, p.gratingSize, p.gratingSF, 0, 0, p.standardContrast); % First make a grating image
-imPosS = round(p.imPos*pixelsPerDegree); % standard image position (pixels)
-% gratingRadiusS = round(p.gratingDiameter/2*pixelsPerDegree); % standard radius (pixels)
-
-% Place an Gaussian aperture on the image to turn it into a Gabor
-gaborS = rd_aperture(gratingS, 'gaussian', gaborSD);
-
-
-% Make an image "texture"
-% Choose which image you want to make into a texture
-imS = gaborS;
-
-% Make the texture
-imTexStandard = Screen('MakeTexture', window, imS*white); % multiply by "white" to scale from 0-255
-imSizeS = size(imS); % Make the rects for placing the images in the window
-imRectS = CenterRectOnPoint([0 0 imSizeS(1) imSizeS(2)], cx+imPosS(1), cy+imPosS(2));
 
 %% MAKE PLAID REFERENCE STIMULI FOR VERSION 2 HERE
 for iC = 1:numel(p.plaidContrasts1) 
@@ -322,17 +276,20 @@ switch p.task % task and demo
         instructions = 'This is a demo of the main experiment\n\n';
         %% Show instruction screen and wait for a button press
         Screen('FillRect', window, white*p.backgroundColor);
-        instructions1 = sprintf('%s\n\nThere will be a tone followed by 2 gratings.\n\n You will have to report the orientation of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
+        instructions1 = sprintf('%s\n\nThere will be a tone followed by 2 gratings.\n\n You will have to report the tilt of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
 
         KbWait(devNum);
 
-        instructions2 ='\n\n At random, a plaid patch will appear instead. \n\n For those trials you must report which of the two orientations in the plaid is stronger in contrast. \n\n For counterclockwise (press 9).  \n\n For clockwise (press 0)! \n\n  Press to continue!';
+        instructions2 ='\n\n At random, a plaid patch will appear instead. \n\n For those trials you must report which of the two orientations in the plaid is stronger in contrast. \n\n For -45 degrees (press 9).  \n\n For +45 degrees (press 0)! \n\n  Press to continue!';
         DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         timeInstruct2=Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
         WaitSecs(1);
         KbWait(devNum);
+
+        % DO I HAVE TO HAVE  THIS IN THE DEMO OR DOES THIS SORT OF
+        % EMPHASIZE THE IMPORTANCE OF THE TONES
 
         instructionsToneLow ='This is what the low tone will sound like.\n\nPress to continue!';
         DrawFormattedText(window, instructionsToneLow, 'center', 'center', [1 1 1]*white);
@@ -358,9 +315,23 @@ switch p.task % task and demo
         WaitSecs(1);
         KbWait(devNum);
 
+        instructionsGrating='This is an example of a grating.\n\n Press to continue!';
+        DrawFormattedText(window, instructionsGrating, 'center', 'center', [1 1 1]*white);
+        Screen('DrawTexture', window, tex{2,1}, [], imRect, 45);
+        timeGrating = Screen('Flip', window, timeToneHigh - slack);
+        WaitSecs(1);
+        KbWait(devNum);
+
+        instructionsPlaid='This is an example of a plaid patch.\n\n Press to continue!';
+        DrawFormattedText(window, instructionsPlaid, 'center', 'center', [1 1 1]*white);
+        Screen('DrawTexture', window, tex_plaid{5,2}, [], imRect, 45);
+        timePlaid = Screen('Flip', window, timeGrating - slack);
+        WaitSecs(1);
+        KbWait(devNum);
+       
         instructionsStartDemo ='Press to start demo trials!';
         DrawFormattedText(window, instructionsStartDemo, 'center', 'center', [1 1 1]*white);
-        Screen('Flip', window,timeToneHigh+p.toneSOA-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
+        Screen('Flip', window,timePlaid-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
         WaitSecs(1);
         KbWait(devNum);
 
@@ -750,11 +721,6 @@ switch p.task % task and demo
             end
         end
     case 2
-        
-      
-          
-
-    case 3
         %% Kok 2012 + Waffles interleaved
 
         %% Grating Trials
@@ -872,36 +838,7 @@ switch p.task % task and demo
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
             stopThisTrial = 0;
-            %% skip if first 2 blocks and not a Kok trial
-            % if trialIdx>size(trials1,1) && twoBlocksKok<=p.BlockTrials*2
-            %     stopThisTrial=1;
-            %     trialOrder(end+1) = trialOrder(iTrial);
-            %     d.stopThisTrial(iTrial) = stopThisTrial;
-            %     skippedTrials(end+1) = trialOrder(iTrial);
-            %     d.timeTargetResponse(iTrial) = NaN;
-            %     d.correct(iTrial) = NaN;
-            %     d.plaidOrientation(iTrial) = NaN; %store orientation of plaid stimuli
-            %     d.plaidPhase(iTrial) = NaN; %store phase of plaid stimuli
-            %     d.plaidContrast(iTrial) = NaN; %store contrast of plaid stimuli
-            %     d.plaidStatus(iTrial) = NaN; %is it a plaid this time?
-            %     d.precueValidity(iTrial) = NaN; % cue validity (valid/invalid)
-            %     d.stairIdx(iTrial) = NaN;
-            %     d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
-            %     d.stairIdxUn(iTrial)=NaN;
-            %     d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
-            %     d.gratingPhase(iTrial) = NaN; %phase of test stimuli
-            %     d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
-            %     d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
-            %     d.standardPhase(iTrial) = NaN; %phase of test stimuli
-            %     d.standardContrast(iTrial) = NaN; %contrast of test stimuli
-            %     d.standardSPF(iTrial) = NaN; %contrast of test stimuli
-            %     nTrials = nTrials + 1;
-            %     iTrial = iTrial + 1;
-            % end
-            % if stopThisTrial
-            %     continue
-            % end
-
+            
             %% Get condition information for this trial
 
             if trialIdx<=size(trials1,1)
@@ -1000,10 +937,7 @@ switch p.task % task and demo
                     stairIdxUn=length(p.stairs);
                 end
             end
-            % %% First 2 blocks are Kok with 75% validity
-            % if twoBlocksKok<=p.BlockTrials*2
-            %     twoBlocksKok=twoBlocksKok+1;
-            % end
+            
             %% tone related to overall orientation
             toneName = p.precueNames{precueValidity};
             switch toneName
@@ -1080,8 +1014,6 @@ switch p.task % task and demo
                 d.standardSPF(iTrial) = NaN; %contrast of test stimuli
             end
             %% Store stimulus information in trials matrix
-
-            %trials(trialIdx, precueIdx) = toneVersion;
             %% %%%% Play the trial %%%%
 
             if plaidStatus==1
@@ -1312,8 +1244,6 @@ switch p.task % task and demo
             end
 
             %% Store trial info
-            %trials(trialIdx, rtIdx) = targetRT;
-            %trials(trialIdx, responseKeyIdx) = targetResponseKey;
             p.trials1=trials1;
             p.trials2=trials2;
             tic
@@ -1352,7 +1282,6 @@ switch p.task % task and demo
             %% SANTIY CHECK
             fprintf('Trial %d/%d in block %d, trial %d of %d total \n', completedTrials, p.BlockTrials, block,iTrial,nTrials);
             %% Blocking
-            %if completedTrials==p.BlockTrials && (mod(iTrial-completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block) 
             if (mod(completedTrials,p.BlockTrials)==0 || (iTrial-completedTrials)>p.BlockTrials*block)  
                 % Calculate block accuracy
                 blockStartTrial = ((iTrial-completedTrials)/p.BlockTrials)*p.BlockTrials - p.BlockTrials + 1;
@@ -1368,6 +1297,8 @@ switch p.task % task and demo
                 fprintf('Block %d of %d complete.\n-----\n', block, nBlocks);
                 fprintf('Percent Correct: %.2f (block)', ...
                     100*blockCorrectness);
+                fprintf('Mean tilt: %d.\n-----\n', mean());
+
 
                 accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
                 blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, nBlocks);
