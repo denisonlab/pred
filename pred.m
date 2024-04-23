@@ -260,7 +260,7 @@ switch p.task % task and demo
         plaidPhaseIdx = strcmp(trials_headers2,'plaidPhase'); % plaid phase value
         plaidContrastIdx = strcmp(trials_headers2,'plaidContrast'); % plaid contrast
        
-        trials2 = fullfact([ numel(p.precueValidities)... % 1 precue validity
+        trials2 = fullfact([ numel(p.precueValiditiesWaffle)... % 1 precue validity
              numel(p.plaidOrientations),... % 2 plaid ori
              numel(p.testPhases),... % 3 plaid phase 
              numel(p.plaidContrasts1)]); % 4 plaid contrast
@@ -288,37 +288,11 @@ switch p.task % task and demo
         WaitSecs(1);
         KbWait(devNum);
 
-        % DO I HAVE TO HAVE  THIS IN THE DEMO OR DOES THIS SORT OF
-        % EMPHASIZE THE IMPORTANCE OF THE TONES
-
-        instructionsToneLow ='This is what the low tone will sound like.\n\nPress to continue!';
-        DrawFormattedText(window, instructionsToneLow, 'center', 'center', [1 1 1]*white);
-        timeToneLowText=Screen('Flip', window,timeInstruct2-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-
-        toneLow=cueTones(1,:);
-        PsychPortAudio('FillBuffer', pahandle, toneLow);
-        timeToneLow = PsychPortAudio('Start', pahandle, [], timeToneLowText+p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-        WaitSecs(1);
-
-        KbWait(devNum);
-
-        instructionsToneHigh ='This is what the high tone will sound like. Press to continue!';
-        DrawFormattedText(window, instructionsToneHigh, 'center', 'center', [1 1 1]*white);
-        timeToneHighText=Screen('Flip', window,timeToneLow+p.toneSOA-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        
-        WaitSecs(1);
-        toneHigh=cueTones(2,:);
-        PsychPortAudio('FillBuffer', pahandle, toneHigh);
-        timeToneHigh = PsychPortAudio('Start', pahandle, [], timeToneHighText+p.standSOA-slack, 1); % waitForStart = 1 in order to return a timestamp of playback
-        
-        toc
-        WaitSecs(1);
-        KbWait(devNum);
 
         instructionsGrating='This is an example of a grating.\n\n Press to continue!';
         DrawFormattedText(window, instructionsGrating, 'center', 'center', [1 1 1]*white);
         Screen('DrawTexture', window, tex{2,1}, [], imRect, 45);
-        timeGrating = Screen('Flip', window, timeToneHigh - slack);
+        timeGrating = Screen('Flip', window, timeInstruct2 - slack);
         WaitSecs(1);
         KbWait(devNum);
 
@@ -431,7 +405,7 @@ switch p.task % task and demo
 
             elseif trialIdx>size(trials1,1) 
                 plaidStatus=2; % if the trial id is a value > the number of grating trials, this trial will be a waffle trial
-                precueValidity = p.precueValidities(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
+                precueValidity = p.p.precueValiditiesWaffle(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
                 plaidOrientation = trials2(trialIdx-size(trials1,1), plaidOrientationIdx);
                 plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
                 plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);

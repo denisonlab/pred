@@ -260,7 +260,7 @@ switch p.task % task and demo
         plaidPhaseIdx = strcmp(trials_headers2,'plaidPhase'); % plaid phase value
         plaidContrastIdx = strcmp(trials_headers2,'plaidContrast'); % plaid contrast
        
-        trials2 = fullfact([ numel(p.precueValidities)... % 1 precue validity
+        trials2 = fullfact([ numel(p.precueValiditiesWaffle)... % 1 precue validity
              numel(p.plaidOrientations),... % 2 plaid ori
              numel(p.testPhases),... % 3 plaid phase 
              numel(p.plaidContrasts1)]); % 4 plaid contrast
@@ -324,7 +324,7 @@ switch p.task % task and demo
 
         instructionsPlaid='This is an example of a plaid patch.\n\n Press to continue!';
         DrawFormattedText(window, instructionsPlaid, 'center', 'center', [1 1 1]*white);
-        Screen('DrawTexture', window, tex_plaid{5,2}, [], imRect, 45);
+        Screen('DrawTexture', window, tex_plaid{3,2}, [], imRect, 45);
         timePlaid = Screen('Flip', window, timeGrating - slack);
         WaitSecs(1);
         KbWait(devNum);
@@ -431,7 +431,7 @@ switch p.task % task and demo
 
             elseif trialIdx>size(trials1,1) 
                 plaidStatus=2; % if the trial id is a value > the number of grating trials, this trial will be a waffle trial
-                precueValidity = p.precueValidities(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
+                precueValidity = p.p.precueValiditiesWaffle(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
                 plaidOrientation = trials2(trialIdx-size(trials1,1), plaidOrientationIdx);
                 plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
                 plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);
@@ -812,13 +812,13 @@ switch p.task % task and demo
         %% Show instruction screen and wait for a button press
         instructions = 'This is the main version of the experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
-        instructions1 = sprintf('%s\n\nThere will be a tone followed by 2 gratings.\n\n You will have to report the orientation of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
+        instructions1 = sprintf('%s\n\nThere will be a tone followed by 2 gratings.\n\n You will have to report the tilt of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
 
         KbWait(devNum);
 
-        instructions2 =' \n\n At random, a plaid patch will appear instead. \n\n For those trials you must report which of the two orientations in the plaid is stronger in contrast. \n\n For counterclockwise (press 9).  \n\n For clockwise (press 0)! \n\n  Press to start!';
+        instructions2 =' \n\n At random, a plaid patch will appear instead. \n\n For those trials you must report which of the two orientations in the plaid is stronger in contrast. \n\n For -45 degrees (press 9).  \n\n For +45 degrees (press 0)! \n\n  Press to start!';
         DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack);
         WaitSecs(1);
@@ -834,7 +834,6 @@ switch p.task % task and demo
 
         disp('reached')
         firstNonWaffle=0; % tracking the first trial that is a non-waffle trial
-        twoBlocksKok=0;
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
             stopThisTrial = 0;
@@ -1040,16 +1039,6 @@ switch p.task % task and demo
                 PsychPortAudio('FillBuffer', pahandle, tone);
                 timeTone = PsychPortAudio('Start', pahandle, [], timeFix+p.signalStart, 1); % waitForStart = 1 in order to return a timestamp of playback
                 
-               
-                %% Present STANDARD
-                Screen('DrawTexture', window, tex_stand{standardPhase,standardSPF}, [], imRect, sOrientation);
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-                timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
-                
-                %% Fixation
-                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
-                timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
-                
                 %% EYE TRACKING
     
                 if p.eyeTracking
@@ -1089,6 +1078,17 @@ switch p.task % task and demo
                         continue
                     end
                 end
+               
+                %% Present STANDARD
+                Screen('DrawTexture', window, tex_stand{standardPhase,standardSPF}, [], imRect, sOrientation);
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white)
+                timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+                
+                %% Fixation
+                drawFixation(window, cx, cy, fixSize, p.fixColor*white);
+                timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
+                
+                
                 %% Present TEST
                 Screen('DrawTexture', window, tex{gratingPhase,gratingSPF}, [], imRect, gOrientation);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
@@ -1293,14 +1293,19 @@ switch p.task % task and demo
                 nan_correctnessIdx= isnan(current);
                 non_nan_correctness=current(~nan_correctnessIdx);
                 blockCorrectness = mean(non_nan_correctness);
+                tiltID=d.stairIdx(blockStartTrial:iTrial);
+                nan_tiltID=isnan(tiltID);
+                non_nan_tiltID=tiltID(~nan_tiltID);
+                blockTilt=mean(non_nan_tiltID);
 
                 fprintf('Block %d of %d complete.\n-----\n', block, nBlocks);
                 fprintf('Percent Correct: %.2f (block)', ...
                     100*blockCorrectness);
-                fprintf('Mean tilt: %d.\n-----\n', mean());
+                fprintf('Mean tilt in block: %d.\n-----\n', blockTilt);
 
 
                 accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
+                tiltMessage= sprintf('Mean Tilt in Block: %d%', round(blockTilt));
                 blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, nBlocks);
                 if iTrial==nTrials
                     keyMessage = 'All done! Thank you for participating!';
@@ -1308,7 +1313,7 @@ switch p.task % task and demo
                     keyMessage = 'Press any key to go on.';
                 end
 
-                breakMessage = sprintf('%s\n%s\n\n%s', blockMessage, accMessage, keyMessage);
+                breakMessage = sprintf('%s\n%s\n\n%s\n\n%s', blockMessage, accMessage, tiltMessage, keyMessage);
                 DrawFormattedText(window, breakMessage, 'center', 'center', [1 1 1]*white);
                 %         DrawFormattedText(window, cueText, 'center', cy-3*textOffset, white);
                 Screen('Flip', window);
