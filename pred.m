@@ -24,11 +24,10 @@ rng("shuffle");
 % Subject and session info
 p.subjectID = input('Enter subject ID:  ','s');
 p.sessionNum = input('Enter session number (1,2...) ');
-p.debug = input('Debug? (Y/N) ','s');
 p.task = input(['Prediction task run:\n' ...
     '1 - Demo\n'...
     '2 - Task version Kok + Waffles\n']);
-p.fullScreen = input ('Full screen(0/1)? ');
+p.counter=input('Choose 1 or 2 for participant'); %counterbalance 
 p.eyeTracking=input('Eyetracking (0/1)? ');
 
 %% Setup
@@ -37,6 +36,10 @@ directory = pwd; % get project directory path, set to prediction folder parent l
 addpath(genpath(directory))
 % Get parameters
 p = predParams(p);
+
+if p.counter==2
+    p.toneFreqs=flip(p.toneFreqs); 
+end
 
 data.dataDir = sprintf('%s/data',pwd);
 if ~exist(data.dataDir, 'dir')
@@ -92,23 +95,10 @@ fprintf('expt stage = %d\n', p.task)
 Screen('Preference', 'SkipSyncTests', 1);
 screenNumber = max(Screen('Screens')); %screen to display on
 
-
 % Get window size
 %[window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
 
-if p.fullScreen==1
-    [window, rect] = Screen('OpenWindow', screenNumber);
-elseif p.fullScreen==0
-    [window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
-end
-
-% Debug settings
-if p.debug=="Y" || p.debug=="y"
-    nTrials=p.debugTrials;
-    nBlocks=nTrials/p.BlockTrialsDebug;
-    % elseif p.debug=="N" || p.debug=="n"
-    %     [window, rect] = Screen('OpenWindow', screenNumber);
-end
+[window, rect] = Screen('OpenWindow', screenNumber);
 
 [screenWidthPx, screenHeight] = Screen('WindowSize', window);
 flipInterval = Screen('GetFlipInterval', window); % % Get refresh rate, frame duration (s)
@@ -265,11 +255,10 @@ switch p.task % task and demo
              numel(p.testPhases),... % 3 plaid phase 
              numel(p.plaidContrasts1)]); % 4 plaid contrast
         %% Merge trial count
-        if (p.debug=="N" || p.debug=="n")
-            nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
-            %nBlocks=nTrials/p.BlockTrials; 
-            nBlocks=nTrials/p.BlockTrials; 
-        end
+        nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
+        %nBlocks=nTrials/p.BlockTrials; 
+        nBlocks=nTrials/p.BlockTrials; 
+        
 
         trialOrder = randperm(nTrials); %randomize trial order
 
@@ -735,16 +724,15 @@ switch p.task % task and demo
              numel(p.testPhases),... % 3 plaid phase 
              numel(p.plaidContrasts1)]); % 4 plaid contrast
         %% Merge trial count
-        if (p.debug=="N" || p.debug=="n") 
-            nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
-            %nBlocks=nTrials/p.BlockTrials; 
-            nBlocks=nTrials/p.BlockTrials; 
-        end
+        nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
+        %nBlocks=nTrials/p.BlockTrials; 
+        nBlocks=nTrials/p.BlockTrials; 
+        
 
         trialOrder = randperm(nTrials); %randomize trial order
         
         %% Eyetracker
-        if p.eyeTracking
+        if p.eyeTracking==1
             % Initialize eye tracker
             [el exitFlag] = rd_eyeLink('eyestart', window, eyeFile);
             if exitFlag
@@ -801,7 +789,7 @@ switch p.task % task and demo
         timeStart = GetSecs;
         correct = [];
         block=1;
-
+        eyeSkip = zeros(size(trials,1),1); % trials skipped due to an eye movement, same size as trials matrix
         skippedTrials = [];
         iTrial=1;
         completedTrials=0;
@@ -810,7 +798,12 @@ switch p.task % task and demo
         firstNonWaffle=0; % tracking the first trial that is a non-waffle trial
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
-            stopThisTrial = 0;
+
+            %% Initialize for eye tracking trial breaks
+             if iTrial>1
+                 eyeSkip(trialIdx) = stopThisTrial; % this is for the previous trial
+             end
+             stopThisTrial = 0;
             
             %% Get condition information for this trial
 
@@ -1027,7 +1020,7 @@ switch p.task % task and demo
     
                         if fixation==0
                             stopThisTrial = 1;
-                            WaitSecs(1);
+                            WaitSecs(1);G
                         
                             % redo this trial at the end of the experiment
                             % this can be easily done by appending the trial number to the end of

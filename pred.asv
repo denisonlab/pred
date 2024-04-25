@@ -24,11 +24,10 @@ rng("shuffle");
 % Subject and session info
 p.subjectID = input('Enter subject ID:  ','s');
 p.sessionNum = input('Enter session number (1,2...) ');
-p.debug = input('Debug? (Y/N) ','s');
 p.task = input(['Prediction task run:\n' ...
     '1 - Demo\n'...
     '2 - Task version Kok + Waffles\n']);
-p.fullScreen = input ('Full screen(0/1)? ');
+p.counter=input('Choose 1 or 2 for participant'); %counterbalance 
 p.eyeTracking=input('Eyetracking (0/1)? ');
 
 %% Setup
@@ -37,6 +36,10 @@ directory = pwd; % get project directory path, set to prediction folder parent l
 addpath(genpath(directory))
 % Get parameters
 p = predParams(p);
+
+if p.counter==2
+    p.toneFreqs=flip(p.toneFreqs); 
+end
 
 data.dataDir = sprintf('%s/data',pwd);
 if ~exist(data.dataDir, 'dir')
@@ -96,19 +99,8 @@ screenNumber = max(Screen('Screens')); %screen to display on
 % Get window size
 %[window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
 
-if p.fullScreen==1
-    [window, rect] = Screen('OpenWindow', screenNumber);
-elseif p.fullScreen==0
-    [window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
-end
 
-% Debug settings
-if p.debug=="Y" || p.debug=="y"
-    nTrials=p.debugTrials;
-    nBlocks=nTrials/p.BlockTrialsDebug;
-    % elseif p.debug=="N" || p.debug=="n"
-    %     [window, rect] = Screen('OpenWindow', screenNumber);
-end
+[window, rect] = Screen('OpenWindow', screenNumber);
 
 [screenWidthPx, screenHeight] = Screen('WindowSize', window);
 flipInterval = Screen('GetFlipInterval', window); % % Get refresh rate, frame duration (s)
@@ -265,11 +257,10 @@ switch p.task % task and demo
              numel(p.testPhases),... % 3 plaid phase 
              numel(p.plaidContrasts1)]); % 4 plaid contrast
         %% Merge trial count
-        if (p.debug=="N" || p.debug=="n")
-            nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
-            %nBlocks=nTrials/p.BlockTrials; 
-            nBlocks=nTrials/p.BlockTrials; 
-        end
+        nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
+        %nBlocks=nTrials/p.BlockTrials; 
+        nBlocks=nTrials/p.BlockTrials; 
+        
 
         trialOrder = randperm(nTrials); %randomize trial order
 
@@ -288,37 +279,11 @@ switch p.task % task and demo
         WaitSecs(1);
         KbWait(devNum);
 
-        % DO I HAVE TO HAVE  THIS IN THE DEMO OR DOES THIS SORT OF
-        % EMPHASIZE THE IMPORTANCE OF THE TONES
-
-        instructionsToneLow ='This is what the low tone will sound like.\n\nPress to continue!';
-        DrawFormattedText(window, instructionsToneLow, 'center', 'center', [1 1 1]*white);
-        timeToneLowText=Screen('Flip', window,timeInstruct2-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-
-        toneLow=cueTones(1,:);
-        PsychPortAudio('FillBuffer', pahandle, toneLow);
-        timeToneLow = PsychPortAudio('Start', pahandle, [], timeToneLowText+p.standSOA, 1); % waitForStart = 1 in order to return a timestamp of playback
-        WaitSecs(1);
-
-        KbWait(devNum);
-
-        instructionsToneHigh ='This is what the high tone will sound like. Press to continue!';
-        DrawFormattedText(window, instructionsToneHigh, 'center', 'center', [1 1 1]*white);
-        timeToneHighText=Screen('Flip', window,timeToneLow+p.toneSOA-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
-        
-        WaitSecs(1);
-        toneHigh=cueTones(2,:);
-        PsychPortAudio('FillBuffer', pahandle, toneHigh);
-        timeToneHigh = PsychPortAudio('Start', pahandle, [], timeToneHighText+p.standSOA-slack, 1); % waitForStart = 1 in order to return a timestamp of playback
-        
-        toc
-        WaitSecs(1);
-        KbWait(devNum);
 
         instructionsGrating='This is an example of a grating.\n\n Press to continue!';
         DrawFormattedText(window, instructionsGrating, 'center', 'center', [1 1 1]*white);
         Screen('DrawTexture', window, tex{2,1}, [], imRect, 45);
-        timeGrating = Screen('Flip', window, timeToneHigh - slack);
+        timeGrating = Screen('Flip', window, timeInstruct2 - slack);
         WaitSecs(1);
         KbWait(devNum);
 
@@ -761,11 +726,10 @@ switch p.task % task and demo
              numel(p.testPhases),... % 3 plaid phase 
              numel(p.plaidContrasts1)]); % 4 plaid contrast
         %% Merge trial count
-        if (p.debug=="N" || p.debug=="n") 
-            nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
-            %nBlocks=nTrials/p.BlockTrials; 
-            nBlocks=nTrials/p.BlockTrials; 
-        end
+        nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
+        %nBlocks=nTrials/p.BlockTrials; 
+        nBlocks=nTrials/p.BlockTrials; 
+        
 
         trialOrder = randperm(nTrials); %randomize trial order
         

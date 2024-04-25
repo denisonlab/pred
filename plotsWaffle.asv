@@ -5,7 +5,7 @@ close all;
 
 dataDir = sprintf('%s/data', pwd);
 subjectID="S0120pilot";
-choice = 2; % a single session (1) or many (2)
+choice = 1; % a single session (1) or many (2)
 sessionNum=1;
 responseKeyIds=[3 4];
 
