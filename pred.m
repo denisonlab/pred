@@ -200,7 +200,7 @@ imRectR = CenterRectOnPoint([0 0 imSize], cx+imPos(1)+2*p.plaidEcc*p.ppd, cy+imP
 %% Define fixation box for eyetracker
 fixBoxWidth=5*pixelsPerDegree; %width of fixation box in deg
 fixRect = [cx-.5*fixBoxWidth, cy-.5*fixBoxWidth, cx+.5*fixBoxWidth, cy+.5*fixBoxWidth];
-rad = 70; % radius of allowable eye movement in pixels
+rad = round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central')); % radius of allowable eye movement in pixels
 
 %% RUN expt
 %HideCursor(window,-1);
@@ -784,12 +784,14 @@ switch p.task % task and demo
         DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack);
         WaitSecs(1);
-
         KbWait(devNum);
+%         if p.eyeTracking
+%             rd_eyeLink('startrecording',window,{el, fixRect});
+%         end
         timeStart = GetSecs;
         correct = [];
         block=1;
-        eyeSkip = zeros(size(trials,1),1); % trials skipped due to an eye movement, same size as trials matrix
+        eyeSkip = zeros(size(trials1,1)+size(trials2,1),1); % trials skipped due to an eye movement, same size as trials matrix
         skippedTrials = [];
         iTrial=1;
         completedTrials=0;
@@ -801,7 +803,7 @@ switch p.task % task and demo
 
             %% Initialize for eye tracking trial breaks
              if iTrial>1
-                 eyeSkip(trialIdx) = stopThisTrial; % this is for the previous trial
+                 eyeSkip(iTrial-1) = stopThisTrial; % this is for the previous trial
              end
              stopThisTrial = 0;
             
@@ -994,7 +996,7 @@ switch p.task % task and demo
                 end
                 %% Check fixation hold
                 if p.eyeTracking
-                    driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
+                    driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad,fixRect});
                     if driftCorrected
                         % restart trial
                         drawFixation(window, cx, cy, fixSize, p.fixColor*white);
@@ -1034,6 +1036,7 @@ switch p.task % task and demo
                             iTrial = iTrial + 1;
     
                             Screen('FillRect', window, white*p.backgroundColor);
+                            drawFixation(window, cx, cy, fixSize, p.fixColor*[0 0 0]*white);
                             Screen('Flip', window);
                             WaitSecs(1);
                         else 
@@ -1082,7 +1085,7 @@ switch p.task % task and demo
                 end
                 %% Check fixation hold
                 if p.eyeTracking
-                    driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
+                    driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad,fixRect});
                     if driftCorrected
                         % restart trial
                         drawFixation(window, cx, cy, fixSize, p.fixColor*white);
