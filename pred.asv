@@ -95,10 +95,8 @@ fprintf('expt stage = %d\n', p.task)
 Screen('Preference', 'SkipSyncTests', 1);
 screenNumber = max(Screen('Screens')); %screen to display on
 
-
 % Get window size
 %[window, rect] = Screen('OpenWindow', screenNumber, [], [0 0 600 400]);
-
 
 [window, rect] = Screen('OpenWindow', screenNumber);
 
@@ -202,8 +200,8 @@ imRectR = CenterRectOnPoint([0 0 imSize], cx+imPos(1)+2*p.plaidEcc*p.ppd, cy+imP
 %% Define fixation box for eyetracker
 fixBoxWidth=5*pixelsPerDegree; %width of fixation box in deg
 fixRect = [cx-.5*fixBoxWidth, cy-.5*fixBoxWidth, cx+.5*fixBoxWidth, cy+.5*fixBoxWidth];
-rad = 70; % radius of allowable eye movement in pixels
-
+rad = round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central')); % radius of allowable eye movement in pixels
+%rad=50;
 %% RUN expt
 %HideCursor(window,-1);
 
@@ -734,7 +732,7 @@ switch p.task % task and demo
         trialOrder = randperm(nTrials); %randomize trial order
         
         %% Eyetracker
-        if p.eyeTracking
+        if p.eyeTracking==1
             % Initialize eye tracker
             [el exitFlag] = rd_eyeLink('eyestart', window, eyeFile);
             if exitFlag
@@ -757,7 +755,7 @@ switch p.task % task and demo
             EyelinkUpdateDefaults(el);
 
             % Calibrate eye tracker
-            [~, exitFlag] = rd_eyeLink('calibrate', window, el);
+            [cal, exitFlag] = rd_eyeLink('calibrate', window, el);
             if exitFlag
                 return
             end
@@ -773,6 +771,10 @@ switch p.task % task and demo
         reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
         pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
 
+        if p.eyeTracking
+            rd_eyeLink('startrecording',window,{el, fixRect});
+        end
+
         %% Show instruction screen and wait for a button press
         instructions = 'This is the main version of the experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
@@ -786,22 +788,31 @@ switch p.task % task and demo
         DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack);
         WaitSecs(1);
-
         KbWait(devNum);
+        
         timeStart = GetSecs;
         correct = [];
         block=1;
-
+        eyeSkip = zeros(size(trials1,1)+size(trials2,1),1); % trials skipped due to an eye movement, same size as trials matrix
         skippedTrials = [];
         iTrial=1;
         completedTrials=0;
 
         disp('reached')
         firstNonWaffle=0; % tracking the first trial that is a non-waffle trial
+        
+        
+        
+       
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
-            stopThisTrial = 0;
-            
+            stopThisTrial=0;
+            % %% Initialize for eye tracking trial breaks
+            %  if iTrial>1
+            %      eyeSkip(iTrial-1) = stopThisTrial; % this is for the previous trial
+            %  end
+            %  stopThisTrial = 0;
+            % 
             %% Get condition information for this trial
 
             if trialIdx<=size(trials1,1)
@@ -991,7 +1002,7 @@ switch p.task % task and demo
                 end
                 %% Check fixation hold
                 if p.eyeTracking
-                    driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
+                    driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad,fixRect});
                     if driftCorrected
                         % restart trial
                         drawFixation(window, cx, cy, fixSize, p.fixColor*white);
@@ -1017,7 +1028,7 @@ switch p.task % task and demo
     
                         if fixation==0
                             stopThisTrial = 1;
-                            WaitSecs(1);
+                            WaitSecs(1);G
                         
                             % redo this trial at the end of the experiment
                             % this can be easily done by appending the trial number to the end of
@@ -1031,6 +1042,7 @@ switch p.task % task and demo
                             iTrial = iTrial + 1;
     
                             Screen('FillRect', window, white*p.backgroundColor);
+                            drawFixation(window, cx, cy, fixSize, p.fixColor*[0 0 0]*white);
                             Screen('Flip', window);
                             WaitSecs(1);
                         else 
@@ -1079,7 +1091,7 @@ switch p.task % task and demo
                 end
                 %% Check fixation hold
                 if p.eyeTracking
-                    driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad});
+                    driftCorrected = rd_eyeLink('trialstart', window, {el, iTrial, cx, cy, rad,fixRect});
                     if driftCorrected
                         % restart trial
                         drawFixation(window, cx, cy, fixSize, p.fixColor*white);
@@ -1224,6 +1236,7 @@ switch p.task % task and demo
             d.timeS(iTrial)=timeS; % time for standard
             d.timeBlank1(iTrial)=timeBlank1; % time after standard
             d.timeTone(iTrial)=timeTone; % time at tone
+            d.stopThisTrial(iTrial) = stopThisTrial;
 
             if plaidStatus==1
                 d.timeT(iTrial)=timeT;

@@ -201,7 +201,7 @@ imRectR = CenterRectOnPoint([0 0 imSize], cx+imPos(1)+2*p.plaidEcc*p.ppd, cy+imP
 fixBoxWidth=5*pixelsPerDegree; %width of fixation box in deg
 fixRect = [cx-.5*fixBoxWidth, cy-.5*fixBoxWidth, cx+.5*fixBoxWidth, cy+.5*fixBoxWidth];
 rad = round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central')); % radius of allowable eye movement in pixels
-
+%rad=50;
 %% RUN expt
 %HideCursor(window,-1);
 
@@ -755,7 +755,7 @@ switch p.task % task and demo
             EyelinkUpdateDefaults(el);
 
             % Calibrate eye tracker
-            [~, exitFlag] = rd_eyeLink('calibrate', window, el);
+            [cal, exitFlag] = rd_eyeLink('calibrate', window, el);
             if exitFlag
                 return
             end
@@ -771,6 +771,10 @@ switch p.task % task and demo
         reqlatencyclass = 2; % Level 2 means: Take full control over the audio device, even if this causes other sound applications to fail or shutdown.
         pahandle = PsychPortAudio('Open', [], [], reqlatencyclass, p.Fs, 1); % 1 = single-channel
 
+        if p.eyeTracking
+            rd_eyeLink('startrecording',window,{el, fixRect});
+        end
+
         %% Show instruction screen and wait for a button press
         instructions = 'This is the main version of the experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
@@ -785,9 +789,7 @@ switch p.task % task and demo
         Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack);
         WaitSecs(1);
         KbWait(devNum);
-%         if p.eyeTracking
-%             rd_eyeLink('startrecording',window,{el, fixRect});
-%         end
+        
         timeStart = GetSecs;
         correct = [];
         block=1;
@@ -798,15 +800,19 @@ switch p.task % task and demo
 
         disp('reached')
         firstNonWaffle=0; % tracking the first trial that is a non-waffle trial
+        
+        
+        
+       
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
-
-            %% Initialize for eye tracking trial breaks
-             if iTrial>1
-                 eyeSkip(iTrial-1) = stopThisTrial; % this is for the previous trial
-             end
-             stopThisTrial = 0;
-            
+            stopThisTrial=0;
+            % %% Initialize for eye tracking trial breaks
+            %  if iTrial>1
+            %      eyeSkip(iTrial-1) = stopThisTrial; % this is for the previous trial
+            %  end
+            %  stopThisTrial = 0;
+            % 
             %% Get condition information for this trial
 
             if trialIdx<=size(trials1,1)
@@ -1230,6 +1236,7 @@ switch p.task % task and demo
             d.timeS(iTrial)=timeS; % time for standard
             d.timeBlank1(iTrial)=timeBlank1; % time after standard
             d.timeTone(iTrial)=timeTone; % time at tone
+            d.stopThisTrial(iTrial) = stopThisTrial;
 
             if plaidStatus==1
                 d.timeT(iTrial)=timeT;
