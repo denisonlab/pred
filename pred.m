@@ -200,13 +200,14 @@ imRectR = CenterRectOnPoint([0 0 imSize], cx+imPos(1)+2*p.plaidEcc*p.ppd, cy+imP
 %% Define fixation box for eyetracker
 fixBoxWidth=5*pixelsPerDegree; %width of fixation box in deg
 fixRect = [cx-.5*fixBoxWidth, cy-.5*fixBoxWidth, cx+.5*fixBoxWidth, cy+.5*fixBoxWidth];
-rad = round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central')); % radius of allowable eye movement in pixels
+%rad = 70; 
+rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central')); % radius of allowable eye movement in pixels
 %rad=50;
 %% RUN expt
 %HideCursor(window,-1);
 
 
-switch p.task % task and demo
+  switch p.task % task and demo
     case 1 % DEMO
 
         %% Sound
@@ -1021,14 +1022,14 @@ switch p.task % task and demo
                 end
     
                 if p.eyeTracking
-                    while GetSecs < timeTone + p.standSOA - p.eyeSlack && ~stopThisTrial
+                    while GetSecs < timeTone + p.signalStart - p.eyeSlack && ~stopThisTrial
                         WaitSecs(.01);
                         fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
                         fixations = [fixations fixation];
     
                         if fixation==0
                             stopThisTrial = 1;
-                            WaitSecs(1);G
+                            WaitSecs(1);
                         
                             % redo this trial at the end of the experiment
                             % this can be easily done by appending the trial number to the end of
@@ -1042,7 +1043,7 @@ switch p.task % task and demo
                             iTrial = iTrial + 1;
     
                             Screen('FillRect', window, white*p.backgroundColor);
-                            drawFixation(window, cx, cy, fixSize, p.fixColor*[0 0 0]*white);
+                            drawFixation(window, cx, cy, fixSize,[1 0 0]*p.fixColor*white);
                             Screen('Flip', window);
                             WaitSecs(1);
                         else 
@@ -1130,6 +1131,7 @@ switch p.task % task and demo
                             iTrial = iTrial + 1;
     
                             Screen('FillRect', window, white*p.backgroundColor);
+                            drawFixation(window, cx, cy, fixSize,[1 0 0]*p.fixColor*white);
                             Screen('Flip', window);
                             WaitSecs(1);
                         else 

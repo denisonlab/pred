@@ -63,8 +63,8 @@ p.deviceName = 'Scarlett';
 %% Timing
 p.fixSOA=0.5; %precue fixation time 
 p.standSOA = 0.1; % standard to tone
-%p.toneSOA = 0.55; % tone to standard 550
-p.toneSOA = 2; % tone to standard 550
+p.toneSOA = 0.55; % tone to standard 550
+%p.toneSOA = 2; % tone to standard 550
 p.imDur = 0.5; % image duration 0.03
 %p.imDur = 2; % image duration 0.03
 p.signalStart=1;

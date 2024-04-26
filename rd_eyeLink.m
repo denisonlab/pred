@@ -329,9 +329,9 @@ trialNum= in{2};
         cy = in{3};
 
         devNum = -1; 
-        DrawFormattedText(window, 'Fixation lost. Please get the experimenter to recalibrate', 'center', 'center', [1 1 1]);
-        Screen('Flip', window)
-        KbWait(devNum)
+        % DrawFormattedText(window, 'Fixation lost. Please get the experimenter to recalibrate', 'center', 'center', [1 1 1]);
+        % Screen('Flip', window)
+        % KbWait(devNum)
 
         Eyelink('Message', 'DRIFT_CORRECTION');
         driftCorrection = EyelinkDoDriftCorrect(el, cx, cy, 1, 1);
