@@ -110,8 +110,15 @@ switch command
         out = cal;
 
     case 'startrecording'
-        el = in;
-
+        el = in{1};
+        fixRect=in{2};
+         % Must be offline to draw to EyeLink screen
+        Eyelink('Command', 'set_idle_mode');
+        % clear tracker display and draw box at fix point
+        Eyelink('Command', 'clear_screen 0')
+%             Eyelink('command', 'draw_box %d %d %d %d 15', width/2-50, height/2-50, width/2+50, height/2+50);
+        Eyelink('command', 'draw_box %d %d %d %d 15',round(fixRect(1)), round(fixRect(2)), round(fixRect(3)), round(fixRect(4)));
+        Eyelink('Command', 'set_idle_mode');
         record = 0;
         while ~record
             Eyelink('StartRecording');	% start recording
@@ -121,7 +128,6 @@ switch command
             while key~=0
                 key = EyelinkGetKey(el); % dump any pending local keys
             end
-
             err=Eyelink('CheckRecording'); 	% check recording status
             if err==0
                 record = 1;
