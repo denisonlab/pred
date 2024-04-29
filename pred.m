@@ -27,7 +27,7 @@ p.sessionNum = input('Enter session number (1,2...) ');
 p.task = input(['Prediction task run:\n' ...
     '1 - Demo\n'...
     '2 - Task version Kok + Waffles\n']);
-p.counter=input('Choose 1 or 2 for participant'); %counterbalance 
+p.counter=input('Choose 1 or 2 for participant \n'); %counterbalance 
 p.eyeTracking=input('Eyetracking (0/1)? ');
 
 %% Setup
@@ -266,34 +266,34 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
         instructions = 'This is a demo of the main experiment\n\n';
         %% Show instruction screen and wait for a button press
         Screen('FillRect', window, white*p.backgroundColor);
-        instructions1 = sprintf('%s\n\nThere will be a tone followed by 2 gratings.\n\n You will have to report the tilt of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
+        instructions1 = sprintf('%s\n\nThere will be a tone that signals the start of the trial followed by either 2 gratings or one plaid.\n\n For the gratings, you will have to report the tilt of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
 
         KbWait(devNum);
 
-        instructions2 ='\n\n At random, a plaid patch will appear instead. \n\n For those trials you must report which of the two orientations in the plaid is stronger in contrast. \n\n For -45 degrees (press 9).  \n\n For +45 degrees (press 0)! \n\n  Press to continue!';
+        instructions2 ='\n\n For the plaid trials, you must report which of the two orientations in the plaid is stronger in contrast. \n\n For -45 degrees (press 9).  \n\n For +45 degrees (press 0)! \n\n  Press to continue!';
         DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         timeInstruct2=Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
         WaitSecs(1);
         KbWait(devNum);
-
+        
 
         instructionsGrating='This is an example of a grating.\n\n Press to continue!';
-        DrawFormattedText(window, instructionsGrating, 'center', 'center', [1 1 1]*white);
+        DrawFormattedText(window, instructionsGrating, 'center', cy-imRect(1)/2, [1 1 1]*white);
         Screen('DrawTexture', window, tex{2,1}, [], imRect, 45);
         timeGrating = Screen('Flip', window, timeInstruct2 - slack);
         WaitSecs(1);
-        KbWait(devNum);
+        KbWait(devNum); 
 
         instructionsPlaid='This is an example of a plaid patch.\n\n Press to continue!';
-        DrawFormattedText(window, instructionsPlaid, 'center', 'center', [1 1 1]*white);
+        DrawFormattedText(window, instructionsPlaid, 'center', cy-imRect(1)/2, [1 1 1]*white);
         Screen('DrawTexture', window, tex_plaid{3,2}, [], imRect, 45);
         timePlaid = Screen('Flip', window, timeGrating - slack);
         WaitSecs(1);
         KbWait(devNum);
        
-        instructionsStartDemo ='Press to start demo trials!';
+        instructionsStartDemo ='After each block, you will be able to see your mean tilt score from 1 to 20. \n\n Your goal is to keep this score as low as possible. \n\n Press to start demo trials!';
         DrawFormattedText(window, instructionsStartDemo, 'center', 'center', [1 1 1]*white);
         Screen('Flip', window,timePlaid-slack); %command to change what's on the screen. we're drawing on a behind (hidden) window, and at the moment we screenflip, we flip that window to the front position'
         WaitSecs(1);
@@ -395,7 +395,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
             elseif trialIdx>size(trials1,1) 
                 plaidStatus=2; % if the trial id is a value > the number of grating trials, this trial will be a waffle trial
-                precueValidity = p.p.precueValiditiesWaffle(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
+                precueValidity = p.precueValiditiesWaffle(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
                 plaidOrientation = trials2(trialIdx-size(trials1,1), plaidOrientationIdx);
                 plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
                 plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);
@@ -572,7 +572,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
             elseif plaidStatus==1 && strcmp('9(',targetResponseKeyName)  % response CCW
                 if (differenceMultiplier==-1 && staticGrating==1) ||(differenceMultiplier==1 && staticGrating==2)%stimuli CCW
                     correct = 1; % stimuli = response
-                elseif (differenceMultiplier==1 && staticGrating==1) ||(differenceMultiplier==-1 && staticGrating==2)  9 %stimuli CW
+                elseif (differenceMultiplier==1 && staticGrating==1) ||(differenceMultiplier==-1 && staticGrating==2)  %stimuli CW
                     correct = 0; % stimuli != response
                 end
             elseif plaidStatus==2
@@ -658,12 +658,19 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 nan_correctnessIdx= isnan(current);
                 non_nan_correctness=current(~nan_correctnessIdx);
                 blockCorrectness = mean(non_nan_correctness);
+                tiltID=d.stairIdx(blockStartTrial:iTrial);
+                nan_tiltID=isnan(tiltID);
+                non_nan_tiltID=tiltID(~nan_tiltID);
+                blockTilt=mean(non_nan_tiltID);
 
                 fprintf('Block %d of %d complete.\n-----\n', block, nBlocks);
                 fprintf('Percent Correct: %.2f (block)', ...
                     100*blockCorrectness);
+                fprintf('Mean tilt in block: %d.\n-----\n', blockTilt);
+
 
                 accMessage = sprintf('Percent Correct: %d%', round(blockCorrectness*100));
+                tiltMessage= sprintf('Mean Tilt in Block: %d%', round(blockTilt));
                 blockMessage = sprintf('%d of %d blocks completed. Great Job! Keep Going!', block, nBlocks);
                 if iTrial==nTrials
                     keyMessage = 'All done! Thank you for participating!';
@@ -671,7 +678,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                     keyMessage = 'Press any key to go on.';
                 end
 
-                breakMessage = sprintf('%s\n%s\n\n%s', blockMessage, accMessage, keyMessage);
+                breakMessage = sprintf('%s\n%s\n\n%s\n\n%s', blockMessage, accMessage, tiltMessage, keyMessage);
                 DrawFormattedText(window, breakMessage, 'center', 'center', [1 1 1]*white);
                 %         DrawFormattedText(window, cueText, 'center', cy-3*textOffset, white);
                 Screen('Flip', window);
@@ -779,14 +786,14 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
         %% Show instruction screen and wait for a button press
         instructions = 'This is the main version of the experiment\n\n';
         Screen('FillRect', window, white*p.backgroundColor);
-        instructions1 = sprintf('%s\n\nThere will be a tone followed by 2 gratings.\n\n You will have to report the tilt of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
+        instructions1 = sprintf('%s\n\nThere will be a tone that signals the start of the trial followed by either 2 gratings or one plaid.\n\n For the gratings, you will have to report the tilt of the second grating relative to the first.\n\n Your goal is to determine whether the grating is: \n\n counterclockwise (press 9)  \n\n or clockwise (press 0)! \n\n Press to continue!', instructions);
         DrawFormattedText(window, instructions1, 'center', 'center', [1 1 1]*white);
         timeInstruct1=Screen('Flip', window,p.demoInstructDur-slack);
 
         KbWait(devNum);
 
-        instructions2 =' \n\n At random, a plaid patch will appear instead. \n\n For those trials you must report which of the two orientations in the plaid is stronger in contrast. \n\n For -45 degrees (press 9).  \n\n For +45 degrees (press 0)! \n\n  Press to start!';
-        DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
+        instructions2 ='\n\n For the plaid trials, you must report which of the two orientations in the plaid is stronger in contrast. \n\n For -45 degrees (press 9).  \n\n For +45 degrees (press 0)! \n\n  Press to continue!';
+        DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white); DrawFormattedText(window, instructions2, 'center', 'center', [1 1 1]*white);
         Screen('Flip', window,timeInstruct1+p.demoInstructDur-slack);
         WaitSecs(1);
         KbWait(devNum);
@@ -1022,14 +1029,18 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 end
     
                 if p.eyeTracking
-                    while GetSecs < timeTone + p.signalStart - p.eyeSlack && ~stopThisTrial
+                    while GetSecs < timeTone + p.toneSOA - p.eyeSlack && ~stopThisTrial
                         WaitSecs(.01);
                         fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
                         fixations = [fixations fixation];
     
-                        if fixation==0
+                          if fixation==0
                             stopThisTrial = 1;
                             WaitSecs(1);
+
+                            if iTrial==1
+                                firstNonWaffle=0;
+                            end
                         
                             % redo this trial at the end of the experiment
                             % this can be easily done by appending the trial number to the end of
@@ -1043,8 +1054,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             iTrial = iTrial + 1;
     
                             Screen('FillRect', window, white*p.backgroundColor);
-                            drawFixation(window, cx, cy, fixSize,[1 0 0]*p.fixColor*white);
-                            Screen('Flip', window);
+                            drawFixation(window, cx, cy, fixSize,p.fixColor*p.dimFactor*white);
+                            instructionsSkip = 'Fixation lost!';
+                            DrawFormattedText(window, instructionsSkip, 'center', cy-imRect(1)/2, [1 1 1]*white);
+                            Screen('Flip', window,p.demoInstructDur-slack);
                             WaitSecs(1);
                         else 
                             stopThisTrial = 0;
@@ -1061,10 +1074,100 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
                 
+                if p.eyeTracking
+                    Eyelink('Message', 'EVENT_CUE');
+                end
+    
+                if p.eyeTracking
+                    while GetSecs < timeS + p.imDur - p.eyeSlack && ~stopThisTrial
+                        WaitSecs(.01);
+                        fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
+                        fixations = [fixations fixation];
+    
+                          if fixation==0
+                            stopThisTrial = 1;
+                            WaitSecs(1);
+
+                            if iTrial==1
+                                firstNonWaffle=0;
+                            end
+                        
+                            % redo this trial at the end of the experiment
+                            % this can be easily done by appending the trial number to the end of
+                            % trialOrder
+                            trialOrder(end+1) = trialOrder(iTrial);
+                            d.stopThisTrial(iTrial) = stopThisTrial;
+                            skippedTrials(end+1) = trialOrder(iTrial);
+                            d.timeTargetResponse(iTrial) = NaN;
+                            d.correct(iTrial) = NaN;
+                            nTrials = nTrials + 1;
+                            iTrial = iTrial + 1;
+    
+                            Screen('FillRect', window, white*p.backgroundColor);
+                            drawFixation(window, cx, cy, fixSize,p.fixColor*p.dimFactor*white);
+                            instructionsSkip = 'Fixation lost!';
+                            DrawFormattedText(window, instructionsSkip, 'center', cy-imRect(1)/2, [1 1 1]*white);
+                            Screen('Flip', window,p.demoInstructDur-slack);
+                            WaitSecs(1);
+                        else 
+                            stopThisTrial = 0;
+                        end
+                    end
+
+                    if stopThisTrial
+                        continue
+                    end
+                end
+
                 %% Fixation
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
                 
+                if p.eyeTracking
+                    Eyelink('Message', 'EVENT_CUE');
+                end
+    
+                if p.eyeTracking
+                    while GetSecs < timeBlank1 + p.standSOA - p.eyeSlack && ~stopThisTrial
+                        WaitSecs(.01);
+                        fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
+                        fixations = [fixations fixation];
+    
+                          if fixation==0
+                            stopThisTrial = 1;
+                            WaitSecs(1);
+                        
+                            if iTrial==1
+                                firstNonWaffle=0;
+                            end
+
+                            % redo this trial at the end of the experiment
+                            % this can be easily done by appending the trial number to the end of
+                            % trialOrder
+                            trialOrder(end+1) = trialOrder(iTrial);
+                            d.stopThisTrial(iTrial) = stopThisTrial;
+                            skippedTrials(end+1) = trialOrder(iTrial);
+                            d.timeTargetResponse(iTrial) = NaN;
+                            d.correct(iTrial) = NaN;
+                            nTrials = nTrials + 1;
+                            iTrial = iTrial + 1;
+    
+                            Screen('FillRect', window, white*p.backgroundColor);
+                            drawFixation(window, cx, cy, fixSize,p.fixColor*p.dimFactor*white);
+                            instructionsSkip = 'Fixation lost!';
+                            DrawFormattedText(window, instructionsSkip, 'center', cy-imRect(1)/2, [1 1 1]*white);
+                            Screen('Flip', window,p.demoInstructDur-slack);
+                            WaitSecs(1);
+                        else 
+                            stopThisTrial = 0;
+                        end
+                    end
+
+                    if stopThisTrial
+                        continue
+                    end
+                end
+
                 
                 %% Present TEST
                 Screen('DrawTexture', window, tex{gratingPhase,gratingSPF}, [], imRect, gOrientation);
@@ -1072,6 +1175,51 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 
                 timeT = Screen('Flip', window, timeBlank1 + p.standSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
     
+                 if p.eyeTracking
+                    Eyelink('Message', 'EVENT_CUE');
+                end
+    
+                if p.eyeTracking
+                    while GetSecs < timeT + p.imDur- p.eyeSlack && ~stopThisTrial
+                        WaitSecs(.01);
+                        fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
+                        fixations = [fixations fixation];
+    
+                          if fixation==0
+                            stopThisTrial = 1;
+                            WaitSecs(1);
+                        
+                            if iTrial==1
+                                firstNonWaffle=0;
+                            end
+
+                            % redo this trial at the end of the experiment
+                            % this can be easily done by appending the trial number to the end of
+                            % trialOrder
+                            trialOrder(end+1) = trialOrder(iTrial);
+                            d.stopThisTrial(iTrial) = stopThisTrial;
+                            skippedTrials(end+1) = trialOrder(iTrial);
+                            d.timeTargetResponse(iTrial) = NaN;
+                            d.correct(iTrial) = NaN;
+                            nTrials = nTrials + 1;
+                            iTrial = iTrial + 1;
+    
+                            Screen('FillRect', window, white*p.backgroundColor);
+                            drawFixation(window, cx, cy, fixSize,p.fixColor*p.dimFactor*white);
+                            instructionsSkip = 'Fixation lost!';
+                            DrawFormattedText(window, instructionsSkip, 'center', cy-imRect(1)/2, [1 1 1]*white);
+                            Screen('Flip', window,p.demoInstructDur-slack);
+                            WaitSecs(1);
+                        else 
+                            stopThisTrial = 0;
+                        end
+                    end
+
+                    if stopThisTrial
+                        continue
+                    end
+                end
+
                 %% Fixation
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 timeBlank2 = Screen('Flip', window, timeT + p.imDur - slack); %timeS + how long i want stimulus to be presented for
@@ -1110,7 +1258,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 end
     
                 if p.eyeTracking
-                    while GetSecs < timeTone + p.standSOA - p.eyeSlack && ~stopThisTrial
+                    while GetSecs < timeTone + p.toneSOA - p.eyeSlack && ~stopThisTrial
                         WaitSecs(.01);
                         fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
                         fixations = [fixations fixation];
@@ -1119,6 +1267,9 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             stopThisTrial = 1;
                             WaitSecs(1);
                         
+                            if iTrial==1
+                                firstNonWaffle=0;
+                            end
                             % redo this trial at the end of the experiment
                             % this can be easily done by appending the trial number to the end of
                             % trialOrder
@@ -1131,8 +1282,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             iTrial = iTrial + 1;
     
                             Screen('FillRect', window, white*p.backgroundColor);
-                            drawFixation(window, cx, cy, fixSize,[1 0 0]*p.fixColor*white);
-                            Screen('Flip', window);
+                            drawFixation(window, cx, cy, fixSize,p.fixColor*p.dimFactor*white);
+                            instructionsSkip = 'Fixation lost!';
+                            DrawFormattedText(window, instructionsSkip, 'center', cy-imRect(1)/2, [1 1 1]*white);
+                            Screen('Flip', window,p.demoInstructDur-slack);
                             WaitSecs(1);
                         else 
                             stopThisTrial = 0;
@@ -1148,7 +1301,52 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
                 
                 timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
+                
+                if p.eyeTracking
+                    Eyelink('Message', 'EVENT_CUE');
+                end
     
+                if p.eyeTracking
+                    while GetSecs < timeS + p.imDur- p.eyeSlack && ~stopThisTrial
+                        WaitSecs(.01);
+                        fixation = rd_eyeLink('fixcheck', window, {cx, cy, rad});
+                        fixations = [fixations fixation];
+    
+                        if fixation==0
+                            stopThisTrial = 1;
+                            WaitSecs(1);
+
+                            if iTrial==1
+                                firstNonWaffle=0;
+                            end
+                        
+                            % redo this trial at the end of the experiment
+                            % this can be easily done by appending the trial number to the end of
+                            % trialOrder
+                            trialOrder(end+1) = trialOrder(iTrial);
+                            d.stopThisTrial(iTrial) = stopThisTrial;
+                            skippedTrials(end+1) = trialOrder(iTrial);
+                            d.timeTargetResponse(iTrial) = NaN;
+                            d.correct(iTrial) = NaN;
+                            nTrials = nTrials + 1;
+                            iTrial = iTrial + 1;
+    
+                            Screen('FillRect', window, white*p.backgroundColor);
+                            drawFixation(window, cx, cy, fixSize,p.fixColor*p.dimFactor*white);
+                            instructionsSkip = 'Fixation lost!';
+                            DrawFormattedText(window, instructionsSkip, 'center', cy-imRect(1)/2, [1 1 1]*white);
+                            Screen('Flip', window,p.demoInstructDur-slack);
+                            WaitSecs(1);
+                        else 
+                            stopThisTrial = 0;
+                        end
+                    end
+    
+                    if stopThisTrial
+                        continue
+                    end
+                end
+
                 % blank
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
