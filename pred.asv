@@ -727,7 +727,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
        
         trials2 = fullfact([ numel(p.precueValiditiesWaffle)... % 1 precue validity
              numel(p.plaidOrientations),... % 2 plaid ori
-             numel(p.testPhases),... % 3 plaid phase 
+             numel(p.testPhases),... % 3 plaid phase 99090009990000909090900000009
              numel(p.plaidContrasts1)]); % 4 plaid contrast
         %% Merge trial count
         nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
