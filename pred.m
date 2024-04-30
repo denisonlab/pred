@@ -551,6 +551,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 end
                 targetResponseKey = find(ismember(validKeys,find(keyCode)));
                 targetResponseKeyName = KbName(validKeys(targetResponseKey));
+                 if iscell(targetResponseKeyName)
+                    targetResponseKey = []; 
+                    targetResponseKeyName = []; 
+                end
                 correct = NaN;
             end
             if isempty(targetResponseKey)
