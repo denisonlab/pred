@@ -1357,8 +1357,8 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
             %% Wait for response
             % check only valid response keys
-            targetResponseKey = [];
-            while isempty(targetResponseKey)
+            targetResponseKey = []; targetResponseKeyName = []; 
+            while isempty(targetResponseKey) 
                 [timeTargetResponse, keyCode] = KbWait(devNum);
                 if plaidStatus==2
                     targetRT = timeTargetResponse - timeS;
@@ -1367,6 +1367,11 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 end
                 targetResponseKey = find(ismember(validKeys,find(keyCode)));
                 targetResponseKeyName = KbName(validKeys(targetResponseKey));
+
+                if iscell(targetResponseKeyName)
+                    targetResponseKey = []; 
+                    targetResponseKeyName = []; 
+                end
                 correct = NaN;
             end
             if isempty(targetResponseKey)
@@ -1388,7 +1393,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
             %% Percent correct for orientation
 
-            if plaidStatus==1 && strcmp('0)',targetResponseKeyName) % response CW
+           if plaidStatus==1 && strcmp('0)',targetResponseKeyName) % response CW
                 if (differenceMultiplier==-1 && staticGrating==1)||(differenceMultiplier==1 && staticGrating==2) % stimuli CCW
                     correct = 0;  % stimuli != response
                 elseif (differenceMultiplier==1 && staticGrating==1) ||(differenceMultiplier==-1 && staticGrating==2) % stimuli CW
