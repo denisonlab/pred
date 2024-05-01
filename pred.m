@@ -910,7 +910,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
             elseif trialIdx>size(trials1,1) 
                 plaidStatus=2; % if the trial id is a value > the number of grating trials, this trial will be a waffle trial
-                precueValidity = p.precueValidities(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
+                precueValidity = p.precueValiditiesWaffle(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
                 plaidOrientation = trials2(trialIdx-size(trials1,1), plaidOrientationIdx);
                 plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
                 plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);

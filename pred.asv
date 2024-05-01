@@ -79,7 +79,7 @@ if p.eyeTracking==1
         mkdir(data.eyeDataDir)
     end
     % Check to see if this eye file already exists
-    if exist(sprintf('%s/%s.edf',eyeDataDir, eyeFile),'file')
+    if exist(sprintf('%s/%s_s%d_eye.edf',data.eyeDataDir,p.subjectID,p.sessionNum),'file')
         error('This subject/session already has saved eye data');
     end
 end
@@ -551,6 +551,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 end
                 targetResponseKey = find(ismember(validKeys,find(keyCode)));
                 targetResponseKeyName = KbName(validKeys(targetResponseKey));
+                 if iscell(targetResponseKeyName)
+                    targetResponseKey = []; 
+                    targetResponseKeyName = []; 
+                end
                 correct = NaN;
             end
             if isempty(targetResponseKey)
@@ -906,7 +910,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
             elseif trialIdx>size(trials1,1) 
                 plaidStatus=2; % if the trial id is a value > the number of grating trials, this trial will be a waffle trial
-                precueValidity = p.precueValidities(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
+                precueValidity = p.precueValiditiesWaffle(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
                 plaidOrientation = trials2(trialIdx-size(trials1,1), plaidOrientationIdx);
                 plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
                 plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);
@@ -1357,8 +1361,8 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
             %% Wait for response
             % check only valid response keys
-            targetResponseKey = [];
-            while isempty(targetResponseKey) && targetR
+            targetResponseKey = []; targetResponseKeyName = []; 
+            while isempty(targetResponseKey) 
                 [timeTargetResponse, keyCode] = KbWait(devNum);
                 if plaidStatus==2
                     targetRT = timeTargetResponse - timeS;
@@ -1367,6 +1371,11 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 end
                 targetResponseKey = find(ismember(validKeys,find(keyCode)));
                 targetResponseKeyName = KbName(validKeys(targetResponseKey));
+
+                if iscell(targetResponseKeyName)
+                    targetResponseKey = []; 
+                    targetResponseKeyName = []; 
+                end
                 correct = NaN;
             end
             if isempty(targetResponseKey)
