@@ -4,16 +4,16 @@ clear;
 close all;
 
 dataDir = sprintf('%s/data', pwd);
-subjectID="S0120pilot";
+subjectID="stair_test_last";
 choice = 1; % a single session (1) or many (2)
 sessionNum=1;
-responseKeyIds=[3 4];
+responseKeyIds=[1 2];
 
 % Load data based on user choice
 if choice == 1
     % Get session number for single file
     datafileDir=sprintf('%s/%s/session_%d/',dataDir,subjectID,sessionNum);
-    date="240422_1909";
+    date="240501_1850";
     datafile = sprintf('%s/%s_s%d_predv2_s%s.mat', datafileDir, subjectID, sessionNum,date);
     file = load(datafile);
 else
@@ -428,7 +428,7 @@ xlabel("difference value (with respect to +45)")
 ylabel("p (reported +45 with respect to difference)");
 title("p  (reported +45 with respect to difference) for expected vs unexpected ",subjectID);
 legend("expected 45","unexpected 45");
-saveas(figure(f),[plotdir_sub,'/preported45_difference_split.jpg']);ck 
+saveas(figure(f),[plotdir_sub,'/preported45_difference_split.jpg']); 
 
 
 %% 
