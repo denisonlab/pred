@@ -837,9 +837,8 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 gratingPhase=standardPhase; % the index of the phase of the test is the same as the index of the standard
                 standardSPF= trials1(trialIdx, standardSPFIdx); % get index of standard SPF
                 gratingSPF=trials1(trialIdx, gratingSPFIdx); % get index of test SPF
-        
-                % separate staircasing for expected and unexpected
-                if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial
+                
+                if firstNonWaffle==0
                     if precueValidity==1 %if expected first non-waffle, stair exp is hightest
                         stairIdxExp=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
                         lastFewAccExp=[]; % no previous grating trials have occured so this is empty
@@ -847,51 +846,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                         stairIdxUn=length(p.stairs);
                         lastFewAccUnexp=[];  % no previous grating trials have occured so this is empty
                     end
-                    firstNonWaffle=1; % firstNonWaffle becomes 1 because this is officially the first grating trial
-                
-                elseif firstNonWaffle==1 % if this variable is 1, this trial is not the first grating trial
-                    corrects=d.correct; %get all corrects
-                    skipRowsCorrect=isnan(corrects); %find the NaN values
-                    corrects(skipRowsCorrect)=[];% delete the NaN values associated with the waffle trials
-
-%                     if isnan(correct)
-%                         correct=corrects(end);
-%                     end
-                    
-                    if precueValidity==1
-                        expTrials=d.precueValidity==1;
-                        expTrials(skipRowsCorrect)=[];
-                        if (expTrials==0)
-                            stairIdxExp=length(p.stairs);
-                            lastFewAccExp=[];
-                        else
-                            stairIdxExp_all=d.stairIdxExp;
-                            skipUnexp=isnan(stairIdxExp_all);
-                            stairIdxExp_all(skipUnexp)=[];
-                            stairIdxExp_last=stairIdxExp_all(length(stairIdxExp_all));
-                            whichExp=find(expTrials);
-                            corrects_exp= (corrects(whichExp));
-                            [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, lastFewAccExp, corrects_exp(end)); % get new stair index value
-                        end
-                    
-
-                    elseif precueValidity==2
-                        unexpTrials=d.precueValidity==2;
-                        unexpTrials(skipRowsCorrect)=[];
-                        if (unexpTrials==0) 
-                            stairIdxUn=length(p.stairs);
-                            lastFewAccUnexp=[]; 
-                        else
-                            stairIdxUnexp_all=d.stairIdxUn;
-                            skipExp=isnan(stairIdxUnexp_all);
-                            stairIdxUnexp_all(skipExp)=[];
-                            stairIdxUn_last=stairIdxUnexp_all(length(stairIdxUnexp_all));
-                            whichUnex=find(unexpTrials);
-                            corrects_unexp= (corrects(whichUnex));  
-                            [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, lastFewAccUnexp, corrects_unexp(end)); % get new stair index value
-                    
-                        end
-                    end
+ 
                 end
 
                 if staticGrating==1 % standard is +/-45 and test is slightly different
@@ -919,11 +874,11 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
                 plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);
                 pOrientation=p.plaidOrientations(plaidOrientation); %get the orientation value (+/-45) using the plaid orientation index
-                if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial hasn't happened yet
-                    stairIdx=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
-                    stairIdxExp=length(p.stairs);
-                    stairIdxUn=length(p.stairs);
-                end
+                % if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial hasn't happened yet
+                %     stairIdx=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
+                %     stairIdxExp=length(p.stairs);
+                %     stairIdxUn=length(p.stairs);
+                % end
             end
             
             %% tone related to overall orientation
@@ -1421,14 +1376,64 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
             timeEnd=GetSecs();
 
-            %% Keep track of last 3 trials
-            if plaidStatus==1  
+            % %% Keep track of last 3 trials
+            % if plaidStatus==1  
+            %     if precueValidity==1
+            %         lastFewAccExp=[lastFewAccExp correct];
+            %     elseif precueValidity==2
+            %         lastFewAccUnexp=[lastFewAccUnexp correct];
+            %     end
+            % end
+
+            % separate staircasing for expected and unexpected
+            if firstNonWaffle==0  && plaidStatus==1 % if this variable is still 0 it means this is the first trial that is a grating trial
+                  firstNonWaffle=1;
+
+            elseif firstNonWaffle==1 && plaidStatus==1 % if this variable is 1, this trial is not the first grating trial
+                corrects=d.correct; %get all corrects
+                skipRowsCorrect=isnan(corrects); %find the NaN values
+                corrects(skipRowsCorrect)=[];% delete the NaN values associated with the waffle trials
+
+%                     if isnan(correct)
+%                         correct=corrects(end);
+%                     end
+                
                 if precueValidity==1
-                    lastFewAccExp=[lastFewAccExp correct];
+                    expTrials=d.precueValidity==1;
+                    expTrials(skipRowsCorrect)=[];
+                    if (expTrials==0)
+                        stairIdxExp=length(p.stairs);
+                        lastFewAccExp=[];
+                    else
+                        stairIdxExp_all=d.stairIdxExp;
+                        skipUnexp=isnan(stairIdxExp_all);
+                        stairIdxExp_all(skipUnexp)=[];
+                        stairIdxExp_last=stairIdxExp_all(length(stairIdxExp_all));
+                        whichExp=find(expTrials);
+                        corrects_exp= (corrects(whichExp));
+                        [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, lastFewAccExp, corrects_exp(end)); % get new stair index value
+                    end
+                
+
                 elseif precueValidity==2
-                    lastFewAccUnexp=[lastFewAccUnexp correct];
+                    unexpTrials=d.precueValidity==2;
+                    unexpTrials(skipRowsCorrect)=[];
+                    if (unexpTrials==0) 
+                        stairIdxUn=length(p.stairs);
+                        lastFewAccUnexp=[]; 
+                    else
+                        stairIdxUnexp_all=d.stairIdxUn;
+                        skipExp=isnan(stairIdxUnexp_all);
+                        stairIdxUnexp_all(skipExp)=[];
+                        stairIdxUn_last=stairIdxUnexp_all(length(stairIdxUnexp_all));
+                        whichUnex=find(unexpTrials);
+                        corrects_unexp= (corrects(whichUnex));  
+                        [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, lastFewAccUnexp, corrects_unexp(end)); % get new stair index value
+                
+                    end
                 end
             end
+
 
             %% Store trial info
             p.trials1=trials1;
