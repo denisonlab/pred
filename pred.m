@@ -853,6 +853,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                     corrects=d.correct; %get all corrects
                     skipRowsCorrect=isnan(corrects); %find the NaN values
                     corrects(skipRowsCorrect)=[];% delete the NaN values associated with the waffle trials
+
+                    if isnan(correct)
+                        correct=corrects(end);
+                    end
                     
                     if precueValidity==1
                         expTrials=d.precueValidity==1;
@@ -867,7 +871,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             stairIdxExp_last=stairIdxExp_all(length(stairIdxExp_all));
                             whichExp=find(expTrials);
                             corrects_exp= (corrects(whichExp));
-                            [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, corrects_exp, correct); % get new stair index value
+                            [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, lastFewAccExp, correct); % get new stair index value
                         end
                     
 
@@ -884,7 +888,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             stairIdxUn_last=stairIdxUnexp_all(length(stairIdxUnexp_all));
                             whichUnex=find(unexpTrials);
                             corrects_unexp= (corrects(whichUnex));  
-                            [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, corrects_unexp, correct); % get new stair index value
+                            [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, lastFewAccUnexp, correct); % get new stair index value
                     
                         end
                     end
@@ -1376,13 +1380,13 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                     targetResponseKey = []; 
                     targetResponseKeyName = []; 
                 end
-                correct = NaN;
+                %correct = NaN;
             end
             if isempty(targetResponseKey)
                 targetRT = NaN; % timeout
                 targetResponseKey = NaN;
                 targetResponseKeyName = NaN;
-                correct = NaN;
+                %correct = NaN;
             end
             if p.eyeTracking
                 Eyelink('Message', 'TRIAL_END');
