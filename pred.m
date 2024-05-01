@@ -871,7 +871,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             stairIdxExp_last=stairIdxExp_all(length(stairIdxExp_all));
                             whichExp=find(expTrials);
                             corrects_exp= (corrects(whichExp));
-                            [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, lastFewAccExp, correct); % get new stair index value
+                            [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, lastFewAccExp, corrects_exp(end)); % get new stair index value
                         end
                     
 
@@ -888,7 +888,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             stairIdxUn_last=stairIdxUnexp_all(length(stairIdxUnexp_all));
                             whichUnex=find(unexpTrials);
                             corrects_unexp= (corrects(whichUnex));  
-                            [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, lastFewAccUnexp, correct); % get new stair index value
+                            [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, lastFewAccUnexp, corrects_unexp(end)); % get new stair index value
                     
                         end
                     end
