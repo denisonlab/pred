@@ -854,9 +854,9 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                     skipRowsCorrect=isnan(corrects); %find the NaN values
                     corrects(skipRowsCorrect)=[];% delete the NaN values associated with the waffle trials
 
-                    if isnan(correct)
-                        correct=corrects(end);
-                    end
+%                     if isnan(correct)
+%                         correct=corrects(end);
+%                     end
                     
                     if precueValidity==1
                         expTrials=d.precueValidity==1;
