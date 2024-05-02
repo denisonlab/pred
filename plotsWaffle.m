@@ -4,7 +4,7 @@ clear;
 close all;
 
 dataDir = sprintf('%s/data', pwd);
-subjectID="stair_test_last";
+subjectID="newS0130";
 choice = 1; % a single session (1) or many (2)
 sessionNum=1;
 responseKeyIds=[1 2];
@@ -13,7 +13,7 @@ responseKeyIds=[1 2];
 if choice == 1
     % Get session number for single file
     datafileDir=sprintf('%s/%s/session_%d/',dataDir,subjectID,sessionNum);
-    date="240501_1850";
+    date="240502_0931";
     datafile = sprintf('%s/%s_s%d_predv2_s%s.mat', datafileDir, subjectID, sessionNum,date);
     file = load(datafile);
 else
@@ -102,7 +102,9 @@ f=1;
 if choice==1 
     figure();
     stair=file.d.stairIdx;
-    skipNotStair=isnan(file.d.stairIdx);
+    skipEye=(file.d.stairIdx==0);
+    stair(skipEye(1:length(stair)))=[];
+    skipNotStair=isnan(stair);
     stair(skipNotStair)=[];
     trialCount=length(stair);
     x=[1:1:trialCount];
@@ -113,18 +115,22 @@ if choice==1
     f=f+1;
     figure();
     stairExp=file.d.stairIdxExp;
-    skipNotStairExp=isnan(file.d.stairIdxExp);
-    stairExp(skipNotStairExp)=[];
+    skipEyeEx=(file.d.stairIdxExp==0);
+    stairExp(skipEyeEx(1:length(stairExp)))=[];
+    skipNotStairExp=isnan(stairExp);
+    stairExp(skipNotStairExp(1:length(stairExp)))=[];
     trialCount=length(stairExp);
     x=[1:1:trialCount];
     stairUn=file.d.stairIdxUn;
-    skipNotStairUn=isnan(file.d.stairIdxUn);
+    skipEyeUn=(file.d.stairIdxUn==0);
+    stairUn(skipEyeUn(1:length(stairUn)))=[];
+    skipNotStairUn=isnan(stairUn);
     stairUn(skipNotStairUn)=[];
     trialCount2=length(stairUn);
     x2=[1:1:trialCount2];
-    plot(x,stairExp);
+    plot(x,stairExp,'o-');
     hold on
-    plot(x2,stairUn);
+    plot(x2,stairUn,'o-');
     ylabel("stair ID");
     xlabel("trial ID");
     legend("expected","unexpected");
@@ -137,26 +143,29 @@ else
         skipNotStair=isnan(file.d.stairIdx(i*768-768+1:i*768));
         stair(skipNotStair)=[];
         trialCount=length(stair);
-        x=[1:1:trialCount];
-        plot(x,stair);
+        x=1:1:trialCount;
+        plot(x,stair,'-o');
         ylabel("stair ID");
         xlabel("trial ID");
         saveas(figure(f),[plotdir_sub,sprintf('/staircasing_session%d.jpg',i)]);
         f=f+1;
+        
         figure();
         stairExp=file.d.stairIdxExp(i*768-768+1:i*768);
         skipNotStairExp=isnan(file.d.stairIdxExp(i*768-768+1:i*768));
         stairExp(skipNotStairExp)=[];
         trialCount=length(stairExp);
-        x=[1:1:trialCount];
+        x=1:1:trialCount;
         stairUn=file.d.stairIdxUn(i*768-768+1:i*768);
         skipNotStairUn=isnan(file.d.stairIdxUn(i*768-768+1:i*768));
         stairUn(skipNotStairUn)=[];
         trialCount2=length(stairUn);
-        x2=[1:1:trialCount2];
-        plot(x,stairExp);
+        x2=1:1:trialCount2;
+        %plot(x,stairExp,'o-blue','MarkerSize', 8,'LineWidth', 1);
+        plot(x,stairExp,'-*','MarkerIndices',1:10:length(stairExp))
         hold on
-        plot(x2,stairUn);
+        %plot(x2,stairUn,'o-red','MarkerSize', 8,'LineWidth', 1);
+        plot(x2,stairUn,'-*','MarkerIndices',1:10:length(stairUn))
         ylabel("stair ID");
         xlabel("trial ID");
         legend("expected","unexpected");

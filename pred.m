@@ -898,18 +898,34 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
                 if staticGrating==1 % standard is +/-45 and test is slightly different
                     if precueValidity==1
+                        tempStairsEx=d.stairIdxExp;
+                        skippedStairEx=find(d.stairIdxExp==0);
+                        tempStairsEx(skippedStairEx)=[];
+                        stairIdxExp=tempStairsEx(end);
                         sOrientation=p.gratingOrientations(Orientation);
                         gOrientation=sOrientation+p.stairs(stairIdxExp)*differenceMultiplier;
                     elseif precueValidity==2
+                        tempStairsUn=d.stairIdxUn;
+                        skippedStairUn=find(d.stairIdxUn==0);
+                        tempStairsUn(skippedStairUn)=[];
+                        stairIdxUn=tempStairsUn(end);
                         sOrientation=p.gratingOrientations(Orientation);
                         gOrientation=sOrientation+p.stairs(stairIdxUn)*differenceMultiplier;
                     end
                    
                 elseif staticGrating==2 %test is +/-45 and standard is slightly different
                     if precueValidity==1
+                        tempStairsEx=d.stairIdxExp;
+                        skippedStairEx=find(d.stairIdxExp==0);
+                        tempStairsEx(skippedStairEx)=[];
+                        stairIdxExp=tempStairsEx(end);
                         gOrientation=p.gratingOrientations(Orientation);
                         sOrientation=gOrientation+p.stairs(stairIdxExp)*differenceMultiplier;
                     elseif precueValidity==2
+                        tempStairsUn=d.stairIdxUn;
+                        skippedStairUn=find(d.stairIdxUn==0);
+                        tempStairsUn(skippedStairUn)=[];
+                        stairIdxUn=tempStairsUn(end);
                         gOrientation=p.gratingOrientations(Orientation);
                         sOrientation=gOrientation+p.stairs(stairIdxUn)*differenceMultiplier;
                     end
@@ -1014,6 +1030,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             skippedTrials(end+1) = trialOrder(iTrial);
                             d.timeTargetResponse(iTrial) = NaN;
                             d.correct(iTrial) = NaN;
+                            d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                            d.stairIdx(iTrial) = NaN; %store stair index stimuli
+                            d.stairIdxUn(iTrial)=NaN;
+                            d.stair(iTrial)= NaN; %store stair value
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
     
@@ -1064,6 +1084,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             skippedTrials(end+1) = trialOrder(iTrial);
                             d.timeTargetResponse(iTrial) = NaN;
                             d.correct(iTrial) = NaN;
+                            d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                            d.stairIdx(iTrial) = NaN; %store stair index stimuli
+                            d.stairIdxUn(iTrial)=NaN;
+                            d.stair(iTrial)= NaN; %store stair value
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
     
@@ -1113,6 +1137,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             skippedTrials(end+1) = trialOrder(iTrial);
                             d.timeTargetResponse(iTrial) = NaN;
                             d.correct(iTrial) = NaN;
+                            d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                            d.stairIdx(iTrial) = NaN; %store stair index stimuli
+                            d.stairIdxUn(iTrial)=NaN;
+                            d.stair(iTrial)= NaN; %store stair value
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
     
@@ -1165,6 +1193,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             skippedTrials(end+1) = trialOrder(iTrial);
                             d.timeTargetResponse(iTrial) = NaN;
                             d.correct(iTrial) = NaN;
+                            d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                            d.stairIdx(iTrial) = NaN; %store stair index stimuli
+                            d.stairIdxUn(iTrial)=NaN;
+                            d.stair(iTrial)= NaN; %store stair value
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
     
@@ -1242,9 +1274,13 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             skippedTrials(end+1) = trialOrder(iTrial);
                             d.timeTargetResponse(iTrial) = NaN;
                             d.correct(iTrial) = NaN;
+                            d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                            d.stairIdx(iTrial) = NaN; %store stair index stimuli
+                            d.stairIdxUn(iTrial)=NaN;
+                            d.stair(iTrial)= NaN; %store stair value
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
-    
+            
                             Screen('FillRect', window, white*p.backgroundColor);
                             drawFixation(window, cx, cy, fixSize,p.fixColor*p.dimFactor*white);
                             instructionsSkip = 'Fixation lost!';
@@ -1292,6 +1328,11 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             skippedTrials(end+1) = trialOrder(iTrial);
                             d.timeTargetResponse(iTrial) = NaN;
                             d.correct(iTrial) = NaN;
+                            d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                            d.stairIdx(iTrial) = NaN; %store stair index stimuli
+                            d.stairIdxUn(iTrial)=NaN;
+                            d.stair(iTrial)= NaN; %store stair value
+
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
     
