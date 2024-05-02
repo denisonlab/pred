@@ -1399,7 +1399,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 
                 if precueValidity==1
                     expTrials=d.precueValidity==1;
-                    expTrials(skipRowsCorrect)=[];
+                    expTrials(skipRowsCorrect(1:length(expTrials)))=[];
                     if (expTrials==0)
                         stairIdxExp=length(p.stairs);
                         lastFewAccExp=[];
@@ -1416,7 +1416,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
                 elseif precueValidity==2
                     unexpTrials=d.precueValidity==2;
-                    unexpTrials(skipRowsCorrect)=[];
+                    unexpTrials(skipRowsCorrect(1:length(unexpTrials)))=[];
                     if (unexpTrials==0) 
                         stairIdxUn=length(p.stairs);
                         lastFewAccUnexp=[]; 
