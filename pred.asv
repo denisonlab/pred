@@ -838,15 +838,11 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 standardSPF= trials1(trialIdx, standardSPFIdx); % get index of standard SPF
                 gratingSPF=trials1(trialIdx, gratingSPFIdx); % get index of test SPF
                 
-                if firstNonWaffle==0
-                    if precueValidity==1 %if expected first non-waffle, stair exp is hightest
+                if firstNonWaffle==0 
                         stairIdxExp=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
                         lastFewAccExp=[]; % no previous grating trials have occured so this is empty
-                    elseif precueValidity==2 %if unexpected first non-waffle, stair unexp is highest
                         stairIdxUn=length(p.stairs);
                         lastFewAccUnexp=[];  % no previous grating trials have occured so this is empty
-                    end
- 
                 end
 
                 if staticGrating==1 % standard is +/-45 and test is slightly different
@@ -859,12 +855,13 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                     gOrientation=sOrientation+p.stairs(stairIdx)*differenceMultiplier;
                 elseif staticGrating==2 %test is +/-45 and standard is slightly different
                     if precueValidity==1
-                        stairIdx=stairIdxExp;
+  
+                        gOrientation=p.gratingOrientations(Orientation);
+                        sOrientation=gOrientation+p.stairs(stairIdxExp)*differenceMultiplier;
                     elseif precueValidity==2
                         stairIdx=stairIdxUn;
                     end
-                    gOrientation=p.gratingOrientations(Orientation);
-                    sOrientation=gOrientation+p.stairs(stairIdx)*differenceMultiplier;
+                   
                 end
 
             elseif trialIdx>size(trials1,1) 

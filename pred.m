@@ -847,20 +847,22 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
                 if staticGrating==1 % standard is +/-45 and test is slightly different
                     if precueValidity==1
-                        stairIdx=stairIdxExp;
+                        sOrientation=p.gratingOrientations(Orientation);
+                        gOrientation=sOrientation+p.stairs(stairIdxExp)*differenceMultiplier;
                     elseif precueValidity==2
-                        stairIdx=stairIdxUn;
+                        sOrientation=p.gratingOrientations(Orientation);
+                        gOrientation=sOrientation+p.stairs(stairIdxUn)*differenceMultiplier;
                     end
-                    sOrientation=p.gratingOrientations(Orientation);
-                    gOrientation=sOrientation+p.stairs(stairIdx)*differenceMultiplier;
+                   
                 elseif staticGrating==2 %test is +/-45 and standard is slightly different
                     if precueValidity==1
-                        stairIdx=stairIdxExp;
+                        gOrientation=p.gratingOrientations(Orientation);
+                        sOrientation=gOrientation+p.stairs(stairIdxExp)*differenceMultiplier;
                     elseif precueValidity==2
-                        stairIdx=stairIdxUn;
+                        gOrientation=p.gratingOrientations(Orientation);
+                        sOrientation=gOrientation+p.stairs(stairIdxUn)*differenceMultiplier;
                     end
-                    gOrientation=p.gratingOrientations(Orientation);
-                    sOrientation=gOrientation+p.stairs(stairIdx)*differenceMultiplier;
+                   
                 end
 
             elseif trialIdx>size(trials1,1) 
@@ -1382,16 +1384,21 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
             %% Store trial information
              if plaidStatus==1 % if this is a grating trial
-                d.stairIdx(iTrial) = stairIdx; %store stair index stimuli
+                
                 if precueValidity==1
                     d.stairIdxExp(iTrial) = stairIdxExp; %store stair index stimuli expected
+                    d.stairIdx(iTrial) = stairIdxExp; %store stair index stimuli
                     d.stairIdxUn(iTrial)=NaN;
+                    d.stair(iTrial)= p.stairs(stairIdxExp); %store stair value
+
                 elseif precueValidity==2
                     d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
                     d.stairIdxUn(iTrial)=stairIdxUn;
+                    d.stairIdx(iTrial) = stairIdxUn; %store stair index stimuli
+                    d.stair(iTrial)= p.stairs(stairIdxUn); %store stair value
+
                 end
 
-                d.stair(iTrial)= p.stairs(stairIdx); %store stair value
                 d.differenceMultiplier(iTrial)=differenceMultiplier; %store difference multiplier
                 d.staticGrating(iTrial)=staticGrating; %store the static grating index
                 d.gratingContrast(iTrial) = p.gratingContrast2; %store contrast of test stimuli
