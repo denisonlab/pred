@@ -321,74 +321,31 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 standardSPF= trials1(trialIdx, standardSPFIdx); % get index of standard SPF
                 gratingSPF=trials1(trialIdx, gratingSPFIdx); % get index of test SPF
         
-                % separate staircasing for expected and unexpected
-                if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial
-                    if precueValidity==1 %if expected first non-waffle, stair exp is hightest
+               if firstNonWaffle==0 
                         stairIdxExp=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
                         lastFewAccExp=[]; % no previous grating trials have occured so this is empty
-                    elseif precueValidity==2 %if unexpected first non-waffle, stair unexp is highest
                         stairIdxUn=length(p.stairs);
                         lastFewAccUnexp=[];  % no previous grating trials have occured so this is empty
-                    end
-                    firstNonWaffle=1; % firstNonWaffle becomes 1 because this is officially the first grating trial
-                
-                elseif firstNonWaffle==1 % if this variable is 1, this trial is not the first grating trial
-                    corrects=d.correct; %get all corrects
-                    skipRowsCorrect=isnan(corrects); %find the NaN values
-                    corrects(skipRowsCorrect)=[];% delete the NaN values associated with the waffle trials
-                    
-                    if precueValidity==1
-                        expTrials=d.precueValidity==1;
-                        expTrials(skipRowsCorrect)=[];
-                        if (expTrials==0)
-                            stairIdxExp=length(p.stairs);
-                            lastFewAccExp=[];
-                        else
-                            stairIdxExp_all=d.stairIdxExp;
-                            skipUnexp=isnan(stairIdxExp_all);
-                            stairIdxExp_all(skipUnexp)=[];
-                            stairIdxExp_last=stairIdxExp_all(length(stairIdxExp_all));
-                            whichExp=find(expTrials);
-                            corrects_exp= (corrects(whichExp));
-                            [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, lastFewAccExp, correct); % get new stair index value
-                        end
-                    
-
-                    elseif precueValidity==2
-                        unexpTrials=d.precueValidity==2;
-                        unexpTrials(skipRowsCorrect)=[];
-                        if (unexpTrials==0) 
-                            stairIdxUn=length(p.stairs);
-                            lastFewAccUnexp=[]; 
-                        else
-                            stairIdxUnexp_all=d.stairIdxUn;
-                            skipExp=isnan(stairIdxUnexp_all);
-                            stairIdxUnexp_all(skipExp)=[];
-                            stairIdxUn_last=stairIdxUnexp_all(length(stairIdxUnexp_all));
-                            whichUnex=find(unexpTrials);
-                            corrects_unexp= (corrects(whichUnex));  
-                            [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, lastFewAccUnexp, correct); % get new stair index value
-                    
-                        end
-                    end
                 end
 
                 if staticGrating==1 % standard is +/-45 and test is slightly different
                     if precueValidity==1
-                        stairIdx=stairIdxExp;
+                        sOrientation=p.gratingOrientations(Orientation);
+                        gOrientation=sOrientation+p.stairs(stairIdxExp)*differenceMultiplier;
                     elseif precueValidity==2
-                        stairIdx=stairIdxUn;
+                        sOrientation=p.gratingOrientations(Orientation);
+                        gOrientation=sOrientation+p.stairs(stairIdxUn)*differenceMultiplier;
                     end
-                    sOrientation=p.gratingOrientations(Orientation);
-                    gOrientation=sOrientation+p.stairs(stairIdx)*differenceMultiplier;
+                   
                 elseif staticGrating==2 %test is +/-45 and standard is slightly different
                     if precueValidity==1
-                        stairIdx=stairIdxExp;
+                        gOrientation=p.gratingOrientations(Orientation);
+                        sOrientation=gOrientation+p.stairs(stairIdxExp)*differenceMultiplier;
                     elseif precueValidity==2
-                        stairIdx=stairIdxUn;
+                        gOrientation=p.gratingOrientations(Orientation);
+                        sOrientation=gOrientation+p.stairs(stairIdxUn)*differenceMultiplier;
                     end
-                    gOrientation=p.gratingOrientations(Orientation);
-                    sOrientation=gOrientation+p.stairs(stairIdx)*differenceMultiplier;
+                   
                 end
 
             elseif trialIdx>size(trials1,1) 
@@ -435,51 +392,51 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
             end
 
 
-            %% Store trial information
-             if plaidStatus==1 % if this is a grating trial
-                d.stairIdx(iTrial) = stairIdx; %store stair index stimuli
-                if precueValidity==1
-                    d.stairIdxExp(iTrial) = stairIdxExp; %store stair index stimuli expected
-                    d.stairIdxUn(iTrial)=NaN;
-                elseif precueValidity==2
-                    d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
-                    d.stairIdxUn(iTrial)=stairIdxUn;
-                end
-
-                d.stair(iTrial)= p.stairs(stairIdx); %store stair value
-                d.differenceMultiplier(iTrial)=differenceMultiplier; %store difference multiplier
-                d.staticGrating(iTrial)=staticGrating; %store the static grating index
-                d.gratingContrast(iTrial) = p.gratingContrast2; %store contrast of test stimuli
-                d.gratingSPF(iTrial) = gratingSPF; %store SPF of test stimuli
-
-                d.orientation(iTrial) = Orientation; %store orientation of trial
-                d.standardPhase(iTrial) = standardPhase; %store phase of standard stimuli
-                d.standardContrast(iTrial) = p.standardContrast2; % store contrast of standard stimuli
-                d.standardSPF(iTrial) = standardSPF; %store SPF of standard stimuli
-                d.precueValidity(iTrial) = precueValidity; % store cue validity (1:valid, 2: invalid)
-                
-                d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
-                d.plaidOrientation(iTrial) = NaN; % keep orientation of plaid stimuli as NaN
-                d.plaidPhase(iTrial) = NaN; %keep phase of plaid stimuli as NaN
-                d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
-
-             elseif plaidStatus==2 %if this is a waffle trial
-                d.plaidOrientation(iTrial) = plaidOrientation; %store orientation of plaid stimuli
-                d.plaidPhase(iTrial) = plaidPhase; %store phase of plaid stimuli
-                d.plaidContrast(iTrial) = plaidContrast; %store contrast of plaid stimuli
-                d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
-                d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
-                d.stairIdx(iTrial) = NaN;
-                d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
-                d.stairIdxUn(iTrial)=NaN;
-                d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
-                d.gratingPhase(iTrial) = NaN; %phase of test stimuli
-                d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
-                d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
-                d.standardPhase(iTrial) = NaN; %phase of test stimuli
-                d.standardContrast(iTrial) = NaN; %contrast of test stimuli
-                d.standardSPF(iTrial) = NaN; %contrast of test stimuli
-            end
+            % %% Store trial information
+            %  if plaidStatus==1 % if this is a grating trial
+            %     d.stairIdx(iTrial) = stairIdx; %store stair index stimuli
+            %     if precueValidity==1
+            %         d.stairIdxExp(iTrial) = stairIdxExp; %store stair index stimuli expected
+            %         d.stairIdxUn(iTrial)=NaN;
+            %     elseif precueValidity==2
+            %         d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+            %         d.stairIdxUn(iTrial)=stairIdxUn;
+            %     end
+            % 
+            %     d.stair(iTrial)= p.stairs(stairIdx); %store stair value
+            %     d.differenceMultiplier(iTrial)=differenceMultiplier; %store difference multiplier
+            %     d.staticGrating(iTrial)=staticGrating; %store the static grating index
+            %     d.gratingContrast(iTrial) = p.gratingContrast2; %store contrast of test stimuli
+            %     d.gratingSPF(iTrial) = gratingSPF; %store SPF of test stimuli
+            % 
+            %     d.orientation(iTrial) = Orientation; %store orientation of trial
+            %     d.standardPhase(iTrial) = standardPhase; %store phase of standard stimuli
+            %     d.standardContrast(iTrial) = p.standardContrast2; % store contrast of standard stimuli
+            %     d.standardSPF(iTrial) = standardSPF; %store SPF of standard stimuli
+            %     d.precueValidity(iTrial) = precueValidity; % store cue validity (1:valid, 2: invalid)
+            % 
+            %     d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
+            %     d.plaidOrientation(iTrial) = NaN; % keep orientation of plaid stimuli as NaN
+            %     d.plaidPhase(iTrial) = NaN; %keep phase of plaid stimuli as NaN
+            %     d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
+            % 
+            %  elseif plaidStatus==2 %if this is a waffle trial
+            %     d.plaidOrientation(iTrial) = plaidOrientation; %store orientation of plaid stimuli
+            %     d.plaidPhase(iTrial) = plaidPhase; %store phase of plaid stimuli
+            %     d.plaidContrast(iTrial) = plaidContrast; %store contrast of plaid stimuli
+            %     d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
+            %     d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
+            %     d.stairIdx(iTrial) = NaN;
+            %     d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+            %     d.stairIdxUn(iTrial)=NaN;
+            %     d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
+            %     d.gratingPhase(iTrial) = NaN; %phase of test stimuli
+            %     d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
+            %     d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
+            %     d.standardPhase(iTrial) = NaN; %phase of test stimuli
+            %     d.standardContrast(iTrial) = NaN; %contrast of test stimuli
+            %     d.standardSPF(iTrial) = NaN; %contrast of test stimuli
+            % end
             %% Store stimulus information in trials matrix
 
             %trials(trialIdx, precueIdx) = toneVersion;
@@ -598,15 +555,109 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
             timeEnd=GetSecs();
 
-            %% Keep track of last 3 trials
-            if plaidStatus==1  
+            % %% Keep track of last 3 trials
+            % if plaidStatus==1  
+            %     if precueValidity==1
+            %         lastFewAccExp=[lastFewAccExp correct];
+            %     elseif precueValidity==2
+            %         lastFewAccUnexp=[lastFewAccUnexp correct];
+            %     end
+            % end
+
+                   % separate staircasing for expected and unexpected
+            if firstNonWaffle==0  && plaidStatus==1 % if this variable is still 0 it means this is the first trial that is a grating trial
+                  firstNonWaffle=1;
+
+            elseif firstNonWaffle==1 && plaidStatus==1 % if this variable is 1, this trial is not the first grating trial
+                corrects=d.correct; %get all corrects
+                skipRowsCorrect=isnan(corrects); %find the NaN values
+                corrects(skipRowsCorrect)=[];% delete the NaN values associated with the waffle trials
+                
                 if precueValidity==1
-                    lastFewAccExp=[lastFewAccExp correct];
+                    expTrials=d.precueValidity==1;
+                    expTrials(skipRowsCorrect)=[];
+                    if (expTrials==0)
+                        stairIdxExp=length(p.stairs);
+                        lastFewAccExp=[];
+                    else
+                        stairIdxExp_all=d.stairIdxExp;
+                        skipUnexp=isnan(stairIdxExp_all);
+                        stairIdxExp_all(skipUnexp)=[];
+                        stairIdxExp_last=stairIdxExp_all(length(stairIdxExp_all));
+                        whichExp=find(expTrials);
+                        corrects_exp= (corrects(whichExp));
+                        [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp_last, lastFewAccExp, corrects_exp(end)); % get new stair index value
+                    end
+                
+
                 elseif precueValidity==2
-                    lastFewAccUnexp=[lastFewAccUnexp correct];
+                    unexpTrials=d.precueValidity==2;
+                    unexpTrials(skipRowsCorrect)=[];
+                    if (unexpTrials==0) 
+                        stairIdxUn=length(p.stairs);
+                        lastFewAccUnexp=[]; 
+                    else
+                        stairIdxUnexp_all=d.stairIdxUn;
+                        skipExp=isnan(stairIdxUnexp_all);
+                        stairIdxUnexp_all(skipExp)=[];
+                        stairIdxUn_last=stairIdxUnexp_all(length(stairIdxUnexp_all));
+                        whichUnex=find(unexpTrials);
+                        corrects_unexp= (corrects(whichUnex));  
+                        [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn_last, lastFewAccUnexp, corrects_unexp(end)); % get new stair index value
+                
+                    end
                 end
             end
+            %% Store trial information
+             if plaidStatus==1 % if this is a grating trial
+                
+                if precueValidity==1
+                    d.stairIdxExp(iTrial) = stairIdxExp; %store stair index stimuli expected
+                    d.stairIdx(iTrial) = stairIdxExp; %store stair index stimuli
+                    d.stairIdxUn(iTrial)=NaN;
+                    d.stair(iTrial)= p.stairs(stairIdxExp); %store stair value
 
+                elseif precueValidity==2
+                    d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                    d.stairIdxUn(iTrial)=stairIdxUn;
+                    d.stairIdx(iTrial) = stairIdxUn; %store stair index stimuli
+                    d.stair(iTrial)= p.stairs(stairIdxUn); %store stair value
+
+                end
+
+                d.differenceMultiplier(iTrial)=differenceMultiplier; %store difference multiplier
+                d.staticGrating(iTrial)=staticGrating; %store the static grating index
+                d.gratingContrast(iTrial) = p.gratingContrast2; %store contrast of test stimuli
+                d.gratingSPF(iTrial) = gratingSPF; %store SPF of test stimuli
+
+                d.orientation(iTrial) = Orientation; %store orientation of trial
+                d.standardPhase(iTrial) = standardPhase; %store phase of standard stimuli
+                d.standardContrast(iTrial) = p.standardContrast2; % store contrast of standard stimuli
+                d.standardSPF(iTrial) = standardSPF; %store SPF of standard stimuli
+                d.precueValidity(iTrial) = precueValidity; % store cue validity (1:valid, 2: invalid)
+                
+                d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
+                d.plaidOrientation(iTrial) = NaN; % keep orientation of plaid stimuli as NaN
+                d.plaidPhase(iTrial) = NaN; %keep phase of plaid stimuli as NaN
+                d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
+
+             elseif plaidStatus==2 %if this is a waffle trial
+                d.plaidOrientation(iTrial) = plaidOrientation; %store orientation of plaid stimuli
+                d.plaidPhase(iTrial) = plaidPhase; %store phase of plaid stimuli
+                d.plaidContrast(iTrial) = plaidContrast; %store contrast of plaid stimuli
+                d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
+                d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
+                d.stairIdx(iTrial) = NaN;
+                d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
+                d.stairIdxUn(iTrial)=NaN;
+                d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
+                d.gratingPhase(iTrial) = NaN; %phase of test stimuli
+                d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
+                d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
+                d.standardPhase(iTrial) = NaN; %phase of test stimuli
+                d.standardContrast(iTrial) = NaN; %contrast of test stimuli
+                d.standardSPF(iTrial) = NaN; %contrast of test stimuli
+            end
             %% Store trial info
             %trials(trialIdx, rtIdx) = targetRT;
             %trials(trialIdx, responseKeyIdx) = targetResponseKey;
