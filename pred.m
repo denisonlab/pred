@@ -29,6 +29,7 @@ p.task = input(['Prediction task run:\n' ...
     '2 - Task version Kok + Waffles\n']);
 p.counter=input('Choose 1 or 2 for participant \n'); %counterbalance 
 p.eyeTracking=input('Eyetracking (0/1)? ');
+p.debug=input('Debug (0/1)? ');
 
 %% Setup
 % Add paths
@@ -972,6 +973,12 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
+
+%                             fields = {'plaidOrientation','plaidPhase','plaidContrast'};
+%                             for iF = 1:numel(fields)
+%                                 d.(fields{iF}) = NaN; 
+%                             end
+
     
                             Screen('FillRect', window, white*p.backgroundColor);
                             drawFixation(window, cx, cy, fixSize,p.fixColor*p.dimFactor*white);
@@ -992,10 +999,10 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 %% Present STANDARD
                 Screen('DrawTexture', window, tex_stand{standardPhase,standardSPF}, [], imRect, sOrientation);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-                
-                debugStand = sprintf('Stand Orientation= %d !',sOrientation);
-                DrawFormattedText(window, debugStand, 'center', cy-imRect(1)/2, [1 1 1]*white);
-                
+                if p.debug
+                    debugStand = sprintf('Stand Orientation= %d !',sOrientation);
+                    DrawFormattedText(window, debugStand, 'center', cy-imRect(1)/2, [1 1 1]*white);
+                end
                 timeS = Screen('Flip', window, timeTone+p.toneSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
                 
                 if p.eyeTracking
@@ -1134,11 +1141,12 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 %% Present TEST
                 Screen('DrawTexture', window, tex{gratingPhase,gratingSPF}, [], imRect, gOrientation);
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white)
-                
-                debugTest = sprintf('Grating Orientation= %d !',gOrientation);
-                DrawFormattedText(window, debugTest, 'center', cy-imRect(1)/2, [1 1 1]*white);
+                if p.debug
 
+                    debugTest = sprintf('Grating Orientation= %d !',gOrientation);
+                    DrawFormattedText(window, debugTest, 'center', cy-imRect(1)/2, [1 1 1]*white);
 
+                 end
                 timeT = Screen('Flip', window, timeBlank1 + p.standSOA - slack); %timeFix+ how much i want to wait from white(active) to standard
     
                  if p.eyeTracking
@@ -1356,10 +1364,12 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 end
 
                 % blank
-                debugCue = sprintf('Precue= %d !',precueValidity);
-                DrawFormattedText(window, debugCue, 'center', cy-imRect(1)/2, [1 1 1]*white);
-            
+                if p.debug
 
+                    debugCue = sprintf('Precue= %d !',precueValidity);
+                    DrawFormattedText(window, debugCue, 'center', cy-imRect(1)/2, [1 1 1]*white);
+            
+                end
                 drawFixation(window, cx, cy, fixSize, p.fixColor*white);
                 timeBlank1 = Screen('Flip', window, timeS + p.imDur - slack); %timeS + how long i want stimulus to be presented for
              
@@ -1369,7 +1379,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 end
             end
 
-             if plaidStatus==1
+             if plaidStatus==1 && p.debug
                 debugCorrect = sprintf('Precue= %d, Stand=%d, Grating=%d, Static=%d, DiffMult=%d,',precueValidity,sOrientation,gOrientation,staticGrating,differenceMultiplier);
                 DrawFormattedText(window, debugCorrect, 'center', cy-imRect(1)/2, [1 1 1]*white);
                 timeBug=Screen('Flip', window, timeBlank1 + p.imDur - slack);
@@ -1425,7 +1435,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 responseText = 'Please push one of the buttons: 9 (CW), 0 (CW)';
             end
             
-            if plaidStatus==1
+            if plaidStatus==1 && p.debug
                 if precueValidity==1
                     fprintf('stairID %d, correct %d \n', stairIdxExp, correct)
                     debugCorrect = sprintf('Correct= %d , StairID= %d, Precue= %d, Stand=%d, Grating=%d, Static=%d, DiffMult=%d,',correct,stairIdxExp,precueValidity,sOrientation,gOrientation,staticGrating,differenceMultiplier);
