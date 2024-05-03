@@ -810,12 +810,12 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
         while iTrial<=nTrials
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
             stopThisTrial=0;
-            % %% Initialize for eye tracking trial breaks
-            %  if iTrial>1
-            %      eyeSkip(iTrial-1) = stopThisTrial; % this is for the previous trial
-            %  end
-            %  stopThisTrial = 0;
-            % 
+            %% Initialize for eye tracking trial breaks
+             if iTrial>1
+                 eyeSkip(iTrial-1) = stopThisTrial; % this is for the previous trial
+             end
+             stopThisTrial = 0;
+
             %% Get condition information for this trial
 
             if trialIdx<=size(trials1,1)
@@ -1369,6 +1369,13 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 end
             end
 
+             if plaidStatus==1
+                debugCorrect = sprintf('Precue= %d, Stand=%d, Grating=%d, Static=%d, DiffMult=%d,',precueValidity,sOrientation,gOrientation,staticGrating,differenceMultiplier);
+                DrawFormattedText(window, debugCorrect, 'center', cy-imRect(1)/2, [1 1 1]*white);
+                timeBug=Screen('Flip', window, timeBlank1 + p.imDur - slack);
+                KbWait(devNum);
+            end
+
             %% Wait for response
             % check only valid response keys
             targetResponseKey = []; targetResponseKeyName = []; 
@@ -1418,17 +1425,16 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 responseText = 'Please push one of the buttons: 9 (CW), 0 (CW)';
             end
             
-            if plaidStatus==1 && precueValidity==1
-                x=stairIdxExp;
-            elseif  plaidStatus==1 && precueValidity==2
-                x=stairIdxUn;
-            end
             if plaidStatus==1
-                WaitSecs(5);
-                fprintf('stairID %d, correct %d', x, correct)
-                debugCorrect = sprintf('Correct= %d , StairID= %d, Precue= %d, Stand=%d, Grating=%d, Static=%d, DiffMult=%d,',correct,x,precueValidity,sOrientation,gOrientation,staticGrating,differenceMultiplier);
+                if precueValidity==1
+                    fprintf('stairID %d, correct %d \n', stairIdxExp, correct)
+                    debugCorrect = sprintf('Correct= %d , StairID= %d, Precue= %d, Stand=%d, Grating=%d, Static=%d, DiffMult=%d,',correct,stairIdxExp,precueValidity,sOrientation,gOrientation,staticGrating,differenceMultiplier);
+                elseif precueValidity==2
+                    fprintf('stairID %d, correct %d \n', stairIdxUn, correct)
+                    debugCorrect = sprintf('Correct= %d , StairID= %d, Precue= %d, Stand=%d, Grating=%d, Static=%d, DiffMult=%d,',correct,stairIdxUn,precueValidity,sOrientation,gOrientation,staticGrating,differenceMultiplier);                    
+                end
                 DrawFormattedText(window, debugCorrect, 'center', cy-imRect(1)/2, [1 1 1]*white);
-                Screen('Flip', window, timeBlank1 + p.imDur - slack);
+                Screen('Flip', window, timeBug + p.imDur - slack);
                 KbWait(devNum);
             end
 
@@ -1462,21 +1468,13 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 d.stairIdxUn(iTrial)=NaN;
                 d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
              end
-
-            % % separate staircasing for expected and unexpected
-            % if firstNonWaffle==0 % if this variable is still 0 it means this is the first trial that is a grating trial
-            %       firstNonWaffle=1;
-            % end
             
             if plaidStatus==1 % if this variable is 1, this trial is not the first grating trial
-           
                 if precueValidity==1
                     [stairIdxExp lastFewAccExp]=updateStaircase(p.stairs, stairIdxExp, lastFewAccExp, correct); % get new stair index value
     
                 elseif precueValidity==2
-                    [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn, lastFewAccUnexp, correct); % get new stair index value
-                
-                    
+                    [stairIdxUn lastFewAccUnexp]=updateStaircase(p.stairs, stairIdxUn, lastFewAccUnexp, correct); % get new stair index value                    
                 end
             end
             if plaidStatus==1
@@ -1603,6 +1601,7 @@ end
 if p.eyeTracking
     p.eyefixation = fixations;
     p.eyefixT1 = timeFix;
+    d.eyeSkip=eyeSkip;
 end
 
 %% Save eye data and shut down the eye tracker
