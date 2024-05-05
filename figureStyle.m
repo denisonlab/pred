@@ -9,5 +9,4 @@ ax.LineWidth = 1.5;
 ax.XColor = 'black';
 ax.YColor = 'black';
 ax.FontSize = 14;
-ax.lineWidth=3;
 set(0,'DefaultAxesTitleFontWeight','normal');
