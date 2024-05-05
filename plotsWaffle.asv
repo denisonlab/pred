@@ -102,10 +102,19 @@ f=1;
 if choice==1 
     figure();
     stair=file.d.stairIdx;
-    skipEye=(file.d.stairIdx==0);
+    skipEye=file.d.stopThisTrial==1;
     stair(skipEye(1:length(stair)))=[];
     skipNotStair=isnan(stair);
     stair(skipNotStair)=[];
+% split blocks 1-8 and 9-12 and 13-14
+    stair1=stair(1:length(stair)/2);
+    stair2=stair(length(stair)/2+1:12*length(stair)/16);
+    stair3= stair(12*length(stair)/16 +1 :length(stair));
+    
+    count1=length(stair1);
+    count2=length(stair2);
+    count3=length(stair3);
+    
     trialCount=length(stair);
     x=[1:1:trialCount];
     plot(x,stair);
@@ -175,23 +184,34 @@ else
 end
 %% Kok Relevant Plots: Mean Tilt + Percent Correct
 gratingContrastsIdx=file.d.gratingContrast;
+skipEye=(file.d.stopThisTrial==1);
+gratingContrastsIdx(skipEye)=[];
+
 skipWaffle=isnan(gratingContrastsIdx);
 gratingContrastsIdx(skipWaffle(1:length(gratingContrastsIdx)))=[];
 
 precueValidities=file.d.precueValidity;
+precueValidities(skipEye)=[];
+
 precueValidities(skipWaffle)=[];
 
 response= file.d.targetResponseKey;
+response(skipEye)=[];
+
 response(skipWaffle)=[];
 
 diffMult=file.d.differenceMultiplier;
+diffMult(skipEye)=[];
+
 diffMult(skipWaffle(1:length(diffMult)))=[];
 
 static=file.d.staticGrating;
+static(skipEye)=[];
+
 static(skipWaffle(1:length(static)))=[];
 
 stair=file.d.stair;
-stair(stair==0)=NaN;
+stair(skipEye)=[];
 stair(skipWaffle(1:length(stair)))=[];
 stair(isnan(stair))=[];
 
@@ -199,9 +219,9 @@ correct_r=(response==responseKeyIds(1) & static==1 & diffMult==-1) | (response==
 correct_exp=correct_r==1 & precueValidities==1;
 correct_unexp= correct_r==1 & precueValidities==2;
 
-orientationJudgement= cat(3,precueValidities,correct_r,response);
+orientationJudgement= cat(4,stair,precueValidities,correct_r,response);
 nTrialsGrating=length(precueValidities);
-orientationJudgement=reshape(orientationJudgement,[nTrialsGrating,3]);
+orientationJudgement=reshape(orientationJudgement,[nTrialsGrating,4]);
 %sort based on stair levels
 orientationJudgement=sortrows(orientationJudgement,1); 
 
@@ -221,8 +241,8 @@ saveas(figure(f),[plotdir_sub,'/percentcorrect_split.jpg']);
 
 f=f+1;
 
-meantilt_exp=sum(orientationJudgement(orientationJudgement(:,1)==1))/sum(orientationJudgement(:,1)==1);
-meantilt_unexp=sum(orientationJudgement(orientationJudgement(:,1)==2))/sum(orientationJudgement(:,1)==2);
+meantilt_exp=sum(orientationJudgement(orientationJudgement(:,2)==1))/sum(orientationJudgement(:,2)==1);
+meantilt_unexp=sum(orientationJudgement(orientationJudgement(:,2)==2))/sum(orientationJudgement(:,2)==2);
 
 figure()
 bar(x,[meantilt_exp meantilt_unexp],'FaceColor',[0 .5 .7])
@@ -344,15 +364,19 @@ saveas(figure(f),[plotdir_sub,'/pteststronger_split.jpg']);
 
 f=f+1;
 waffleContrastsIdx=file.d.plaidContrast;
+skipZero=file.d.stopThisTrial==1;
+
+waffleContrastsIdx(skipZero)=[];
+
 skipNotWaffle=isnan(waffleContrastsIdx);
 waffleContrastsIdx(skipNotWaffle)=[];
-waffleContrastsIdx(skipZero)=[];
 
 waffleContrasts=[];
 difference=[];
 waffleOrientation=file.d.plaidOrientation; 
-waffleOrientation(skipNotWaffle)=[];
 waffleOrientation(skipZero)=[];
+waffleOrientation(skipNotWaffle)=[];
+
 
 for i=1:length(waffleContrastsIdx)
     index=waffleContrastsIdx(i);
@@ -368,11 +392,13 @@ for i=1:length(waffleContrastsIdx)
 end
 
 precueValidities=file.d.precueValidity;
-precueValidities(skipNotWaffle)=[];
 precueValidities(skipZero)=[];
+precueValidities(skipNotWaffle)=[];
+
 response= file.d.targetResponseKey;
-response(skipNotWaffle)=[];
 response(skipZero)=[];
+response(skipNotWaffle)=[];
+
 response_45=(response==responseKeyIds(2));
 response_135=(response==responseKeyIds(1));
 
@@ -451,1766 +477,952 @@ legend("expected 45","unexpected 45");
 saveas(figure(f),[plotdir_sub,'/preported45_difference_split.jpg']); 
 
 
-%% 
+%% plots split by blocks 1-8, 9-12, and 13-14
+f=f+1;
+if choice==1 
+    figure();
+    stair=file.d.stairIdx;
+    stair(file.d.stopThisTrial==1)=[];
+    % split blocks 1-8 and 9-12 and 13-14
+    stair1=stair(1:length(stair)/2);
+    stair2=stair(length(stair)/2+1:12*length(stair)/16);
+    stair3= stair(12*length(stair)/16 +1 :length(stair));
+    
+    skipNotStair1=isnan(stair1);
+    stair1(skipNotStair1(1:length(stair1)))=[];
+    
+    skipNotStair2=isnan(stair2);
+    stair2(skipNotStair2(1:length(stair2)))=[];
+
+    skipNotStair3=isnan(stair3);
+    stair3(skipNotStair3(1:length(stair3)))=[];
+
+    count1=[1:1:length(stair1)];
+    count2=[1:1:length(stair2)];
+    count3=[1:1:length(stair3)];
+
+    subplot(3,1,1);
+    plot(count1,stair1);
+    ylabel("stair ID");
+    xlabel("trial ID");
+
+    subplot(3,1,2);
+    plot(count2,stair2);
+    ylabel("stair ID");
+    xlabel("trial ID");
+    subplot(3,1,3);
+    plot(count3,stair3);
+    ylabel("stair ID");
+    xlabel("trial ID");
+
+    saveas(figure(f),[plotdir_sub,'/staircasing_blocks.jpg']);
+    f=f+1;
+
+        stairExp=file.d.stairIdxExp;
+    skipEyeEx=(file.d.stopThisTrial==1);
+
+    stairExp(skipEyeEx(1:length(stairExp)))=[];
+    stairExp1=stairExp(1:length(stairExp)/2);
+    stairExp2=stairExp(length(stairExp)/2+1:12*length(stairExp)/16);
+    stairExp3= stairExp(12*length(stairExp)/16 +1 :length(stairExp));
+
+    skipNotStairExp1=isnan(stairExp1);
+    stairExp1(skipNotStairExp1(1:length(stairExp1)))=[];
+    
+    skipNotStairExp2=isnan(stairExp2);
+    stairExp2(skipNotStairExp2(1:length(stairExp2)))=[];
+
+    skipNotStairExp3=isnan(stairExp3);
+    stairExp3(skipNotStairExp3(1:length(stairExp3)))=[];
+    
+    count1=[1:1:length(stairExp1)];
+    count2=[1:1:length(stairExp2)];
+    count3=[1:1:length(stairExp3)];
+
+    stairUn=file.d.stairIdxUn;
+    skipEyeUn=(file.d.stopThisTrial==1);
+    stairUn(skipEyeUn(1:length(stairUn)))=[];
+
+    stairUn1=stairUn(1:length(stairUn)/2);
+    stairUn2=stairUn(length(stairUn)/2+1:12*length(stairUn)/16);
+    stairUn3= stairUn(12*length(stairUn)/16 +1 :length(stairUn));
+
+    skipNotStairUn1=isnan(stairUn1);
+    stairUn1(skipNotStairUn1(1:length(stairUn1)))=[];
+    
+    skipNotStairUn2=isnan(stairUn2);
+    stairUn2(skipNotStairUn2(1:length(stairUn2)))=[];
+
+    skipNotStairUn3=isnan(stairUn3);
+    stairUn3(skipNotStairUn3(1:length(stairUn3)))=[];
+
+    count1u=[1:1:length(stairUn1)];
+    count2u=[1:1:length(stairUn2)];
+    count3u=[1:1:length(stairUn3)];
+
+    figure();
+    plot(count1,stairExp1,'o-');
+    hold on
+    plot(count1u,stairUn1,'o-');
+    
+    ylabel("stair ID");
+    xlabel("trial ID");
+    title("blocks 1-8");
+    legend("expected","unexpected");
+    saveas(figure(f),[plotdir_sub,'/staircasing_split_blocks18.jpg']);
+
+    f=f+1;
+
+    figure();
+    plot(count2,stairExp2,'o-');
+    hold on
+    plot(count2u,stairUn2,'o-');
+
+    ylabel("stair ID");
+    xlabel("trial ID");
+    title("blocks 9-12");
+    legend("expected","unexpected");
+    saveas(figure(f),[plotdir_sub,'/staircasing_split_blocks912.jpg']);
+
+    f=f+1;
+
+    figure();
+    plot(count3,stairExp3,'o-');
+    hold on
+    plot(count3u,stairUn3,'o-');
+
+    ylabel("stair ID");
+    xlabel("trial ID");
+    title("blocks 13-14");
+
+    legend("expected","unexpected");
+    saveas(figure(f),[plotdir_sub,'/staircasing_split_blocks1314.jpg']);
+    f=f+1;
+end
 
 
-% %% plot contrast judgement task from waffles
-% f=f+1;
-% waffleContrastsIdx=file.d.plaidContrast;
-% skipNotWaffle=isnan(waffleContrastsIdx);
-% waffleContrastsIdx(skipNotWaffle)=[];
-% waffleContrasts=[];
-% for i=1:length(waffleContrastsIdx)
-%     index=waffleContrastsIdx(i);
-%     waffleContrasts(i)=file.p.plaidContrasts1(index);
-% end
-% 
-% precueValidities=file.d.precueValidity;
-% precueValidities(skipNotWaffle)=[];
-%
-% waffleOrientation=file.d.plaidOrientation;
-% waffleOrientation(skipNotWaffle)=[];
-% 
-% responses= file.d.targetResponseKey;
-% responses(skipNotWaffle)=[];
-% 
-% correctResponse=[];
-% for i=1:length(responses)
-%     if responses(i)==responseKeyIds(1) && waffleOrientation(i)==1
-%         correctResponse=[correctResponse 1];
-%     elseif responses(i)==responseKeyIds(2) && waffleOrientation(i)==2
-%         correctResponse=[correctResponse 1];
-%     else
-%         correctResponse=[correctResponse 0];
-%     end
-% end
-% contrastJudgement= cat(4,waffleContrasts,precueValidities,waffleOrientation,correctResponse);
-% nTrialsWaffle=length(waffleContrastsIdx);
-% contrastJudgement=reshape(contrastJudgement,[nTrialsWaffle,4]);
-% %sort based on contrast levels
-% contrastJudgement=sortrows(contrastJudgement,1); 
-% % sort based on precue validity
-% contrastJudgement=sortrows(contrastJudgement,2);
-% 
-% sum(precueValidities==2)
-% sum(precueValidities==1)
-% uniqueContrastsEx=unique(contrastJudgement(contrastJudgement(:,2)==1))
-% uniqueContrastsUnex=unique(contrastJudgement(contrastJudgement(:,2)==2))
-% sum_ex=[];
-% sum_ex_45=[];
-% sum_ex_135=[];
-% for i=1:length(uniqueContrastsEx)
-%     sum_ex=[sum_ex sum(contrastJudgement(:,2)==1 & contrastJudgement(:,1)==uniqueContrastsEx(i))];
-%     sum_ex_45=[sum_ex_45 sum(contrastJudgement(:,2)==1 & contrastJudgement(:,3)==1 & contrastJudgement(:,1)==uniqueContrastsEx(i))];
-%     sum_ex_135=[sum_ex_135 sum(contrastJudgement(:,2)==1 & contrastJudgement(:,3)==2 & contrastJudgement(:,1)==uniqueContrastsEx(i))];
-% 
-% end
-% sum_unex=[];
-% sum_unex_45=[];
-% sum_unex_135=[];
-% for i=1:length(uniqueContrastsUnex)
-%     sum_unex=[sum_unex sum(contrastJudgement(:,2)==2 & contrastJudgement(:,1)==uniqueContrastsUnex(i))];
-%     sum_unex_45=[sum_unex_45 sum(contrastJudgement(:,2)==2 & contrastJudgement(:,3)==1 & contrastJudgement(:,1)==uniqueContrastsUnex(i))];
-%     sum_unex_135=[sum_unex_135 sum(contrastJudgement(:,2)==2 & contrastJudgement(:,3)==2 & contrastJudgement(:,1)==uniqueContrastsUnex(i))];
-% end
-% correctsEx=[];
-% correctsUnex=[];
-% meanCorrectPerConEx=[];
-% meanCorrectPerConUnex=[];
-% for i=1:length(responses)
-%     if contrastJudgement(i,2)==1%% expected
-%         if i==1
-%             correctsEx=[correctsEx contrastJudgement(i,4)];
-% 
-%         elseif contrastJudgement(i-1,1)==contrastJudgement(i,1) 
-%             correctsEx=[correctsEx contrastJudgement(i,4)];
-%             if i==length(responses)
-%                 correctsEx=[correctsEx contrastJudgement(i,4)];
-%                 meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             end
-% 
-%         elseif  contrastJudgement(i-1,1)~=contrastJudgement(i,1)
-%             meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             correctsEx=[];
-%             correctsEx=[correctsEx contrastJudgement(i,4)];
-%         end
-%     elseif contrastJudgement(i,2)==2 
-%         if contrastJudgement(i-1,2)==1
-%             meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             correctsUnex=[correctsUnex contrastJudgement(i,4)];
-% 
-%         elseif contrastJudgement(i-1,1)==contrastJudgement(i,1) 
-%             if i==length(responses)
-%                 correctsUnex=[correctsUnex contrastJudgement(i,4)];
-%                 meanCorrectPerConUnex=[meanCorrectPerConUnex mean(correctsUnex)];
-%             end
-%             correctsUnex=[correctsUnex contrastJudgement(i,4)];
-% 
-% 
-%         elseif  contrastJudgement(i-1,1)~=contrastJudgement(i,1)
-%             meanCorrectPerConUnex=[meanCorrectPerConUnex mean(correctsUnex)];
-%             correctsUnex=[];
-%             correctsUnex=[contrastJudgement(i,4)];
-%         end
-%     end
-% end
-% contrastJudgementEx=contrastJudgement(contrastJudgement(:,2)==1);
-% contrastJudgementUnex=contrastJudgement(contrastJudgement(:,2)==2);
-% 
-% allconsEx=unique(contrastJudgementEx);
-% allconsUnex=unique(contrastJudgementUnex);
-% figure();
-% plot(allconsEx,meanCorrectPerConEx,'blue-v');
-% hold on
-% plot(allconsUnex,meanCorrectPerConUnex,'red-v');
-% xlabel("contrasts")
-% ylabel("p(correct stronger)");
-% title("p(correct stronger) for expected vs unexpected ",subjectID);
-% legend("expected","unexpected");
-% saveas(figure(f),[plotdir_sub,'/pcorrectstronger_split.jpg']);
-% 
-% %% p (correct tilt discrimination)
-% f=f+1;
-% gratingContrastsIdx=file.d.gratingContrast;
-% skipWaffle=isnan(gratingContrastsIdx);
-% gratingContrastsIdx(skipWaffle(1:length(gratingContrastsIdx)))=[];
-% 
-% stair=file.d.stair;
-% stair(skipWaffle(1:length(stair)))=[];
-% 
-% precueValidities=file.d.precueValidity;
-% precueValidities(skipWaffle)=[];
-% 
-% response= file.d.targetResponseKey;
-% response(skipWaffle)=[];
-% 
-% diffMult=file.d.differenceMultiplier;
-% diffMult(skipWaffle(1:length(diffMult)))=[];
-% 
-% static=file.d.staticGrating;
-% static(skipWaffle(1:length(static)))=[];
-% 
-% correct_r=(response==responseKeyIds(1) & static==1 & diffMult==-1) | (response==responseKeyIds(1) & static==2 & diffMult==1) | (response==responseKeyIds(2) & static==1 & diffMult==1) | (response==responseKeyIds(2) & static==2 & diffMult==-1);
-% correct_exp=correct_r==1 & precueValidities==1;
-% correct_unexp= correct_r==1 & precueValidities==2;
-% 
-% 
-% sum(precueValidities==2)
-% sum(correct_unexp)
-% mean_unexp=sum(correct_unexp)/sum(precueValidities==2)
-% sum(precueValidities==1)
-% sum(correct_exp)
-% mean_exp=sum(correct_exp)/sum(precueValidities==1)
-% 
-% orientationJudgement= cat(4,stair,precueValidities,correct_r,response);
-% nTrialsGrating=length(stair);
-% orientationJudgement=reshape(orientationJudgement,[nTrialsGrating,4]);
-% %sort based on stair levels
-% orientationJudgement=sortrows(orientationJudgement,1); 
-% 
-% 
-% corrects=[];
-% meanCorrectPerCon=[];
-% for i=1:length(response)
-%     if i==1
-%         corrects=[corrects orientationJudgement(i,3)];
-% 
-%     elseif orientationJudgement(i-1,1)==orientationJudgement(i,1) 
-%         corrects=[corrects orientationJudgement(i,3)];
-%         if i==length(response)
-%             corrects=[corrects orientationJudgement(i,3)];
-%             meanCorrectPerCon=[meanCorrectPerCon mean(corrects)];
-%         end
-% 
-%     elseif  orientationJudgement(i-1,1)~=orientationJudgement(i,1)
-%         meanCorrectPerCon=[meanCorrectPerCon mean(corrects)];
-%         corrects=[];
-%         corrects=[corrects orientationJudgement(i,3)];
-%         if i==length(response)
-%            meanCorrectPerCon=[meanCorrectPerCon mean(corrects)];
-%         end
-% 
-%     end
-% end
-% 
-% allStairs=unique(orientationJudgement(:,1));
-% 
-% allstairsId=[];
-% for i=1:length(allStairs)
-%     allstairsId=[allstairsId find(file.p.stairs==allStairs(i))];
-% end
-% 
-% 
-% figure();
-% plot(allStairs,meanCorrectPerCon,'blue-v');
-% xlabel("stair value")
-% ylabel("p (correct tilt discrimination)");
-% title("p (correct tilt discrimination) ",subjectID);
-% saveas(figure(f),[plotdir_sub,'/pcorrecttilt_stairs.jpg']);
-% f=f+1;
-% figure();
-% plot(allstairsId,meanCorrectPerCon,'blue-v');
-% xlabel("stair id")
-% ylabel("p (correct tilt discrimination)");
-% title("p (correct tilt discrimination) ",subjectID);
-% saveas(figure(f),[plotdir_sub,'/pcorrecttilt_stairsID.jpg']);
-% 
-% mean(correct_r)
-% 
-% %% p (correct tilt discrimination)
-% f=f+1;
-% gratingContrastsIdx=file.d.gratingContrast;
-% skipWaffle=isnan(gratingContrastsIdx);
-% gratingContrastsIdx(skipWaffle(1:length(gratingContrastsIdx)))=[];
-% 
-% stair=file.d.stair;
-% stair(skipWaffle(1:length(stair)))=[];
-% 
-% precueValidities=file.d.precueValidity;
-% precueValidities(skipWaffle)=[];
-% 
-% response= file.d.targetResponseKey;
-% response(skipWaffle)=[];
-% 
-% diffMult=file.d.differenceMultiplier;
-% diffMult(skipWaffle(1:length(diffMult)))=[];
-% 
-% static=file.d.staticGrating;
-% static(skipWaffle(1:length(static)))=[];
-% 
-% correct_r=(response==responseKeyIds(1) & static==1 & diffMult==-1) | (response==responseKeyIds(1) & static==2 & diffMult==1) | (response==responseKeyIds(2) & static==1 & diffMult==1) | (response==responseKeyIds(2) & static==2 & diffMult==-1);
-% 
-% orientationJudgement= cat(4,stair,precueValidities,correct_r,response);
-% nTrialsGrating=length(stair);
-% orientationJudgement=reshape(orientationJudgement,[nTrialsGrating,4]);
-% %sort based on stair levels
-% orientationJudgement=sortrows(orientationJudgement,1); 
-% % sort based on precue validity
-% orientationJudgement=sortrows(orientationJudgement,2);
-% 
-% correctsEx=[];
-% correctsUnex=[];
-% meanCorrectPerConEx=[];
-% meanCorrectPerConUnex=[];
-% for i=1:length(response)
-%     if orientationJudgement(i,2)==1%% expected
-%         if i==1
-%             correctsEx=[correctsEx orientationJudgement(i,3)];
-% 
-%         elseif orientationJudgement(i-1,1)==orientationJudgement(i,1) 
-%             correctsEx=[correctsEx orientationJudgement(i,3)];
-%             if i==length(response)
-%                 correctsEx=[correctsEx orientationJudgement(i,3)];
-%                 meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             end
-% 
-%         elseif  orientationJudgement(i-1,1)~=orientationJudgement(i,1)
-%             meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             correctsEx=[];
-%             correctsEx=[correctsEx orientationJudgement(i,3)];
-%             if i==length(response)
-%                meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             end
-%         end
-%     elseif orientationJudgement(i,2)==2 
-%         if orientationJudgement(i-1,2)==1
-%             meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             correctsUnex=[correctsUnex orientationJudgement(i,3)];
-% 
-%         elseif orientationJudgement(i-1,1)==orientationJudgement(i,1) 
-%             if i==length(response)
-%                 correctsUnex=[correctsUnex orientationJudgement(i,3)];
-%                 meanCorrectPerConUnex=[meanCorrectPerConUnex mean(correctsUnex)];
-%             end
-%             correctsUnex=[correctsUnex orientationJudgement(i,3)];
-% 
-% 
-%         elseif  orientationJudgement(i-1,1)~=orientationJudgement(i,1)
-%             meanCorrectPerConUnex=[meanCorrectPerConUnex mean(correctsUnex)];
-%             correctsUnex=[];
-%             correctsUnex=[orientationJudgement(i,3)];
-%             if i==length(response)
-%                meanCorrectPerConUnex=[meanCorrectPerConUnex mean(correctsUnex)];
-%             end
-%         end
-%     end
-% end
-% 
-% orientationJudgementEx=orientationJudgement(orientationJudgement(:,2)==1);
-% orientationJudgementUnex=orientationJudgement(orientationJudgement(:,2)==2);
-% 
-% allstairsEx=unique(orientationJudgementEx);
-% allstairsUnex=unique(orientationJudgementUnex);
-% allstairsIdEx=[];
-% allstairsIdUnex=[];
-% for i=1:length(allstairsEx)
-%     allstairsIdEx=[allstairsIdEx find(file.p.stairs==allstairsEx(i))];
-% end
-% 
-% for i=1:length(allstairsUnex)
-%     allstairsIdUnex=[allstairsIdUnex find(file.p.stairs==allstairsUnex(i))];
-% end
-% 
-% 
-% figure();
-% plot(allstairsEx,meanCorrectPerConEx,'blue-v');
-% hold on
-% plot(allstairsUnex,meanCorrectPerConUnex,'red-v');
-% xlabel("stair value")
-% ylabel("p (correct tilt discrimination)");
-% title("p (correct tilt discrimination) for expected vs unexpected ",subjectID);
-% legend("expected","unexpected");
-% saveas(figure(f),[plotdir_sub,'/pcorrecttilt_split_stairs.jpg']);
-% f=f+1;
-% figure();
-% plot(allstairsIdEx,meanCorrectPerConEx,'blue-v');
-% hold on
-% plot(allstairsIdUnex,meanCorrectPerConUnex,'red-v');
-% xlabel("stair id")
-% ylabel("p (correct tilt discrimination)");
-% title("p (correct tilt discrimination) for expected vs unexpected ",subjectID);
-% legend("expected","unexpected");
-% saveas(figure(f),[plotdir_sub,'/pcorrecttilt_split_stairsID.jpg']);
-% 
-% 
-% %% p (correct contrast discrimination with respect to difference)
-% f=f+1;
-% waffleContrastsIdx=file.d.plaidContrast;
-% skipNotWaffle=isnan(waffleContrastsIdx);
-% waffleContrastsIdx(skipNotWaffle)=[];
-% 
-% waffleContrasts=[];
-% difference=[];
-% waffleOrientation=file.d.plaidOrientation; 
-% waffleOrientation(skipNotWaffle)=[];
-% 
-% for i=1:length(waffleContrastsIdx)
-%     index=waffleContrastsIdx(i);
-%     waffleContrasts(i)=file.p.plaidContrasts1(index);
-%     if waffleOrientation(i)==2 %if orientation is +45 then difference is positive
-%         difference(i)=waffleContrasts(i)-file.p.plaidContrasts2;
-%     elseif waffleOrientation(i)==1 %if orientation is -45 then difference is positive, 
-%         difference(i)=file.p.plaidContrasts2-waffleContrasts(i); %so difference based on
-%     end
-% end
-% 
-% precueValidities=file.d.precueValidity;
-% precueValidities(skipNotWaffle)=[];
-% 
-% response= file.d.targetResponseKey;
-% response(skipNotWaffle)=[];
-% 
-% correct_r=(response==responseKeyIds(1) & waffleOrientation==1) | (response==responseKeyIds(2) & waffleOrientation==2)
-% 
-% contrastJudgement= cat(4,difference,precueValidities,correct_r,response);
-% nTrialsWaffle=length(waffleContrastsIdx);
-% contrastJudgement=reshape(contrastJudgement,[nTrialsWaffle,4]);
-% %sort based on difference values
-% contrastJudgement=sortrows(contrastJudgement,1); 
-% % sort based on precue validity
-% contrastJudgement=sortrows(contrastJudgement,2);
-% 
-% correctsEx=[];
-% correctsUnex=[];
-% meanCorrectPerConEx=[];
-% meanCorrectPerConUnex=[];
-% for i=1:length(response)
-%     if contrastJudgement(i,2)==1%% expected
-%         if i==1
-%             correctsEx=[correctsEx contrastJudgement(i,3)];
-% 
-%         elseif contrastJudgement(i-1,1)==contrastJudgement(i,1) 
-%             correctsEx=[correctsEx contrastJudgement(i,3)];
-%             if i==length(response)
-%                 correctsEx=[correctsEx contrastJudgement(i,3)];
-%                 meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             end
-% 
-%         elseif  contrastJudgement(i-1,1)~=contrastJudgement(i,1)
-%             meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             correctsEx=[];
-%             correctsEx=[correctsEx contrastJudgement(i,3)];
-%             if i==length(response)
-%                meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             end
-%         end
-%     elseif contrastJudgement(i,2)==2 
-%         if contrastJudgement(i-1,2)==1
-%             meanCorrectPerConEx=[meanCorrectPerConEx mean(correctsEx)];
-%             correctsUnex=[correctsUnex contrastJudgement(i,3)];
-% 
-%         elseif contrastJudgement(i-1,1)==contrastJudgement(i,1) 
-%             if i==length(response)
-%                 correctsUnex=[correctsUnex contrastJudgement(i,3)];
-%                 meanCorrectPerConUnex=[meanCorrectPerConUnex mean(correctsUnex)];
-%             end
-%             correctsUnex=[correctsUnex contrastJudgement(i,3)];
-% 
-% 
-%         elseif  contrastJudgement(i-1,1)~=contrastJudgement(i,1)
-%             meanCorrectPerConUnex=[meanCorrectPerConUnex mean(correctsUnex)];
-%             correctsUnex=[];
-%             correctsUnex=[contrastJudgement(i,3)];
-%             if i==length(response)
-%                meanCorrectPerConUnex=[meanCorrectPerConUnex mean(correctsUnex)];
-%             end
-%         end
-%     end
-% end
-% 
-% contrastJudgementEx=contrastJudgement(contrastJudgement(:,2)==1);
-% contrastJudgementUnex=contrastJudgement(contrastJudgement(:,2)==2);
-% 
-% alldiffEx=unique(contrastJudgementEx);
-% alldiffUnex=unique(contrastJudgementUnex);
-% 
-% 
-% figure();
-% plot(alldiffEx,meanCorrectPerConEx,'blue-v');
-% hold on
-% plot(alldiffUnex,meanCorrectPerConUnex,'red-v');
-% xlabel("difference value (with respect to +45)")
-% ylabel("p (correct contrast discrimination with respect to difference)");
-% title("p (correct contrast discrimination with respect to difference) for expected vs unexpected ",subjectID);
-% legend("expected","unexpected");
-% saveas(figure(f),[plotdir_sub,'/pcorrectstronger_difference_split.jpg']);
-% 
-% %% p (responses with +45/-45 with respect to difference)
-% f=f+1;
-% waffleContrastsIdx=file.d.plaidContrast;
-% skipNotWaffle=isnan(waffleContrastsIdx);
-% waffleContrastsIdx(skipNotWaffle)=[];
-% 
-% waffleContrasts=[];
-% difference=[];
-% waffleOrientation=file.d.plaidOrientation; 
-% waffleOrientation(skipNotWaffle)=[];
-% 
-% for i=1:length(waffleContrastsIdx)
-%     index=waffleContrastsIdx(i);
-%     waffleContrasts(i)=file.p.plaidContrasts1(index);
-%     if waffleOrientation(i)==2 %if orientation is +45 then difference is positive
-%         difference(i)=waffleContrasts(i)-file.p.plaidContrasts2;
-%     elseif waffleOrientation(i)==1 %if orientation is -45 then difference is positive, 
-%         difference(i)=file.p.plaidContrasts2-waffleContrasts(i); %so difference based on
-%     end
-% end
-% 
-% precueValidities=file.d.precueValidity;
-% precueValidities(skipNotWaffle)=[];
-% 
-% response= file.d.targetResponseKey;
-% response(skipNotWaffle)=[];
-% 
-% response_45=(response==responseKeyIds(2));
-% response_135=(response==responseKeyIds(1));
-% 
-% correct_r=(response==responseKeyIds(1) & waffleOrientation==1) | (response==responseKeyIds(2) & waffleOrientation==2);
-% 
-% contrastJudgement= cat(7,difference,precueValidities,correct_r,response_45,response_135,response,waffleContrasts);
-% nTrialsWaffle=length(waffleContrastsIdx);
-% contrastJudgement=reshape(contrastJudgement,[nTrialsWaffle,7]);
-% %sort based on difference values
-% contrastJudgement=sortrows(contrastJudgement,1); 
-% % sort based on precue validity
-% contrastJudgement=sortrows(contrastJudgement,2);
-% 
-% responseEx=[];
-% responseUnex=[];
-% meanResponsePerConEx=[];
-% meanResponsePerConUnex=[];
-% for i=1:length(response)
-%     if contrastJudgement(i,2)==1%% expected
-%         if i==1
-%             responseEx=[responseEx contrastJudgement(i,4)];
-% 
-%         elseif contrastJudgement(i-1,1)==contrastJudgement(i,1) 
-%             responseEx=[responseEx contrastJudgement(i,4)];
-%             if i==length(response)
-%                 responseEx=[responseEx contrastJudgement(i,4)];
-%                 meanResponsePerConEx=[meanResponsePerConEx mean(responseEx)];
-%             end
-% 
-%         elseif  contrastJudgement(i-1,1)~=contrastJudgement(i,1)
-%             meanResponsePerConEx=[meanResponsePerConEx mean(responseEx)];
-%             responseEx=[];
-%             responseEx=[responseEx contrastJudgement(i,4)];
-%             if i==length(response)
-%                meanResponsePerConEx=[meanResponsePerConEx mean(responseEx)];
-%             end
-%         end
-%     elseif contrastJudgement(i,2)==2 
-%         if contrastJudgement(i-1,2)==1
-%             meanResponsePerConEx=[meanResponsePerConEx mean(responseEx)];
-%             responsesUnex=[responseUnex contrastJudgement(i,4)];
-% 
-%         elseif contrastJudgement(i-1,1)==contrastJudgement(i,1) 
-%             if i==length(response)
-%                 responseUnex=[responseUnex contrastJudgement(i,4)];
-%                 meanResponsePerConUnex=[meanResponsePerConUnex mean(responseUnex)];
-%             end
-%             responseUnex=[responseUnex contrastJudgement(i,4)];
-% 
-% 
-%         elseif  contrastJudgement(i-1,1)~=contrastJudgement(i,1)
-%             meanResponsePerConUnex=[meanResponsePerConUnex mean(responseUnex)];
-%             responseUnex=[];
-%             responseUnex=[contrastJudgement(i,4)];
-%             if i==length(response)
-%                meanResponsePerConUnex=[meanResponsePerConUnex mean(responseUnex)];
-%             end
-%         end
-%     end
-% end
-% 
-% responseEx135=[];
-% responsesUnex135=[];
-% meanResponsePerConEx_135=[];
-% meanResponsePerConUnex_135=[];
-% 
-% for i=1:length(response)
-%     if contrastJudgement(i,2)==1%% expected
-%         if i==1
-%             responseEx135=[responseEx135 contrastJudgement(i,5)];
-% 
-%         elseif contrastJudgement(i-1,1)==contrastJudgement(i,1) 
-%             responseEx135=[responseEx135 contrastJudgement(i,5)];
-%             if i==length(response)
-%                 responseEx135=[responseEx135 contrastJudgement(i,5)];
-%                 meanResponsePerConEx_135=[meanResponsePerConEx_135 mean(responseEx135)];
-%             end
-% 
-%         elseif  contrastJudgement(i-1,1)~=contrastJudgement(i,1)
-%             meanResponsePerConEx_135=[meanResponsePerConEx_135 mean(responseEx135)];
-%             responseEx135=[];
-%             responseEx135=[responseEx135 contrastJudgement(i,5)];
-%             if i==length(response)
-%                meanResponsePerConEx_135=[meanResponsePerConEx_135 mean(responseEx135)];
-%             end
-%         end
-%     elseif contrastJudgement(i,2)==2 
-%         if contrastJudgement(i-1,2)==1
-%             meanResponsePerConEx_135=[meanResponsePerConEx_135 mean(responseEx135)];
-%             responsesUnex135=[responsesUnex135 contrastJudgement(i,5)];
-% 
-%         elseif contrastJudgement(i-1,1)==contrastJudgement(i,1) 
-%             if i==length(response)
-%                 responsesUnex135=[responsesUnex135 contrastJudgement(i,5)];
-%                 meanResponsePerConUnex_135=[meanResponsePerConUnex_135 mean(responsesUnex135)];
-%             end
-%             responsesUnex135=[responsesUnex135 contrastJudgement(i,5)];
-% 
-% 
-%         elseif  contrastJudgement(i-1,1)~=contrastJudgement(i,1)
-%             meanResponsePerConUnex_135=[meanResponsePerConUnex_135 mean(responsesUnex135)];
-%             responsesUnex135=[];
-%             responsesUnex135=[contrastJudgement(i,5)];
-%             if i==length(response)
-%                meanResponsePerConUnex_135=[meanResponsePerConUnex_135 mean(responsesUnex135)];
-%             end
-%         end
-%     end
-% end
-% 
-% contrastJudgementEx=contrastJudgement(contrastJudgement(:,2)==1);
-% contrastJudgementUnex=contrastJudgement(contrastJudgement(:,2)==2);
-% 
-% alldiffEx=unique(contrastJudgementEx);
-% alldiffUnex=unique(contrastJudgementUnex);
-% 
-% % x-axis is difference between grating contrasts inside plaid with respect
-% % to +45
-% figure();
-% yyaxis left
-% plot(alldiffEx,meanResponsePerConEx,'-v');
-% hold on
-% plot(alldiffUnex,meanResponsePerConUnex,'--v');
-% ylabel("p (reported +45 with respect to difference)");
-% 
-% yyaxis right
-% plot(alldiffEx,meanResponsePerConEx_135,'-v');
-% hold on
-% plot(alldiffEx,meanResponsePerConUnex_135,'--v');
-% xlabel("difference value (with respect to +45)")
-% ylabel("p (reported -45 with respect to difference)");
-% title("p  (reported -45/+45 with respect to difference) for expected vs unexpected ",subjectID);
-% legend("expected 45","unexpected 45","expected -45","unexpected -45");
-% saveas(figure(f),[plotdir_sub,'/preported_difference_split.jpg']);
-% f=f+1;
+%% Kok Relevant Plots: Mean Tilt + Percent Correct by blocks 1-8, 9-12, and 13-14
+gratingContrastsIdx=file.d.gratingContrast;
+gratingContrastsIdx(file.d.stopThisTrial==1)=[];
+gratingContrastsIdx1=gratingContrastsIdx(1:length(gratingContrastsIdx)/2);
+gratingContrastsIdx2=gratingContrastsIdx(length(gratingContrastsIdx)/2+1:12*length(gratingContrastsIdx)/16);
+gratingContrastsIdx3= gratingContrastsIdx(12*length(gratingContrastsIdx)/16 +1 :length(gratingContrastsIdx));
 
-% figure();
-% plot(alldiffEx,meanResponsePerConEx,'-v');
-% hold on
-% plot(alldiffUnex,meanResponsePerConUnex,'--v');
-% xlabel("difference value (with respect to +45)")
-% ylabel("p (reported +45 with respect to difference)");
-% title("p  (reported +45 with respect to difference) for expected vs unexpected ",subjectID);
-% legend("expected 45","unexpected 45");
-% saveas(figure(f),[plotdir_sub,'/preported45_difference_split.jpg']);
-% f=f+1;
-% figure();
-% plot(alldiffEx,meanResponsePerConEx_135,'-v');
-% hold on
-% plot(alldiffEx,meanResponsePerConUnex_135,'--v');
-% xlabel("difference value (with respect to -45)")
-% ylabel("p (reported -45 with respect to difference)");
-% title("p (reported -45 with respect to difference) for expected vs unexpected ",subjectID);
-% legend("expected -45","unexpected -45");
-% saveas(figure(f),[plotdir_sub,'/preported135_difference_split.jpg']);
-% 
-% % x-axis is strength of plaid 
-% f=f+1;
-% allStrength=[flip(file.p.plaidContrasts1) file.p.plaidContrasts1 ];
-% 
-% figure();
-% yyaxis left
-% plot(allStrength,meanResponsePerConEx,'-v');
-% hold on
-% plot(allStrength,meanResponsePerConUnex,'--v');
-% ylabel("p (reported +45 with respect to difference)");
-% 
-% yyaxis right
-% plot(allStrength,meanResponsePerConEx_135,'-v');
-% hold on
-% plot(allStrength,meanResponsePerConUnex_135,'--v');
-% xlabel("difference value (with respect to +45)")
-% ylabel("p (reported -45 with respect to difference)");
-% title("p (reported -45/+45 with respect to difference) for expected vs unexpected ",subjectID);
-% legend("expected 45","unexpected 45","expected -45","unexpected -45");
-% saveas(figure(f),[plotdir_sub,'/preported_strength_split.jpg']);
-% f=f+1;
-% figure();
-% plot(allStrength,meanResponsePerConEx,'-v');
-% hold on
-% plot(allStrength,meanResponsePerConUnex,'--v');
-% xlabel("difference value (with respect to +45)")
-% ylabel("p (reported +45 with respect to difference)");
-% title("p (reported +45 with respect to difference) for expected vs unexpected ",subjectID);
-% legend("expected 45","unexpected 45");
-% saveas(figure(f),[plotdir_sub,'/preported45_strength_split.jpg']);
-% f=f+1;
-% figure();
-% plot(allStrength,meanResponsePerConEx_135,'-v');
-% hold on
-% plot(allStrength,meanResponsePerConUnex_135,'--v');
-% xlabel("difference value (with respect to -45)")
-% ylabel("p (reported -45 with respect to difference)");
-% title("p (reported -45 with respect to difference) for expected vs unexpected ",subjectID);
-% legend("expected -45","unexpected -45");
-% saveas(figure(f),[plotdir_sub,'/preported135_strength_split.jpg']);
-% 
-% 
-% %% New adjustments
-% 
-% % adjust for ceiling or floor values
-% % nh(nh==nsignal) = nsignal(nh==nsignal)-1;
-% % nh(nh==0) = 1;
-% % nfa(nfa==nnoise) = nnoise(nfa==nnoise)-1;
-% % nfa(nfa==0) = 1;
-% 
-% % %signal present= +45 (1)
-% % %signal absent = -45 (2)
-% 
-% f=f+1;
-% signalPresent=1;
-% signalAbsent=2;
-% 
-% gratingContrastsIdx=file.d.gratingContrast;
-% skipWaffle=isnan(gratingContrastsIdx);
-% gratingContrastsIdx(skipWaffle(1:length(gratingContrastsIdx)))=[];
-% 
-% % get all stair values and remove waffle trials
-% stair=file.d.stair;
-% stair(skipWaffle(1:length(stair)))=[];
-% % get all validities and remove waffle trials
-% precueValidities=file.d.precueValidity;
-% precueValidities(skipWaffle)=[];
-% % get all responses and remove waffle trials
-% response= file.d.targetResponseKey;
-% response(skipWaffle(1:length(response)))=[];
-% % get all difference multipliers and remove waffle trials
-% diffMult=file.d.differenceMultiplier;
-% diffMult(skipWaffle(1:length(diffMult)))=[];
-% % get all static grating values and remove waffle trials
-% static=file.d.staticGrating;
-% static(skipWaffle(1:length(static)))=[];
-% 
-% % a correct response occurs when the response is 9 and static is standard
-% % and multiplier is -1, response is 9 and static is test and multiplier is 1, 
-% % response is 0 and static is test and multiplier is 1, response is 0 and
-% % static is standard and multiplier is 2
-% correct_r=(response==responseKeyIds(1) & static==1 & diffMult==-1) | (response==responseKeyIds(1) & static==2 & diffMult==1) | (response==responseKeyIds(2) & static==1 & diffMult==1) | (response==responseKeyIds(2) & static==2 & diffMult==-1);
-% 
-% response_45=(response==responseKeyIds(2)); %response was 0 ie CW
-% response_135=(response==responseKeyIds(1)); %response was 9 ie CCW 
-% 
-% orientationJudgement= cat(8,stair,precueValidities,correct_r,response_45,response_135,response,static,diffMult);
-% nTrialsGrating=length(gratingContrastsIdx);
-% orientationJudgement=reshape(orientationJudgement,[nTrialsGrating,8]);
-% %sort based on stair values
-% orientationJudgement=sortrows(orientationJudgement,1); 
-% % sort based on precue validity
-% orientationJudgement=sortrows(orientationJudgement,2);
-% 
-% 
-% % Expected
-% %response present is CW
-% responsePresent=response_45;
-% %orientation present is CW
-% orientationPresent=(static==1 & diffMult==1) | (static==2 & diffMult==-1);
-% %precue validity is valid ie 1
-% precueValid=(precueValidities==1);
-% % get hits for expected
-% hitsE=responsePresent==1 & orientationPresent==1 & precueValid==1;
-% 
-% %orientation absent: is CCW
-% orientationAbsent=(static==2 & diffMult==1) | (static==1 & diffMult==-1);
-% % get false alarms for expected
-% fa_ex=responsePresent==1 & orientationAbsent==1 & precueValid==1;
-% 
-% % response absent is CCW
-% responseAbsent=response_135;
-% % misses for expected
-% miss_ex1= responseAbsent==1 & orientationPresent==1 & precueValid==1;
-% %correct rejection
-% cr_ex1=responseAbsent==1 & orientationAbsent==1;
-% 
-% % Unexpected
-% %precue validity is valid ie 1
-% precueInvalid=(precueValidities==2);
-% % get hits for unexpected
-% hitsU=responsePresent==1 & orientationPresent==1 & precueInvalid==1;
-% % get false alarms for unexpected
-% fa_unex=responsePresent==1 & orientationAbsent==1  & precueInvalid==1;
-% % get misses  for unexpected
-% miss_unex1= responseAbsent==1 & orientationPresent==1 & precueInvalid==1;    
-% % get correct rejection for unexpected
-% cr_unex1=responseAbsent==1 & orientationAbsent==1  & precueInvalid==1;    
-% 
-% orientationJudgementEx=orientationJudgement(orientationJudgement(:,2)==1);
-% orientationJudgementUnex=orientationJudgement(orientationJudgement(:,2)==2);
-% 
-% allstairsEx=unique(orientationJudgementEx);
-% allstairsUnex=unique(orientationJudgementUnex);
-% allstairsIdEx=[];
-% allstairsIdUnex=[];
-% 
-% for i=1:length(allstairsEx)
-%     allstairsIdEx=[allstairsIdEx find(file.p.stairs==allstairsEx(i))];
-% end
-% 
-% for i=1:length(allstairsUnex)
-%     allstairsIdUnex=[allstairsIdUnex find(file.p.stairs==allstairsUnex(i))];
-% end
-% 
-% stairExp=[];
-% stairExpId=file.d.stairIdxExp;
-% skipsSavedEx=isnan(stairExpId);
-% stairExpId(skipsSavedEx)=[];
-% for i=1:length(stairExpId)
-%     stairExp=[stairExp file.p.stairs(stairExpId(i))];
-% end
-% stairUnexp=[];
-% stairUnexpId=file.d.stairIdxUn;
-% skipsSavedUn=isnan(stairUnexpId);
-% stairUnexpId(skipsSavedUn)=[];
-% for i=1:length(stairUnexpId)
-%     stairUnexp=[stairUnexp file.p.stairs(stairUnexpId(i))];
-% end
-% 
-% hit_rates_ex=[];
-% fa_rates_ex=[];
-% cons_dprime_ex=[];
-% cons_c_ex=[];
-% miss_ex=[];
-% cr_ex=[];
-% 
-% 
-% for i=1:length(allstairsEx)
-% 
-%     % Expected
-%     hitsEstair=(hitsE==1) & (stair==allstairsEx(i));
-%     hit_rate_ex=mean(hitsEstair);
-%     hit_rates_ex(i)=hit_rate_ex;
-% 
-%     faEstair=(fa_ex==1) & (stair==allstairsEx(i));
-%     fa_rate_ex=mean(faEstair);
-%     fa_rates_ex(i)=fa_rate_ex;
-% 
-%     %   get dprime and criterion  
-%     nh=sum(hitsEstair);
-%     nfa=sum(faEstair);
-%     signal=orientationPresent==1 & (stair==allstairsEx(i));
-%     nsignal=sum(signal);
-%     noise=orientationAbsent==1 & (stair==allstairsEx(i));
-%     nnoise=sum(noise);
-%     if fa_rate_ex==0 || fa_rate_ex==1  || hit_rate_ex==0  || hit_rate_ex==1 % % loglinear adjustment (Stanislaw & Todorov 1999) 
-%            nh = nh + 0.5;
-%            nfa = nfa + 0.5;
-%            nnoise = nnoise + 1;
-%            nsignal = nsignal + 1;
-%            % proportions
-%            hit_rate_ex = nh./nsignal;
-%            fa_rate_ex = nfa./nnoise;
-%     end
-% 
-%     cons_dprime_ex(i)=norminv(hit_rate_ex) - norminv(fa_rate_ex);
-%     cons_c_ex(i)=-(norminv(hit_rate_ex) + norminv(fa_rate_ex))/2;
-% 
-%     missEstair=miss_ex1==1 & (stair==allstairsEx(i));
-%     miss_ex(i)=mean(missEstair);
-%     crEstair=cr_ex1==1 & (stair==allstairsEx(i));
-%     cr_ex(i)=mean(crEstair);
-% 
-% end
-% 
-% hit_rates_unex=[];
-% fa_rates_unex=[];
-% cons_dprime_unex=[];
-% cons_c_unex=[];
-% miss_unex=[];
-% cr_unex=[];
-% % Unexpected    
-% for i=1:length(allstairsUnex)
-% 
-%     hitsU_stair= hitsU==1 & (stair==allstairsUnex(i));
-%     hit_rate_unex=mean(hitsU_stair);
-%     hit_rates_unex(i)=hit_rate_unex;
-% 
-%     faU_stair=fa_unex==1 & (stair==allstairsUnex(i));
-%     fa_rate_unex=mean(faU_stair);
-%     fa_rates_unex(i)=fa_rate_unex;
-% 
-%      %   get dprime and criterion  
-%     nh=sum(hitsU_stair);
-%     nfa=sum(faU_stair);
-%     signal=orientationPresent==1 & (stair==allstairsUnex(i));
-%     nsignal=sum(signal);
-%     noise=orientationAbsent==1 & (stair==allstairsUnex(i));
-%     nnoise=sum(noise);
-%     if fa_rate_unex==0 || fa_rate_unex==1  || hit_rate_unex==0  || hit_rate_unex==1 % % loglinear adjustment (Stanislaw & Todorov 1999) 
-%            nh = nh + 0.5;
-%            nfa = nfa + 0.5;
-%            nnoise = nnoise + 1;
-%            nsignal = nsignal + 1;
-%            % proportions
-%            hit_rate_unex = nh./nsignal;
-%            fa_rate_unex = nfa./nnoise;
-%     end
-% 
-%     %   get dprime and criterion
-%     cons_dprime_unex(i)=norminv(hit_rate_unex) - norminv(fa_rate_unex);
-%     cons_c_unex(i)=-(norminv(hit_rate_unex) + norminv(fa_rate_unex))/2;
-%     missUstair=miss_unex1==1 & (stair==allstairsUnex(i));
-%     miss_unex(i)=mean(missUstair);
-%     crUstair= cr_unex1==1 & (stair==allstairsUnex(i));
-%     cr_unex(i)=mean(crUstair);
-% end
-% 
-% % stair ids
-% figure();
-% subplot(2,1,1);
-% plot(allstairsIdEx,cons_dprime_ex,'blue-v');
-% hold on
-% plot(allstairsIdUnex,cons_dprime_unex,'red-v');
-% xlabel("stairs ID")
-% ylabel("d'");
-% title("d' expected vs unexpected");
-% legend("expected","unexpected");
-% 
-% subplot(2,1,2);
-% plot(allstairsIdEx,cons_c_ex,'blue-v');
-% hold on
-% plot(allstairsIdUnex,cons_c_unex,'red-v');
-% xlabel("stairs ID")
-% ylabel("criterion");
-% title("criterion expected vs unexpected, ",subjectID);
-% legend("expected","unexpected");
-% saveas(figure(f),[plotdir_sub,'/dprime_c_split_stairsID.jpg']);
-% f=f+1;
-% % stair values
-% 
-% figure();
-% subplot(2,1,1);
-% plot(allstairsEx,cons_dprime_ex,'blue-v');
-% hold on
-% plot(allstairsUnex,cons_dprime_unex,'red-v');
-% xlabel("stairs")
-% ylabel("d'");
-% title("d' expected vs unexpected");
-% legend("expected","unexpected");
-% 
-% subplot(2,1,2);
-% plot(allstairsEx,cons_c_ex,'blue-v');
-% hold on
-% plot(allstairsUnex,cons_c_unex,'red-v');
-% xlabel("stairs")
-% ylabel("criterion");
-% title("criterion expected vs unexpected, ",subjectID);
-% legend("expected","unexpected");
-% 
-% saveas(figure(f),[plotdir_sub,'/dprime_c_split_stairs.jpg']);
-% 
-% %% New adjustments + Signal is expected
-% 
-% % adjust for ceiling or floor values
-% % nh(nh==nsignal) = nsignal(nh==nsignal)-1;
-% % nh(nh==0) = 1;
-% % nfa(nfa==nnoise) = nnoise(nfa==nnoise)-1;
-% % nfa(nfa==0) = 1;
-% 
-% % %signal present= expected
-% % %signal absent = unexpected
-% f=f+1;
-% signalPresent=1;
-% signalAbsent=2;
-% 
-% gratingContrastsIdx=file.d.gratingContrast;
-% skipWaffle=isnan(gratingContrastsIdx);
-% gratingContrastsIdx(skipWaffle(1:length(gratingContrastsIdx)))=[];
-% 
-% % get all stair values and remove waffle trials
-% stair=file.d.stair;
-% stair(skipWaffle(1:length(stair)))=[];
-% % get all validities and remove waffle trials
-% precueValidities=file.d.precueValidity;
-% precueValidities(skipWaffle)=[];
-% % get all responses and remove waffle trials
-% response= file.d.targetResponseKey;
-% response(skipWaffle(1:length(response)))=[];
-% % get all difference multipliers and remove waffle trials
-% diffMult=file.d.differenceMultiplier;
-% diffMult(skipWaffle(1:length(diffMult)))=[];
-% % get all static grating values and remove waffle trials
-% static=file.d.staticGrating;
-% static(skipWaffle(1:length(static)))=[];
-% 
-% % a correct response occurs when the response is 9 and static is standard
-% % and multiplier is -1, response is 9 and static is test and multiplier is 1, 
-% % response is 0 and static is test and multiplier is 1, response is 0 and
-% % static is standard and multiplier is 2
-% correct_r=(response==responseKeyIds(1) & static==1 & diffMult==-1) | (response==responseKeyIds(1) & static==2 & diffMult==1) | (response==responseKeyIds(2) & static==1 & diffMult==1) | (response==responseKeyIds(2) & static==2 & diffMult==-1);
-% 
-% response_45=(response==responseKeyIds(2)); %response was 0 ie +45
-% response_135=(response==responseKeyIds(1)); %response was 9 ie -45 or 135
-% 
-% orientationJudgement= cat(8,stair,precueValidities,correct_r,response_45,response_135,response,static,diffMult);
-% nTrialsGrating=length(gratingContrastsIdx);
-% orientationJudgement=reshape(orientationJudgement,[nTrialsGrating,8]);
-% %sort based on stair values
-% orientationJudgement=sortrows(orientationJudgement,1); 
-% % sort based on precue validity
-% orientationJudgement=sortrows(orientationJudgement,2);
-% 
-% 
-% % Expected
-% %response present is as expected (i.e. responsed 45 when it was 45 and -45
-% %when it was -45)
-% %observer responded with expected orientation 
-% responsePresent=(response_45==1 & diffMult==1 & static==1 & precueValidities==1) | (response_45==1 & static==2 & diffMult==-1 & precueValidities==1) | (response_135==1 & static==1 & diffMult==-1 & precueValidities==1) | (response_135==1 & static==2 & diffMult==1 & precueValidities==1);
-% % signal: expected orientation
-% validPresent=precueValidities==1;
-% 
-% % get hits 
-% hits=responsePresent==1 & validPresent==1;
-% %signal absent: was unexpected
-% validAbsent=precueValidities==2;
-% % get false alarms for expected
-% fa=responsePresent==1 & validAbsent==1;
-% 
-% % response absent is responsed -45 when +45 and +45 when -45
-% responseAbsent=(response_135==1 & diffMult==1 & static==1 & precueValidities==1) | (response_135==1 & static==2 & diffMult==-1 & precueValidities==1) | (response_45==1 & static==1 & diffMult==-1 & precueValidities==1) | (response_45==1 & static==2 & diffMult==1 & precueValidities==1);
-% % misses  
-% miss_ex1= responseAbsent==1 & validPresent==1;
-% %correct rejection
-% cr_ex1=responseAbsent==1 & validAbsent==1;
-% 
-% allstairs=unique(stair);
-% allstairsId=[];
-% 
-% for i=1:length(allstairs)
-%     allstairsId=[allstairsId find(file.p.stairs==allstairs(i))];
-% end
-% 
-% 
-% hit_rates=[];
-% fa_rates=[];
-% cons_dprime=[];
-% cons_c=[];
-% miss_ex=[];
-% cr_ex=[];
-% 
-% 
-% for i=1:length(allstairs)
-% 
-%     % Expected
-%     hitsEstair=(hits==1) & (stair==allstairs(i));
-%     hit_rate=mean(hitsEstair);
-%     hit_rates(i)=hit_rate;
-% 
-%     faEstair=(fa==1) & (stair==allstairs(i));
-%     fa_rate=mean(faEstair);
-%     fa_rates(i)=fa_rate;
-% 
-%     %   get dprime and criterion  
-%     nh=sum(hitsEstair);
-%     nfa=sum(faEstair);
-%     signal=validPresent==1 & (stair==allstairs(i));
-%     nsignal=sum(signal);
-%     noise=validAbsent==1 & (stair==allstairs(i));
-%     nnoise=sum(noise);
-%     if fa_rate==0 || fa_rate==1  || hit_rate==0  || hit_rate==1 % % loglinear adjustment (Stanislaw & Todorov 1999) 
-%            nh = nh + 0.5;
-%            nfa = nfa + 0.5;
-%            nnoise = nnoise + 1;
-%            nsignal = nsignal + 1;
-%            % proportions
-%            hit_rate = nh./nsignal;
-%            fa_rate = nfa./nnoise;
-%     end
-% 
-%     cons_dprime(i)=norminv(hit_rate) - norminv(fa_rate);
-%     cons_c(i)=-(norminv(hit_rate) + norminv(fa_rate))/2;
-% 
-%     missEstair=miss_ex1==1 & (stair==allstairs(i));
-%     miss_ex(i)=mean(missEstair);
-%     crEstair=cr_ex1==1 & (stair==allstairs(i));
-%     cr_ex(i)=mean(crEstair);
-% 
-% end
-% 
-% % stair ids
-% figure();
-% subplot(2,1,1);
-% plot(allstairsId,cons_dprime,'blue-v');
-% xlabel("stair IDs")
-% ylabel("d'");
-% title("d'");
-% 
-% subplot(2,1,2);
-% plot(allstairsId,cons_c,'blue-v');
-% xlabel("stair IDs")
-% ylabel("criterion");
-% title("criterion, ",subjectID);
-% 
-% saveas(figure(f),[plotdir_sub,'/dprime_c_signalExp_stairsID.jpg']);
-% 
-% % stair values
-% f=f+1;
-% figure();
-% subplot(2,1,1);
-% plot(allstairs,cons_dprime,'blue-v');
-% xlabel("stairs")
-% ylabel("d'");
-% title("d'");
-% 
-% subplot(2,1,2);
-% plot(allstairs,cons_c,'blue-v');
-% xlabel("stairs")
-% ylabel("criterion");
-% title("criterion, ",subjectID);
-% saveas(figure(f),[plotdir_sub,'/dprime_c_signalExp_stairs.jpg']);
-% 
-% 
-% %% New adjustments + expected/unexpected by +45 or -45
-% 
-% % adjust for ceiling or floor values
-% % nh(nh==nsignal) = nsignal(nh==nsignal)-1;
-% % nh(nh==0) = 1;
-% % nfa(nfa==nnoise) = nnoise(nfa==nnoise)-1;
-% % nfa(nfa==0) = 1;
-% 
-% % %signal present= +45 (1)
-% % %signal absent = -45 (2)
-% f=f+1;
-% signalPresent=1;
-% signalAbsent=2;
-% 
-% gratingContrastsIdx=file.d.gratingContrast;
-% skipWaffle=isnan(gratingContrastsIdx);
-% gratingContrastsIdx(skipWaffle(1:length(gratingContrastsIdx)))=[];
-% 
-% % get all stair values and remove waffle trials
-% stair=file.d.stair;
-% stair(skipWaffle(1:length(stair)))=[];
-% % get all validities and remove waffle trials
-% precueValidities=file.d.precueValidity;
-% precueValidities(skipWaffle)=[];
-% % get all responses and remove waffle trials
-% response= file.d.targetResponseKey;
-% response(skipWaffle(1:length(response)))=[];
-% % get all difference multipliers and remove waffle trials
-% diffMult=file.d.differenceMultiplier;
-% diffMult(skipWaffle(1:length(diffMult)))=[];
-% % get all static grating values and remove waffle trials
-% static=file.d.staticGrating;
-% static(skipWaffle(1:length(static)))=[];
-% 
-% overallOri=file.d.orientation;
-% overallOri(skipWaffle)=[];
-% 
-% % a correct response occurs when the response is 9 and static is standard
-% % and multiplier is -1, response is 9 and static is test and multiplier is 1, 
-% % response is 0 and static is test and multiplier is 1, response is 0 and
-% % static is standard and multiplier is 2
-% correct_r=(response==responseKeyIds(1) & static==1 & diffMult==-1) | (response==responseKeyIds(1) & static==2 & diffMult==1) | (response==responseKeyIds(2) & static==1 & diffMult==1) | (response==responseKeyIds(2) & static==2 & diffMult==-1);
-% 
-% response_45=(response==responseKeyIds(2)); %response was 0 ie CW
-% response_135=(response==responseKeyIds(1)); %response was 9 ie CCW 
-% 
-% orientationJudgement= cat(9,stair,precueValidities,correct_r,response_45,response_135,response,static,diffMult,overallOri);
-% nTrialsGrating=length(gratingContrastsIdx);
-% orientationJudgement=reshape(orientationJudgement,[nTrialsGrating,9]);
-% %sort based on stair values
-% orientationJudgement=sortrows(orientationJudgement,1); 
-% % sort based on precue validity
-% orientationJudgement=sortrows(orientationJudgement,2);
-% 
-% 
-% % Expected
-% %response present is CW
-% responsePresent=response_45;
-% %orientation present is CW
-% orientationPresent=(static==1 & diffMult==1) | (static==2 & diffMult==-1);
-% %precue validity is valid ie 1
-% precueValid=(precueValidities==1);
-% % get hits for expected +45
-% hitsE45=responsePresent==1 & orientationPresent==1 & precueValid==1 & overallOri==2;
-% 
-% % get hits for expected -45/135
-% hitsE135=responsePresent==1 & orientationPresent==1 & precueValid==1 & overallOri==1;
-% 
-% %orientation absent: is CCW
-% orientationAbsent=(static==2 & diffMult==1) | (static==1 & diffMult==-1);
-% % get false alarms for expected +45
-% fa_ex45=responsePresent==1 & orientationAbsent==1 & precueValid==1 & overallOri==2;
-% 
-% % get false alarms for expected -45/135
-% fa_ex135=responsePresent==1 & orientationAbsent==1 & precueValid==1 & overallOri==1;
-% 
-% 
-% % response absent is CCW
-% responseAbsent=response_135;
-% % misses for expected 45
-% miss_ex1_45= responseAbsent==1 & orientationPresent==1 & precueValid==1 & overallOri==2;
-% % misses for expected 135
-% miss_ex1_135= responseAbsent==1 & orientationPresent==1 & precueValid==1 & overallOri==1;
-% 
-% %correct rejection for expected 45
-% cr_ex1_45=responseAbsent==1 & orientationAbsent==1 & precueValid==1 & overallOri==2;
-% %correct rejection for expected 135 
-% cr_ex1_135=responseAbsent==1 & orientationAbsent==1 & precueValid==1 & overallOri==1;
-% 
-% % Unexpected
-% %precue validity is valid ie 1
-% precueInvalid=(precueValidities==2);
-% % get hits for unexpected 45
-% hitsU45=responsePresent==1 & orientationPresent==1 & precueInvalid==1 & overallOri==2;
-% % get hits for unexpected 135
-% hitsU135=responsePresent==1 & orientationPresent==1 & precueInvalid==1 & overallOri==1;
-% % get false alarms for unexpected 45
-% fa_unex45=responsePresent==1 & orientationAbsent==1  & precueInvalid==1 & overallOri==2;
-% % get false alarms for unexpected 135
-% fa_unex135=responsePresent==1 & orientationAbsent==1  & precueInvalid==1 & overallOri==1;
-% % get misses  for unexpected 45
-% miss_unex1_45= responseAbsent==1 & orientationPresent==1 & precueInvalid==1 & overallOri==2;   
-% % get misses  for unexpected 135
-% miss_unex1_135= responseAbsent==1 & orientationPresent==1 & precueInvalid==1 & overallOri==1;  
-% % get correct rejection for unexpected 45
-% cr_unex1_45=responseAbsent==1 & orientationAbsent==1  & precueInvalid==1 & overallOri==2;    
-% % get correct rejection for unexpected 135
-% cr_unex1_135=responseAbsent==1 & orientationAbsent==1  & precueInvalid==1 & overallOri==1; 
-% 
-% orientationJudgementEx45=orientationJudgement(orientationJudgement(:,2)==1 & orientationJudgement(:,9)==2);
-% orientationJudgementEx135=orientationJudgement(orientationJudgement(:,2)==1 & orientationJudgement(:,9)==1);
-% 
-% orientationJudgementUnex45=orientationJudgement(orientationJudgement(:,2)==2 & orientationJudgement(:,9)==2);
-% orientationJudgementUnex135=orientationJudgement(orientationJudgement(:,2)==2 & orientationJudgement(:,9)==1);
-% 
-% allstairsEx45=unique(orientationJudgementEx45);
-% allstairsEx135=unique(orientationJudgementEx135);
-% 
-% allstairsUnex45=unique(orientationJudgementUnex45);
-% allstairsUnex135=unique(orientationJudgementUnex135);
-% 
-% allstairsIdEx45=[];
-% allstairsIdEx135=[];
-% allstairsIdUnex45=[];
-% allstairsIdUnex135=[];
-% 
-% for i=1:length(allstairsEx45)
-%     allstairsIdEx45=[allstairsIdEx45 find(file.p.stairs==allstairsEx45(i))];
-% end
-% for i=1:length(allstairsEx135)
-%     allstairsIdEx135=[allstairsIdEx135 find(file.p.stairs==allstairsEx135(i))];
-% end
-% 
-% for i=1:length(allstairsUnex45)
-%     allstairsIdUnex45=[allstairsIdUnex45 find(file.p.stairs==allstairsUnex45(i))];
-% end
-% for i=1:length(allstairsUnex135)
-%     allstairsIdUnex135=[allstairsIdUnex135 find(file.p.stairs==allstairsUnex135(i))];
-% end
-% 
-% stairExp=[];
-% stairExpId=file.d.stairIdxExp;
-% skipsSavedEx=isnan(stairExpId);
-% stairExpId(skipsSavedEx)=[];
-% for i=1:length(stairExpId)
-%     stairExp=[stairExp file.p.stairs(stairExpId(i))];
-% end
-% stairUnexp=[];
-% stairUnexpId=file.d.stairIdxUn;
-% skipsSavedUn=isnan(stairUnexpId);
-% stairUnexpId(skipsSavedUn)=[];
-% for i=1:length(stairUnexpId)
-%     stairUnexp=[stairUnexp file.p.stairs(stairUnexpId(i))];
-% end
-% 
-% hit_rates_ex_45=[];
-% fa_rates_ex_45=[];
-% cons_dprime_ex_45=[];
-% cons_c_ex_45=[];
-% miss_ex_45=[];
-% cr_ex_45=[];
-% 
-% 
-% for i=1:length(allstairsEx45)
-% 
-%     % Expected
-%     hitsEstair=(hitsE45==1) & (stair==allstairsEx45(i));
-%     hit_rate_ex=mean(hitsEstair);
-%     hit_rates_ex_45(i)=hit_rate_ex;
-% 
-%     faEstair=(fa_ex45==1) & (stair==allstairsEx45(i));
-%     fa_rate_ex=mean(faEstair);
-%     fa_rates_ex_45(i)=fa_rate_ex;
-% 
-%     %   get dprime and criterion  
-%     nh=sum(hitsEstair);
-%     nfa=sum(faEstair);
-%     signal=orientationPresent==1 & (stair==allstairsEx45(i));
-%     nsignal=sum(signal);
-%     noise=orientationAbsent==1 & (stair==allstairsEx45(i));
-%     nnoise=sum(noise);
-%     if fa_rate_ex==0 || fa_rate_ex==1  || hit_rate_ex==0  || hit_rate_ex==1 % % loglinear adjustment (Stanislaw & Todorov 1999) 
-%            nh = nh + 0.5;
-%            nfa = nfa + 0.5;
-%            nnoise = nnoise + 1;
-%            nsignal = nsignal + 1;
-%            % proportions
-%            hit_rate_ex = nh./nsignal;
-%            fa_rate_ex = nfa./nnoise;
-%     end
-% 
-%     cons_dprime_ex45(i)=norminv(hit_rate_ex) - norminv(fa_rate_ex);
-%     cons_c_ex45(i)=-(norminv(hit_rate_ex) + norminv(fa_rate_ex))/2;
-% 
-%     missEstair=miss_ex1_45==1 & (stair==allstairsEx45(i));
-%     miss_ex_45(i)=mean(missEstair);
-%     crEstair=cr_ex1_45==1 & (stair==allstairsEx45(i));
-%     cr_ex_45(i)=mean(crEstair);
-% 
-% end
-% 
-% hit_rates_ex_135=[];
-% fa_rates_ex_135=[];
-% cons_dprime_ex_135=[];
-% cons_c_ex_135=[];
-% miss_ex_135=[];
-% cr_ex_135=[];
-% 
-% 
-% for i=1:length(allstairsEx135)
-% 
-%     % Expected
-%     hitsEstair=(hitsE135==1) & (stair==allstairsEx135(i));
-%     hit_rate_ex=mean(hitsEstair);
-%     hit_rates_ex_135(i)=hit_rate_ex;
-% 
-%     faEstair=(fa_ex135==1) & (stair==allstairsEx135(i));
-%     fa_rate_ex=mean(faEstair);
-%     fa_rates_ex_135(i)=fa_rate_ex;
-% 
-%     %   get dprime and criterion  
-%     nh=sum(hitsEstair);
-%     nfa=sum(faEstair);
-%     signal=orientationPresent==1 & (stair==allstairsEx135(i));
-%     nsignal=sum(signal);
-%     noise=orientationAbsent==1 & (stair==allstairsEx135(i));
-%     nnoise=sum(noise);
-%     if fa_rate_ex==0 || fa_rate_ex==1  || hit_rate_ex==0  || hit_rate_ex==1 % % loglinear adjustment (Stanislaw & Todorov 1999) 
-%            nh = nh + 0.5;
-%            nfa = nfa + 0.5;
-%            nnoise = nnoise + 1;
-%            nsignal = nsignal + 1;
-%            % proportions
-%            hit_rate_ex = nh./nsignal;
-%            fa_rate_ex = nfa./nnoise;
-%     end
-% 
-%     cons_dprime_ex135(i)=norminv(hit_rate_ex) - norminv(fa_rate_ex);
-%     cons_c_ex135(i)=-(norminv(hit_rate_ex) + norminv(fa_rate_ex))/2;
-% 
-%     missEstair=miss_ex1_135==1 & (stair==allstairsEx135(i));
-%     miss_ex_135(i)=mean(missEstair);
-%     crEstair=cr_ex1_135==1 & (stair==allstairsEx135(i));
-%     cr_ex_135(i)=mean(crEstair);
-% 
-% end
-% 
-% hit_rates_unex45=[];
-% fa_rates_unex45=[];
-% cons_dprime_unex45=[];
-% cons_c_unex45=[];
-% miss_unex45=[];
-% cr_unex45=[];
-% % Unexpected    
-% for i=1:length(allstairsUnex45)
-% 
-%     hitsU_stair= hitsU45==1 & (stair==allstairsUnex45(i));
-%     hit_rate_unex=mean(hitsU_stair);
-%     hit_rates_unex45(i)=hit_rate_unex;
-% 
-%     faU_stair=fa_unex45==1 & (stair==allstairsUnex45(i));
-%     fa_rate_unex=mean(faU_stair);
-%     fa_rates_unex45(i)=fa_rate_unex;
-% 
-%      %   get dprime and criterion  
-%     nh=sum(hitsU_stair);
-%     nfa=sum(faU_stair);
-%     signal=orientationPresent==1 & (stair==allstairsUnex45(i));
-%     nsignal=sum(signal);
-%     noise=orientationAbsent==1 & (stair==allstairsUnex45(i));
-%     nnoise=sum(noise);
-%     if fa_rate_unex==0 || fa_rate_unex==1  || hit_rate_unex==0  || hit_rate_unex==1 % % loglinear adjustment (Stanislaw & Todorov 1999) 
-%            nh = nh + 0.5;
-%            nfa = nfa + 0.5;
-%            nnoise = nnoise + 1;
-%            nsignal = nsignal + 1;
-%            % proportions
-%            hit_rate_unex = nh./nsignal;
-%            fa_rate_unex = nfa./nnoise;
-%     end
-% 
-%     %   get dprime and criterion
-%     cons_dprime_unex45(i)=norminv(hit_rate_unex) - norminv(fa_rate_unex);
-%     cons_c_unex45(i)=-(norminv(hit_rate_unex) + norminv(fa_rate_unex))/2;
-%     missUstair=miss_unex1_45==1 & (stair==allstairsUnex45(i));
-%     miss_unex45(i)=mean(missUstair);
-%     crUstair= cr_unex1_45==1 & (stair==allstairsUnex45(i));
-%     cr_unex45(i)=mean(crUstair);
-% end
-% 
-% hit_rates_unex135=[];
-% fa_rates_unex135=[];
-% cons_dprime_unex135=[];
-% cons_c_unex135=[];
-% miss_unex135=[];
-% cr_unex135=[];
-% % Unexpected    
-% for i=1:length(allstairsUnex135)
-% 
-%     hitsU_stair= hitsU135==1 & (stair==allstairsUnex135(i));
-%     hit_rate_unex=mean(hitsU_stair);
-%     hit_rates_unex135(i)=hit_rate_unex;
-% 
-%     faU_stair=fa_unex135==1 & (stair==allstairsUnex135(i));
-%     fa_rate_unex=mean(faU_stair);
-%     fa_rates_unex135(i)=fa_rate_unex;
-% 
-%      %   get dprime and criterion  
-%     nh=sum(hitsU_stair);
-%     nfa=sum(faU_stair);
-%     signal=orientationPresent==1 & (stair==allstairsUnex135(i));
-%     nsignal=sum(signal);
-%     noise=orientationAbsent==1 & (stair==allstairsUnex135(i));
-%     nnoise=sum(noise);
-%     if fa_rate_unex==0 || fa_rate_unex==1  || hit_rate_unex==0  || hit_rate_unex==1 % % loglinear adjustment (Stanislaw & Todorov 1999) 
-%            nh = nh + 0.5;
-%            nfa = nfa + 0.5;
-%            nnoise = nnoise + 1;
-%            nsignal = nsignal + 1;
-%            % proportions
-%            hit_rate_unex = nh./nsignal;
-%            fa_rate_unex = nfa./nnoise;
-%     end
-% 
-%     %   get dprime and criterion
-%     cons_dprime_unex135(i)=norminv(hit_rate_unex) - norminv(fa_rate_unex);
-%     cons_c_unex135(i)=-(norminv(hit_rate_unex) + norminv(fa_rate_unex))/2;
-%     missUstair=miss_unex1_135==1 & (stair==allstairsUnex135(i));
-%     miss_unex135(i)=mean(missUstair);
-%     crUstair= cr_unex1_135==1 & (stair==allstairsUnex135(i));
-%     cr_unex135(i)=mean(crUstair);
-% end
-% 
-% 
-% % stair ids
-% figure();
-% subplot(2,1,1);
-% plot(allstairsIdEx45,cons_dprime_ex45,'-v');
-% hold on
-% plot(allstairsIdEx135,cons_dprime_ex135,'-v');
-% hold on
-% plot(allstairsIdUnex45,cons_dprime_unex45,'-v');
-% hold on
-% plot(allstairsIdUnex135,cons_dprime_unex135,'-v');
-% xlabel("stairs ID")
-% ylabel("d'");
-% title("d' expected vs unexpected");
-% legend("expected 45","expected 135","unexpected 45","unexpected 135");
-% 
-% subplot(2,1,2);
-% plot(allstairsIdEx45,cons_c_ex45,'-v');
-% hold on
-% plot(allstairsIdEx135,cons_c_ex135,'-v');
-% hold on
-% plot(allstairsIdUnex45,cons_c_unex45,'-v');
-% hold on
-% plot(allstairsIdUnex135,cons_c_unex135,'-v');
-% xlabel("stairs ID")
-% ylabel("criterion");
-% title("criterion expected vs unexpected, ",subjectID);
-% legend("expected 45","expected 135","unexpected 45","unexpected 135");
-% saveas(figure(f),[plotdir_sub,'/dprime_c_split45-135_stairsID.jpg']);
-% 
-% % stair values
-% f=f+1;
-% figure();
-% subplot(2,1,1);
-% plot(allstairsEx45,cons_dprime_ex45,'-v');
-% hold on
-% plot(allstairsEx135,cons_dprime_ex135,'-v');
-% hold on
-% plot(allstairsUnex45,cons_dprime_unex45,'-v');
-% hold on
-% plot(allstairsUnex135,cons_dprime_unex135,'-v');
-% xlabel("stairs")
-% ylabel("d'");
-% title("d' expected vs unexpected");
-% legend("expected 45","expected 135","unexpected 45","unexpected 135");
-% 
-% subplot(2,1,2);
-% plot(allstairsEx45,cons_c_ex45,'-v');
-% hold on
-% plot(allstairsEx135,cons_c_ex135,'-v');
-% hold on
-% plot(allstairsUnex45,cons_c_unex45,'-v');
-% hold on
-% plot(allstairsUnex135,cons_c_unex135,'-v');
-% xlabel("stairs")
-% ylabel("criterion");
-% title("criterion expected vs unexpected, ",subjectID);
-% legend("expected 45","expected 135","unexpected 45","unexpected 135");
-% 
-% saveas(figure(f),[plotdir_sub,'/dprime_c_split45-135_stairs.jpg']);
-% 
-% 
-% 
-% %% p (correct tilt discrimination) - split by 16
-% f=f+1;
-% gratingContrastsIdx=file.d.gratingContrast;
-% skipWaffle=isnan(gratingContrastsIdx);
-% gratingContrastsIdx(skipWaffle(1:length(gratingContrastsIdx)))=[];
-% 
-% stair=file.d.stair;
-% %stair(skipWaffle(1:length(stair)))=[];
-% 
-% precueValidities=file.d.precueValidity;
-% %precueValidities(skipWaffle)=[];
-% 
-% response= file.d.targetResponseKey;
-% %response(skipWaffle)=[];
-% 
-% diffMult=file.d.differenceMultiplier;
-% %diffMult(skipWaffle(1:length(diffMult)))=[];
-% 
-% static=file.d.staticGrating;
-% %static(skipWaffle(1:length(static)))=[];
-% 
-% correct_r=(response==responseKeyIds(1) & static==1 & diffMult==-1) | (response==responseKeyIds(1) & static==2 & diffMult==1) | (response==responseKeyIds(2) & static==1 & diffMult==1) | (response==responseKeyIds(2) & static==2 & diffMult==-1);
-% 
-% orientationJudgement= cat(4,stair,precueValidities,correct_r,response);
-% nTrialsGrating=length(stair);
-% orientationJudgement=reshape(orientationJudgement,[nTrialsGrating,4]);
-% orientationJudgement_blocks=[];
-% for i=1:16
-%     orientationJudgement_blocks{i}=orientationJudgement(i*46-46+1:i*46,:);
-%     orientationJudgement_blocks{i}(skipWaffle(i*46-46+1:i*46),:)=[];
-%     %sort based on stair levels
-%     orientationJudgement_blocks{i}=sortrows(orientationJudgement_blocks{i},1); 
-%     % sort based on precue validity
-%     orientationJudgement_blocks{i}=sortrows(orientationJudgement_blocks{i},2);
-% end
-% orientationJudgement(skipWaffle(1:length(orientationJudgement)),:)=[];
-% 
-% %sort based on stair levels
-% orientationJudgement=sortrows(orientationJudgement,1); 
-% % sort based on precue validity
-% orientationJudgement=sortrows(orientationJudgement,2);
-% 
-% correctsEx=[];
-% correctsUnex=[];
-% meanCorrectPerConEx=[];
-% meanCorrectPerConUnex=[];
-% 
-% for j=1:length(orientationJudgement_blocks)
-%     correctsEx{j}=[];
-%     correctsUnex{j}=[];
-%     meanCorrectPerConEx{j}=[];
-%     meanCorrectPerConUnex{j}=[];
-%     for i=1:length(orientationJudgement_blocks{j})
-% 
-%         if orientationJudgement_blocks{j}(i,2)==1%% expected
-%             if i==1
-%                 correctsEx{j} =[correctsEx{j} orientationJudgement_blocks{j}(i,3)];
-% 
-%             elseif orientationJudgement_blocks{j}(i-1,1)==orientationJudgement_blocks{j}(i,1) 
-%                 correctsEx{j}=[correctsEx{j} orientationJudgement_blocks{j}(i,3)];
-%                 if i==length(orientationJudgement_blocks{j})
-%                     meanCorrectPerConEx{j}=[meanCorrectPerConEx{j} mean(correctsEx{j})];
-%                 end
-% 
-%             elseif  orientationJudgement_blocks{j}(i-1,1)~=orientationJudgement_blocks{j}(i,1)
-%                 meanCorrectPerConEx{j}=[meanCorrectPerConEx{j} mean(correctsEx{j})];
-%                 correctsEx{j}=[];
-%                 correctsEx{j}=[correctsEx{j} orientationJudgement_blocks{j}(i,3)];
-%                 if i==orientationJudgement_blocks{j}
-%                    meanCorrectPerConEx{j}=[meanCorrectPerConEx{j} mean(correctsEx{j})];
-%                 end
-%             end
-%         elseif orientationJudgement_blocks{j}(i,2)==2 
-%             if orientationJudgement_blocks{j}(i-1,2)==1
-%                 meanCorrectPerConEx{j}=[meanCorrectPerConEx{j} mean(correctsEx{j})];
-%                 correctsUnex{j}=[ correctsUnex{j} orientationJudgement_blocks{j}(i,3)];
-% 
-%             elseif orientationJudgement_blocks{j}(i-1,1)==orientationJudgement_blocks{j}(i,1) 
-%                 if i==length(orientationJudgement_blocks{j})
-%                      correctsUnex{j}=[ correctsUnex{j} orientationJudgement_blocks{j}(i,3)];
-%                     meanCorrectPerConUnex{j}=[meanCorrectPerConUnex{j} mean(correctsUnex{j})];
-%                 end
-%                  correctsUnex{j}=[ correctsUnex{j} orientationJudgement_blocks{j}(i,3)];
-% 
-% 
-%             elseif  orientationJudgement_blocks{j}(i-1,1)~=orientationJudgement_blocks{j}(i,1)
-%                 meanCorrectPerConUnex{j}=[meanCorrectPerConUnex{j} mean( correctsUnex{j})];
-%                  correctsUnex{j}=[];
-%                  correctsUnex{j}=[orientationJudgement_blocks{j}(i,3)];
-%                 if i==length(orientationJudgement_blocks{j})
-%                    meanCorrectPerConUnex{j}=[meanCorrectPerConUnex{j} mean( correctsUnex{j})];
-%                 end
-%             end
-%         end
-%     end
-% end
-% 
-% orientationJudgementEx=[];
-% orientationJudgementUnex=[];
-% for j=1:length(orientationJudgement_blocks)
-%     orientationJudgementEx{j}=orientationJudgement_blocks{j}(orientationJudgement_blocks{j}(:,2)==1);
-%     orientationJudgementUnex{j}=orientationJudgement_blocks{j}(orientationJudgement_blocks{j}(:,2)==2);
-% end
-% allstairsEx=[];
-% allstairsUnex=[];
-% for j=1:length(orientationJudgement_blocks)
-%     allstairsEx{j}=unique(orientationJudgementEx{j});
-%     allstairsUnex{j}=unique(orientationJudgementUnex{j});
-% end
-% 
-% allstairsIdEx=[];
-% allstairsIdUnex=[];
-% for j=1:length(orientationJudgement_blocks)
-%     allstairsIdEx{j}=[];
-%     allstairsIdUnex{j}=[];
-%     for i=1:length(allstairsEx{j})
-%         allstairsIdEx{j}=[allstairsIdEx{j} find(file.p.stairs==allstairsEx{j}(i))];
-%     end
-%     for i=1:length(allstairsUnex{j})
-%         allstairsIdUnex{j}=[allstairsIdUnex{j} find(file.p.stairs==allstairsUnex{j}(i))];
-%     end
-% end
-% 
-% figure(); 
-% tiledlayout(2,8)
-% for j=1:length(orientationJudgement_blocks)
-%     nexttile(j)
-%     plot(allstairsEx{j},meanCorrectPerConEx{j},'blue-v');
-%     hold on
-%     plot(allstairsUnex{j},meanCorrectPerConUnex{j},'red-v');
-%     xlabel("stair value")
-%     ylabel("p(correct tilt discrimination)");
-%     title("block " + j);
-% end
-% sgtitle("p (correct tilt discrimination) for expected vs unexpected in the 16 blocks");
-% legend("expected","unexpected");
-% saveas(figure(f),[plotdir_sub,'/pcorrecttilt_blocks_stairs.jpg']);
-% f=f+1;
-% figure();
-% tiledlayout(2,8)
-% for j=1:length(orientationJudgement_blocks)
-%     nexttile(j)
-%     plot(allstairsIdEx{j},meanCorrectPerConEx{j},'blue-v');
-%     hold on
-%     plot(allstairsIdUnex{j},meanCorrectPerConUnex{j},'red-v');
-%     xlabel("stair ID")
-%     ylabel("p(correct tilt discrimination)");
-%     title("block " + j);
-% end
-% sgtitle("p (correct tilt discrimination) for expected vs unexpected in the 16 blocks");
-% legend("expected","unexpected");
-% saveas(figure(f),[plotdir_sub,'/pcorrecttilt_blocks_stairsID.jpg']);
-% 
 
-% %% d' criterion signal: expected, split by orientation (needs to be completed)
-% 
-% % %signal present= expected
-% % %signal absent = unexpected
-% signalPresent=1;
-% signalAbsent=2;
-% 
-% gratingContrastsIdx=file.d.gratingContrast;
-% skipWaffle=isnan(gratingContrastsIdx);
-% gratingContrastsIdx(skipWaffle(1:length(gratingContrastsIdx)))=[];
-% 
-% % get all stair values and remove waffle trials
-% stair=file.d.stair;
-% stair(skipWaffle(1:length(stair)))=[];
-% % get all validities and remove waffle trials
-% precueValidities=file.d.precueValidity;
-% precueValidities(skipWaffle)=[];
-% % get all responses and remove waffle trials
-% response= file.d.targetResponseKey;
-% response(skipWaffle(1:length(response)))=[];
-% % get all difference multipliers and remove waffle trials
-% diffMult=file.d.differenceMultiplier;
-% diffMult(skipWaffle(1:length(diffMult)))=[];
-% % get all static grating values and remove waffle trials
-% static=file.d.staticGrating;
-% static(skipWaffle(1:length(static)))=[];
-% 
-% % a correct response occurs when the response is 9 and static is standard
-% % and multiplier is -1, response is 9 and static is test and multiplier is 1, 
-% % response is 0 and static is test and multiplier is 1, response is 0 and
-% % static is standard and multiplier is 2
-% correct_r=(response==responseKeyIds(1) & static==1 & diffMult==-1) | (response==responseKeyIds(1) & static==2 & diffMult==1) | (response==responseKeyIds(2) & static==1 & diffMult==1) | (response==responseKeyIds(2) & static==2 & diffMult==-1);
-% 
-% response_45=(response==responseKeyIds(2)); %response was 0 ie +45
-% response_135=(response==responseKeyIds(1)); %response was 9 ie -45 or 135
-% 
-% orientationJudgement= cat(8,stair,precueValidities,correct_r,response_45,response_135,response,static,diffMult);
-% nTrialsGrating=length(gratingContrastsIdx);
-% orientationJudgement=reshape(orientationJudgement,[nTrialsGrating,8]);
-% %sort based on stair values
-% orientationJudgement=sortrows(orientationJudgement,1); 
-% % sort based on precue validity
-% orientationJudgement=sortrows(orientationJudgement,2);
-% 
-% 
-% % Expected
-% %response present is as expected (i.e. responsed 45 when it was 45 and -45
-% %when it was -45)
-% %observer responded with expected orientation 
-% responsePresent=(response_45==1 & diffMult==1 & static==1) | (response_45==1 & static==2 & diffMult==-1) | (response_135==1 & static==1 & diffMult==-1) | (response_135==1 & static==2 & diffMult==1);
-% % signal: expected orientation
-% validPresent=precueValidities==1;
-% 
-% % get hits 
-% hits=responsePresent==1 & validPresent==1;
-% %signal absent: was unexpected
-% validAbsent=precueValidities==2;
-% % get false alarms for expected
-% fa_ex=responsePresent==1 & validAbsent==1;
-% 
-% % response absent is responsed -45 when +45 and +45 when -45
-% responseAbsent=(response_135==1 & diffMult==1 & static==1) | (response_135==1 & static==2 & diffMult==-1) | (response_45==1 & static==1 & diffMult==-1) | (response_45==1 & static==2 & diffMult==1);
-% % misses  
-% miss_ex1= responseAbsent==1 & validPresent==1;
-% %correct rejection
-% cr_ex1=responseAbsent==1 & validAbsent==1;
-% 
-% allstairs=unique(stair);
-% allstairsId=[];
-% 
-% for i=1:length(allstairs)
-%     allstairsId=[allstairsId find(file.p.stairs==allstairs(i))];
-% end
-% 
-% 
-% hit_rates_ex=[];
-% fa_rates_ex=[];
-% cons_dprime_ex=[];
-% cons_c_ex=[];
-% miss_ex=[];
-% cr_ex=[];
-% 
-% 
-% for i=1:length(allstairs)
-% 
-%     % Expected
-%     hitsEstair=(hits==1) & (stair==allstairs(i));
-%     hit_rate_ex=mean(hitsEstair);
-%     hit_rates_ex(i)=hit_rate_ex;
-% 
-%     faEstair=(fa_ex==1) & (stair==allstairs(i));
-%     fa_rate_ex=mean(faEstair);
-%     fa_rates_ex(i)=fa_rate_ex;
-% 
-%     %   get dprime and criterion  
-%     nh=sum(hitsEstair);
-%     nfa=sum(faEstair);
-%     signal=validPresent==1 & (stair==allstairs(i));
-%     nsignal=sum(signal);
-%     noise=validAbsent==1 & (stair==allstairs(i));
-%     nnoise=sum(noise);
-%     if fa_rate_ex==0 || fa_rate_ex==1  || hit_rate_ex==0  || hit_rate_ex==1 % % loglinear adjustment (Stanislaw & Todorov 1999) 
-%            nh = nh + 0.5;
-%            nfa = nfa + 0.5;
-%            nnoise = nnoise + 1;
-%            nsignal = nsignal + 1;
-%            % proportions
-%            hit_rate_ex = nh./nsignal;
-%            fa_rate_ex = nfa./nnoise;
-%     end
-% 
-%     cons_dprime_ex(i)=norminv(hit_rate_ex) - norminv(fa_rate_ex);
-%     cons_c_ex(i)=-(norminv(hit_rate_ex) + norminv(fa_rate_ex))/2;
-% 
-%     missEstair=miss_ex1==1 & (stair==allstairs(i));
-%     miss_ex(i)=mean(missEstair);
-%     crEstair=cr_ex1==1 & (stair==allstairs(i));
-%     cr_ex(i)=mean(crEstair);
-% 
-% end
-% 
-% 
-% % stair ids
-% figure();
-% subplot(2,1,1);
-% plot(allstairsId,cons_dprime_ex,'blue-v');
-% xlabel("stair IDs")
-% ylabel("d'");
-% title("d'");
-% 
-% subplot(2,1,2);
-% plot(allstairsId,cons_c_ex,'blue-v');
-% xlabel("stair IDs")
-% ylabel("criterion");
-% title("criterion, ",subjectID);
-% 
-% % stair values
-% 
-% figure();
-% subplot(2,1,1);
-% plot(allstairs,cons_dprime_ex,'blue-v');
-% xlabel("stairs")
-% ylabel("d'");
-% title("d'");
-% 
-% subplot(2,1,2);
-% plot(allstairs,cons_c_ex,'blue-v');
-% xlabel("stairs")
-% ylabel("criterion");
-% title("criterion, ",subjectID);
+skipWaffle1=isnan(gratingContrastsIdx1);
+gratingContrastsIdx1(skipWaffle1(1:length(gratingContrastsIdx1)))=[];
+
+skipWaffle2=isnan(gratingContrastsIdx2);
+gratingContrastsIdx2(skipWaffle2(1:length(gratingContrastsIdx2)))=[];
+
+skipWaffle3=isnan(gratingContrastsIdx3);
+gratingContrastsIdx3(skipWaffle3(1:length(gratingContrastsIdx3)))=[];
+
+precueValidities=file.d.precueValidity;
+precueValidities(file.d.stopThisTrial==1)=[];
+
+precueValidities1=precueValidities(1:length(precueValidities)/2);
+precueValidities2=precueValidities(length(precueValidities)/2+1:12*length(precueValidities)/16);
+precueValidities3= precueValidities(12*length(precueValidities)/16 +1 :length(precueValidities));
+
+precueValidities1(skipWaffle1)=[];
+precueValidities2(skipWaffle2)=[];
+precueValidities3(skipWaffle3)=[];
+
+response= file.d.targetResponseKey;
+response(file.d.stopThisTrial==1)=[];
+
+response1=response(1:length(response)/2);
+response2=response(length(response)/2+1:12*length(response)/16);
+response3= response(12*length(response)/16 +1 :length(response));
+
+response1(skipWaffle1)=[];
+response2(skipWaffle2)=[];
+response3(skipWaffle3)=[];
+
+diffMult=file.d.differenceMultiplier;
+diffMult(file.d.stopThisTrial==1)=[];
+
+diffMult1=diffMult(1:length(diffMult)/2);
+diffMult2=diffMult(length(diffMult)/2+1:12*length(diffMult)/16);
+diffMult3= diffMult(12*length(diffMult)/16 +1 :length(diffMult));
+
+diffMult1(skipWaffle1(1:length(diffMult1)))=[];
+diffMult2(skipWaffle2(1:length(diffMult2)))=[];
+diffMult3(skipWaffle3(1:length(diffMult3)))=[];
+
+static=file.d.staticGrating;
+static(file.d.stopThisTrial==1)=[];
+
+static1=static(1:length(static)/2);
+static2=static(length(static)/2+1:12*length(static)/16);
+static3= static(12*length(static)/16 +1 :length(static));
+static1(skipWaffle1(1:length(static1)))=[];
+static2(skipWaffle2(1:length(static2)))=[];
+static3(skipWaffle3(1:length(static3)))=[];
+
+stair=file.d.stair;
+stair(file.d.stopThisTrial==1)=[];
+
+stair1=stair(1:length(stair)/2);
+stair2=stair(length(stair)/2+1:12*length(stair)/16);
+stair3= stair(12*length(stair)/16 +1 :length(stair));
+
+stair1(skipWaffle1(1:length(stair1)))=[];
+stair1(isnan(stair1))=[];
+stair2(skipWaffle2(1:length(stair2)))=[];
+stair2(isnan(stair2))=[];
+stair3(skipWaffle3(1:length(stair3)))=[];
+stair3(isnan(stair3))=[];
+
+correct_r1=(response1==responseKeyIds(1) & static1==1 & diffMult1==-1) | (response1==responseKeyIds(1) & static1==2 & diffMult1==1) | (response1==responseKeyIds(2) & static1==1 & diffMult1==1) | (response1==responseKeyIds(2) & static1==2 & diffMult1==-1);
+correct_r2=(response2==responseKeyIds(1) & static2==1 & diffMult2==-1) | (response2==responseKeyIds(1) & static2==2 & diffMult2==1) | (response2==responseKeyIds(2) & static2==1 & diffMult2==1) | (response2==responseKeyIds(2) & static2==2 & diffMult2==-1);
+correct_r3=(response3==responseKeyIds(1) & static3==1 & diffMult3==-1) | (response3==responseKeyIds(1) & static3==2 & diffMult3==1) | (response3==responseKeyIds(2) & static3==1 & diffMult3==1) | (response3==responseKeyIds(2) & static3==2 & diffMult3==-1);
+
+
+correct_exp1=correct_r1==1 & precueValidities1==1;
+correct_unexp1= correct_r1==1 & precueValidities1==2;
+
+correct_exp2=correct_r2==1 & precueValidities2==1;
+correct_unexp2= correct_r2==1 & precueValidities2==2;
+correct_exp3=correct_r3==1 & precueValidities3==1;
+correct_unexp3= correct_r3==1 & precueValidities3==2;
+
+orientationJudgement1= cat(4,stair1,precueValidities1,correct_r1,response1);
+nTrialsGrating1=length(precueValidities1);
+orientationJudgement1=reshape(orientationJudgement1,[nTrialsGrating1,4]);
+%sort based on stair levels
+orientationJudgement1=sortrows(orientationJudgement1,1); 
+
+
+orientationJudgement2= cat(4,stair2,precueValidities2,correct_r2,response2);
+nTrialsGrating2=length(precueValidities2);
+orientationJudgement2=reshape(orientationJudgement2,[nTrialsGrating2,4]);
+%sort based on stair levels
+orientationJudgement2=sortrows(orientationJudgement2,1); 
+
+orientationJudgement3= cat(4,stair3,precueValidities3,correct_r3,response3);
+nTrialsGrating3=length(precueValidities3);
+orientationJudgement3=reshape(orientationJudgement3,[nTrialsGrating3,4]);
+%sort based on stair levels
+orientationJudgement3=sortrows(orientationJudgement3,1); 
+
+
+sum(precueValidities1==2)
+sum(correct_unexp1)
+mean_unexp1=sum(correct_unexp1)/sum(precueValidities1==2)
+sum(precueValidities1==1)
+sum(correct_exp1)
+mean_exp1=sum(correct_exp1)/sum(precueValidities1==1)
+
+sum(precueValidities2==2)
+sum(correct_unexp2)
+mean_unexp2=sum(correct_unexp2)/sum(precueValidities2==2)
+sum(precueValidities2==1)
+sum(correct_exp2)
+mean_exp2=sum(correct_exp2)/sum(precueValidities2==1)
+
+sum(precueValidities3==2)
+sum(correct_unexp3)
+mean_unexp3=sum(correct_unexp3)/sum(precueValidities3==2)
+sum(precueValidities3==1)
+sum(correct_exp3)
+mean_exp3=sum(correct_exp3)/sum(precueValidities3==1)
+
+
+figure()
+subplot(3,1,1)
+x = ["Expected" "Unexpected"];
+bar(x,[mean_exp1 mean_unexp1],'FaceColor',[0 .5 .5])
+title('Percent Correct from Kok Task')
+ylabel('Percent Correct')
+
+subplot(3,1,2)
+x = ["Expected" "Unexpected"];
+bar(x,[mean_exp2 mean_unexp2],'FaceColor',[0 .5 .5])
+title('Percent Correct from Kok Task')
+ylabel('Percent Correct')
+
+subplot(3,1,3)
+x = ["Expected" "Unexpected"];
+bar(x,[mean_exp3 mean_unexp3],'FaceColor',[0 .5 .5])
+title('Percent Correct from Kok Task')
+ylabel('Percent Correct')
+
+saveas(figure(f),[plotdir_sub,'/percentcorrect_split_blocks.jpg']);
+
+f=f+1;
+
+meantilt_exp1=sum(orientationJudgement1(orientationJudgement1(:,2)==1))/sum(orientationJudgement1(:,2)==1);
+meantilt_unexp1=sum(orientationJudgement1(orientationJudgement1(:,2)==2))/sum(orientationJudgement1(:,2)==2);
+
+meantilt_exp2=sum(orientationJudgement2(orientationJudgement2(:,2)==1))/sum(orientationJudgement2(:,2)==1);
+meantilt_unexp2=sum(orientationJudgement2(orientationJudgement2(:,2)==2))/sum(orientationJudgement2(:,2)==2);
+
+meantilt_exp3=sum(orientationJudgement3(orientationJudgement3(:,2)==1))/sum(orientationJudgement3(:,2)==1);
+meantilt_unexp3=sum(orientationJudgement3(orientationJudgement3(:,2)==2))/sum(orientationJudgement3(:,2)==2);
+
+
+figure()
+subplot(3,1,1)
+bar(x,[meantilt_exp1 meantilt_unexp1],'FaceColor',[0 .5 .7])
+title('Mean Tilt from Kok Task')
+ylabel('Mean Tilt')
+subplot(3,1,2)
+bar(x,[meantilt_exp2 meantilt_unexp2],'FaceColor',[0 .5 .7])
+title('Mean Tilt from Kok Task')
+ylabel('Mean Tilt')
+subplot(3,1,3)
+bar(x,[meantilt_exp3 meantilt_unexp3],'FaceColor',[0 .5 .7])
+title('Mean Tilt from Kok Task')
+ylabel('Mean Tilt')
+
+saveas(figure(f),[plotdir_sub,'/meantilt_split_blocks.jpg']);
+
+
+%% Waffle Relevant Plots: P(test stronger) by blocks 1-8, 9-12, and 13-14
+ 
+f=f+1;
+
+waffleContrastsIdx=file.d.plaidContrast;
+skipZero=file.d.stopThisTrial==1;
+waffleContrastsIdx(skipZero)=[];
+
+waffleContrastsIdx1=waffleContrastsIdx(1:length(waffleContrastsIdx)/2);
+waffleContrastsIdx2=waffleContrastsIdx(length(waffleContrastsIdx)/2+1:12*length(waffleContrastsIdx)/16);
+waffleContrastsIdx3= waffleContrastsIdx(12*length(waffleContrastsIdx)/16 +1 :length(waffleContrastsIdx));
+
+skipNotWaffle1=isnan(waffleContrastsIdx1);
+waffleContrastsIdx1(skipNotWaffle1)=[];
+
+skipNotWaffle2=isnan(waffleContrastsIdx2);
+waffleContrastsIdx2(skipNotWaffle2)=[];
+
+skipNotWaffle3=isnan(waffleContrastsIdx3);
+waffleContrastsIdx3(skipNotWaffle3)=[];
+
+waffleContrasts1=[];
+waffleContrasts2=[];
+waffleContrasts3=[];
+for i=1:length(waffleContrastsIdx1)
+    index=waffleContrastsIdx1(i);
+    waffleContrasts1(i)=file.p.plaidContrasts1(index);
+end
+for i=1:length(waffleContrastsIdx2)
+    index=waffleContrastsIdx2(i);
+    waffleContrasts2(i)=file.p.plaidContrasts1(index);
+end
+for i=1:length(waffleContrastsIdx3)
+    index=waffleContrastsIdx3(i);
+    waffleContrasts3(i)=file.p.plaidContrasts1(index);
+end
+
+precueValidities=file.d.precueValidity;
+precueValidities(skipZero)=[];
+precueValidities1=precueValidities(1:length(precueValidities)/2);
+precueValidities2=precueValidities(length(precueValidities)/2+1:12*length(precueValidities)/16);
+precueValidities3= precueValidities(12*length(precueValidities)/16 +1 :length(precueValidities));
+
+precueValidities1(skipNotWaffle1)=[];
+precueValidities2(skipNotWaffle2)=[];
+precueValidities3(skipNotWaffle3)=[];
+
+
+
+waffleOrientation=file.d.plaidOrientation;
+waffleOrientation(skipZero)=[];
+
+waffleOrientation1=waffleOrientation(1:length(waffleOrientation)/2);
+waffleOrientation2=waffleOrientation(length(waffleOrientation)/2+1:12*length(waffleOrientation)/16);
+waffleOrientation3= waffleOrientation(12*length(waffleOrientation)/16 +1 :length(waffleOrientation));
+
+waffleOrientation1(skipNotWaffle1)=[];
+waffleOrientation2(skipNotWaffle2)=[];
+waffleOrientation3(skipNotWaffle3)=[];
+
+
+responses= file.d.targetResponseKey;
+responses(skipZero)=[];
+
+responses1=responses(1:length(responses)/2);
+responses2=responses(length(responses)/2+1:12*length(responses)/16);
+responses3= responses(12*length(responses)/16 +1 :length(responses));
+
+responses1(skipNotWaffle1)=[];
+responses2(skipNotWaffle2)=[];
+responses3(skipNotWaffle3)=[];
+
+testStronger1=[];
+testStronger2=[];
+testStronger3=[];
+
+for i=1:length(responses1)
+    % if they respond with -45 and orientation is -45, then they chose the
+    % test as stronger
+    if responses1(i)==responseKeyIds(1) && waffleOrientation1(i)==1 
+        testStronger1=[testStronger1 1];
+
+    % if they respond with +45 and orientation is +45, then they chose the
+    % test as stronger
+    elseif responses1(i)==responseKeyIds(2) && waffleOrientation1(i)==2
+        testStronger1=[testStronger1 1];
+    else
+        testStronger1=[testStronger1 0];
+    end
+end
+
+for i=1:length(responses2)
+    % if they respond with -45 and orientation is -45, then they chose the
+    % test as stronger
+    if responses2(i)==responseKeyIds(1) && waffleOrientation2(i)==1 
+        testStronger2=[testStronger2 1];
+
+    % if they respond with +45 and orientation is +45, then they chose the
+    % test as stronger
+    elseif responses2(i)==responseKeyIds(2) && waffleOrientation2(i)==2
+        testStronger2=[testStronger2 1];
+    else
+        testStronger2=[testStronger2 0];
+    end
+end
+
+for i=1:length(responses3)
+    % if they respond with -45 and orientation is -45, then they chose the
+    % test as stronger
+    if responses3(i)==responseKeyIds(1) && waffleOrientation3(i)==1 
+        testStronger3=[testStronger3 1];
+
+    % if they respond with +45 and orientation is +45, then they chose the
+    % test as stronger
+    elseif responses3(i)==responseKeyIds(2) && waffleOrientation3(i)==2
+        testStronger3=[testStronger3 1];
+    else
+        testStronger3=[testStronger3 0];
+    end
+end
+
+contrastJudgement1= cat(4,waffleContrasts1,precueValidities1,waffleOrientation1,testStronger1);
+nTrialsWaffle1=length(waffleContrastsIdx1);
+contrastJudgement1=reshape(contrastJudgement1,[nTrialsWaffle1,4]);
+%sort based on contrast levels
+contrastJudgement1=sortrows(contrastJudgement1,1); 
+% sort based on precue validity
+contrastJudgement1=sortrows(contrastJudgement1,2);
+
+contrastJudgement2= cat(4,waffleContrasts2,precueValidities2,waffleOrientation2,testStronger2);
+nTrialsWaffle2=length(waffleContrastsIdx2);
+contrastJudgement2=reshape(contrastJudgement2,[nTrialsWaffle2,4]);
+%sort based on contrast levels
+contrastJudgement2=sortrows(contrastJudgement2,1); 
+% sort based on precue validity
+contrastJudgement2=sortrows(contrastJudgement2,2);
+
+contrastJudgement3= cat(4,waffleContrasts3,precueValidities3,waffleOrientation3,testStronger3);
+nTrialsWaffle3=length(waffleContrastsIdx3);
+contrastJudgement3=reshape(contrastJudgement3,[nTrialsWaffle3,4]);
+%sort based on contrast levels
+contrastJudgement3=sortrows(contrastJudgement3,1); 
+% sort based on precue validity
+contrastJudgement3=sortrows(contrastJudgement3,2);
+
+strongerEx1=[];
+strongerUnex1=[];
+meanStrongerPerConEx1=[];
+meanStrongerPerConUnex1=[];
+for i=1:length(responses1)
+    if contrastJudgement1(i,2)==1%% expected
+        if i==1
+            strongerEx1=[strongerEx1 contrastJudgement1(i,4)];
+
+        elseif contrastJudgement1(i-1,1)==contrastJudgement1(i,1) 
+            strongerEx1=[strongerEx1 contrastJudgement1(i,4)];
+            if i==length(responses1)
+                strongerEx1=[strongerEx1 contrastJudgement1(i,4)];
+                meanStrongerPerConEx1=[meanStrongerPerConEx1 mean(strongerEx1)];
+            end
+
+        elseif  contrastJudgement1(i-1,1)~=contrastJudgement1(i,1)
+            meanStrongerPerConEx1=[meanStrongerPerConEx1 mean(strongerEx1)];
+            strongerEx1=[];
+            strongerEx1=[strongerEx1 contrastJudgement1(i,4)];
+        end
+    elseif contrastJudgement1(i,2)==2 
+        if contrastJudgement1(i-1,2)==1
+            meanStrongerPerConEx1=[meanStrongerPerConEx1 mean(strongerEx1)];
+            strongerUnex1=[strongerUnex1 contrastJudgement1(i,4)];
+
+        elseif contrastJudgement1(i-1,1)==contrastJudgement1(i,1) 
+            if i==length(responses1)
+                strongerUnex1=[strongerUnex1 contrastJudgement1(i,4)];
+                meanStrongerPerConUnex1=[meanStrongerPerConUnex1 mean(strongerUnex1)];
+            end
+            strongerUnex1=[strongerUnex1 contrastJudgement1(i,4)];
+
+
+        elseif  contrastJudgement1(i-1,1)~=contrastJudgement1(i,1)
+            meanStrongerPerConUnex1=[meanStrongerPerConUnex1 mean(strongerUnex1)];
+            strongerUnex1=[];
+            strongerUnex1=[contrastJudgement1(i,4)];
+        end
+    end
+end
+
+contrastJudgementEx1=contrastJudgement1(contrastJudgement1(:,2)==1);
+contrastJudgementUnex1=contrastJudgement1(contrastJudgement1(:,2)==2);
+
+strongerEx2=[];
+strongerUnex2=[];
+meanStrongerPerConEx2=[];
+meanStrongerPerConUnex2=[];
+for i=1:length(responses2)
+    if contrastJudgement2(i,2)==1%% expected
+        if i==1
+            strongerEx2=[strongerEx2 contrastJudgement2(i,4)];
+
+        elseif contrastJudgement2(i-1,1)==contrastJudgement2(i,1) 
+            strongerEx2=[strongerEx2 contrastJudgement2(i,4)];
+            if i==length(responses1)
+                strongerEx1=[strongerEx2 contrastJudgement2(i,4)];
+                meanStrongerPerConEx2=[meanStrongerPerConEx2 mean(strongerEx2)];
+            end
+
+        elseif  contrastJudgement2(i-1,1)~=contrastJudgement2(i,1)
+            meanStrongerPerConEx2=[meanStrongerPerConEx2 mean(strongerEx2)];
+            strongerEx2=[];
+            strongerEx2=[strongerEx2 contrastJudgement2(i,4)];
+        end
+    elseif contrastJudgement2(i,2)==2 
+        if contrastJudgement2(i-1,2)==1
+            meanStrongerPerConEx2=[meanStrongerPerConEx2 mean(strongerEx2)];
+            strongerUnex2=[strongerUnex2 contrastJudgement2(i,4)];
+
+        elseif contrastJudgement2(i-1,1)==contrastJudgement2(i,1) 
+            if i==length(responses2)
+                strongerUnex2=[strongerUnex2 contrastJudgement2(i,4)];
+                meanStrongerPerConUnex2=[meanStrongerPerConUnex2 mean(strongerUnex2)];
+            end
+            strongerUnex2=[strongerUnex2 contrastJudgement2(i,4)];
+
+
+        elseif  contrastJudgement2(i-1,1)~=contrastJudgement2(i,1)
+            meanStrongerPerConUnex2=[meanStrongerPerConUnex2 mean(strongerUnex2)];
+            strongerUnex2=[];
+            strongerUnex2=[contrastJudgement2(i,4)];
+        end
+    end
+end
+
+contrastJudgementEx2=contrastJudgement2(contrastJudgement2(:,2)==1);
+contrastJudgementUnex2=contrastJudgement2(contrastJudgement2(:,2)==2);
+
+
+strongerEx3=[];
+strongerUnex3=[];
+meanStrongerPerConEx3=[];
+meanStrongerPerConUnex3=[];
+for i=1:length(responses3)
+    if contrastJudgement3(i,2)==1%% expected
+        if i==1
+            strongerEx3=[strongerEx3 contrastJudgement3(i,4)];
+
+        elseif contrastJudgement3(i-1,1)==contrastJudgement3(i,1) 
+            strongerEx3=[strongerEx3 contrastJudgement3(i,4)];
+            if i==length(responses1)
+                strongerEx3=[strongerEx3 contrastJudgement3(i,4)];
+                meanStrongerPerConEx3=[meanStrongerPerConEx3 mean(strongerEx3)];
+            end
+
+        elseif  contrastJudgement3(i-1,1)~=contrastJudgement3(i,1)
+            meanStrongerPerConEx3=[meanStrongerPerConEx3 mean(strongerEx3)];
+            strongerEx3=[];
+            strongerEx3=[strongerEx3 contrastJudgement3(i,4)];
+        end
+    elseif contrastJudgement3(i,2)==2 
+        if contrastJudgement3(i-1,2)==1
+            meanStrongerPerConEx3=[meanStrongerPerConEx3 mean(strongerEx3)];
+            strongerUnex3=[strongerUnex3 contrastJudgement3(i,4)];
+
+        elseif contrastJudgement3(i-1,1)==contrastJudgement3(i,1) 
+            if i==length(responses2)
+                strongerUnex3=[strongerUnex3 contrastJudgement3(i,4)];
+                meanStrongerPerConUnex3=[meanStrongerPerConUnex3 mean(strongerUnex3)];
+            end
+            strongerUnex3=[strongerUnex3 contrastJudgement3(i,4)];
+
+
+        elseif  contrastJudgement3(i-1,1)~=contrastJudgement3(i,1)
+            meanStrongerPerConUnex3=[meanStrongerPerConUnex3 mean(strongerUnex3)];
+            strongerUnex3=[];
+            strongerUnex3=[contrastJudgement3(i,4)];
+        end
+    end
+end
+
+contrastJudgementEx3=contrastJudgement3(contrastJudgement3(:,2)==1);
+contrastJudgementUnex3=contrastJudgement3(contrastJudgement3(:,2)==2);
+
+allconsEx1=unique(contrastJudgementEx1);
+allconsUnex1=unique(contrastJudgementUnex1);
+allconsEx2=unique(contrastJudgementEx2);
+allconsUnex2=unique(contrastJudgementUnex2);
+allconsEx3=unique(contrastJudgementEx3);
+allconsUnex3=unique(contrastJudgementUnex3);
+figure();
+plot(allconsEx1,meanStrongerPerConEx1,'blue-v');
+hold on
+plot(allconsUnex1,meanStrongerPerConUnex1,'red-v');
+xlabel("contrasts")
+ylabel("p(test stronger)");
+title("p(test stronger) for expected vs unexpected, blocks 1-8",subjectID);
+saveas(figure(f),[plotdir_sub,'/pteststronger_split_blocks18.jpg']);
+
+f=f+1;
+figure();
+plot(allconsEx2,meanStrongerPerConEx2,'blue-v');
+hold on
+plot(allconsUnex2,meanStrongerPerConUnex2,'red-v');
+xlabel("contrasts")
+ylabel("p(test stronger)");
+title("p(test stronger) for expected vs unexpected, blocks 9-12",subjectID);
+saveas(figure(f),[plotdir_sub,'/pteststronger_split_blocks912.jpg']);
+
+f=f+1;
+figure();
+plot(allconsEx3,meanStrongerPerConEx3,'blue-v');
+hold on
+plot(allconsUnex3,meanStrongerPerConUnex3,'red-v');
+xlabel("contrasts")
+ylabel("p(test stronger)");
+title("p(test stronger) for expected vs unexpected, blocks 13-16 ",subjectID);
+legend("expected","unexpected");
+saveas(figure(f),[plotdir_sub,'/pteststronger_split_blocks1316.jpg']);
+
+
+%% P(reported +45) for blocks 1-8,9-12,13-14
+
+f=f+1;
+waffleContrastsIdx=file.d.plaidContrast;
+skipZero=file.d.stopThisTrial==1;
+
+waffleContrastsIdx(skipZero)=[];
+waffleContrastsIdx1=waffleContrastsIdx(1:length(waffleContrastsIdx)/2);
+waffleContrastsIdx2=waffleContrastsIdx(length(waffleContrastsIdx)/2+1:12*length(waffleContrastsIdx)/16);
+waffleContrastsIdx3= waffleContrastsIdx(12*length(waffleContrastsIdx)/16 +1 :length(waffleContrastsIdx));
+
+skipNotWaffle1=isnan(waffleContrastsIdx1);
+skipNotWaffle2=isnan(waffleContrastsIdx2);
+skipNotWaffle3=isnan(waffleContrastsIdx3);
+
+waffleContrastsIdx1(skipNotWaffle1)=[];
+waffleContrastsIdx2(skipNotWaffle2)=[];
+waffleContrastsIdx3(skipNotWaffle3)=[];
+
+waffleContrasts1=[];
+difference1=[];
+waffleContrasts2=[];
+difference2=[];
+waffleContrasts3=[];
+difference3=[];
+
+waffleOrientation=file.d.plaidOrientation; 
+waffleOrientation(skipZero)=[];
+waffleOrientation1=waffleOrientation(1:length(waffleOrientation)/2);
+waffleOrientation2=waffleOrientation(length(waffleOrientation)/2+1:12*length(waffleOrientation)/16);
+waffleOrientation3= waffleOrientation(12*length(waffleOrientation)/16 +1 :length(waffleOrientation));
+
+waffleOrientation1(skipNotWaffle1)=[];
+waffleOrientation2(skipNotWaffle2)=[];
+waffleOrientation3(skipNotWaffle3)=[];
+
+
+for i=1:length(waffleContrastsIdx1)
+    index=waffleContrastsIdx1(i);
+    waffleContrasts1(i)=file.p.plaidContrasts1(index);
+    if waffleContrasts1(i)==file.p.plaidContrasts1(4)
+            difference1(i)=0;
+    elseif waffleOrientation1(i)==1   %if orientation is -45 then difference is positive, 
+            difference1(i)=file.p.plaidContrasts2-waffleContrasts1(i); %so difference based on
+           
+    elseif waffleOrientation1(i)==2 %if orientation is +45 then difference is positive
+            difference1(i)=waffleContrasts1(i)-file.p.plaidContrasts2;
+    end
+end
+
+for i=1:length(waffleContrastsIdx2)
+    index=waffleContrastsIdx2(i);
+    waffleContrasts2(i)=file.p.plaidContrasts1(index);
+    if waffleContrasts2(i)==file.p.plaidContrasts1(4)
+            difference2(i)=0;
+    elseif waffleOrientation2(i)==1   %if orientation is -45 then difference is positive, 
+            difference2(i)=file.p.plaidContrasts2-waffleContrasts2(i); %so difference based on
+           
+    elseif waffleOrientation2(i)==2 %if orientation is +45 then difference is positive
+            difference2(i)=waffleContrasts2(i)-file.p.plaidContrasts2;
+    end
+end
+
+for i=1:length(waffleContrastsIdx3)
+    index=waffleContrastsIdx3(i);
+    waffleContrasts3(i)=file.p.plaidContrasts1(index);
+    if waffleContrasts3(i)==file.p.plaidContrasts1(4)
+            difference3(i)=0;
+    elseif waffleOrientation3(i)==1   %if orientation is -45 then difference is positive, 
+            difference3(i)=file.p.plaidContrasts2-waffleContrasts3(i); %so difference based on
+           
+    elseif waffleOrientation3(i)==2 %if orientation is +45 then difference is positive
+            difference3(i)=waffleContrasts3(i)-file.p.plaidContrasts2;
+    end
+end
+
+
+precueValidities=file.d.precueValidity;
+precueValidities(skipZero)=[];
+
+precueValidities1=precueValidities(1:length(precueValidities)/2);
+precueValidities2=precueValidities(length(precueValidities)/2+1:12*length(precueValidities)/16);
+precueValidities3= precueValidities(12*length(precueValidities)/16 +1 :length(precueValidities));
+
+precueValidities1(skipNotWaffle1)=[];
+precueValidities2(skipNotWaffle2)=[];
+precueValidities3(skipNotWaffle3)=[];
+
+responses= file.d.targetResponseKey;
+responses(skipZero)=[];
+responses1=responses(1:length(responses)/2);
+responses2=responses(length(responses)/2+1:12*length(responses)/16);
+responses3= responses(12*length(responses)/16 +1 :length(responses));
+
+responses1(skipNotWaffle1)=[];
+responses2(skipNotWaffle2)=[];
+responses3(skipNotWaffle3)=[];
+
+
+response1_45=(responses1==responseKeyIds(2));
+response1_135=(responses1==responseKeyIds(1));
+response2_45=(responses2==responseKeyIds(2));
+response2_135=(responses2==responseKeyIds(1));
+response3_45=(responses3==responseKeyIds(2));
+response3_135=(responses3==responseKeyIds(1));
+
+correct_r1=(responses1==responseKeyIds(1) & waffleOrientation1==1) | (responses1==responseKeyIds(2) & waffleOrientation1==2);
+correct_r2=(responses2==responseKeyIds(1) & waffleOrientation2==1) | (responses2==responseKeyIds(2) & waffleOrientation2==2);
+correct_r3=(responses3==responseKeyIds(1) & waffleOrientation3==1) | (responses3==responseKeyIds(2) & waffleOrientation3==2);
+
+contrastJudgement1= cat(7,difference1,precueValidities1,correct_r1,response1_45,response1_135,responses1,waffleContrasts1);
+nTrialsWaffle1=length(waffleContrastsIdx1);
+contrastJudgement1=reshape(contrastJudgement1,[nTrialsWaffle1,7]);
+%sort based on difference values
+contrastJudgement1=sortrows(contrastJudgement1,1); 
+% sort based on precue validity
+contrastJudgement1=sortrows(contrastJudgement1,2);
+
+responseEx1=[];
+responseUnex1=[];
+meanResponsePerConEx1=[];
+meanResponsePerConUnex1=[];
+for i=1:length(responses1)
+    if contrastJudgement1(i,2)==1%% expected
+        if i==1
+            responseEx1=[responseEx1 contrastJudgement1(i,4)];
+
+        elseif contrastJudgement1(i-1,1)==contrastJudgement1(i,1) 
+            responseEx1=[responseEx1 contrastJudgement1(i,4)];
+            if i==length(responses1)
+                responseEx1=[responseEx1 contrastJudgement1(i,4)];
+                meanResponsePerConEx1=[meanResponsePerConEx1 mean(responseEx1)];
+            end
+
+        elseif  contrastJudgement1(i-1,1)~=contrastJudgement1(i,1)
+            meanResponsePerConEx1=[meanResponsePerConEx1 mean(responseEx1)];
+            responseEx1=[];
+            responseEx1=[responseEx1 contrastJudgement1(i,4)];
+            if i==length(responses1)
+               meanResponsePerConEx1=[meanResponsePerConEx1 mean(responseEx1)];
+            end
+        end
+    elseif contrastJudgement1(i,2)==2 
+        if contrastJudgement1(i-1,2)==1
+            meanResponsePerConEx1=[meanResponsePerConEx1 mean(responseEx1)];
+            responseUnex1=[responseUnex1 contrastJudgement1(i,4)];
+
+        elseif contrastJudgement1(i-1,1)==contrastJudgement1(i,1) 
+            if i==length(responses1)
+                responseUnex1=[responseUnex1 contrastJudgement1(i,4)];
+                meanResponsePerConUnex1=[meanResponsePerConUnex1 mean(responseUnex1)];
+            end
+            responseUnex1=[responseUnex1 contrastJudgement1(i,4)];
+
+
+        elseif  contrastJudgement1(i-1,1)~=contrastJudgement1(i,1)
+            meanResponsePerConUnex1=[meanResponsePerConUnex1 mean(responseUnex1)];
+            responseUnex1=[];
+            responseUnex1=[contrastJudgement1(i,4)];
+            if i==length(responses1)
+               meanResponsePerConUnex1=[meanResponsePerConUnex1 mean(responseUnex1)];
+            end
+        end
+    end
+end
+
+
+contrastJudgement2= cat(7,difference2,precueValidities2,correct_r2,response2_45,response2_135,responses2,waffleContrasts2);
+nTrialsWaffle2=length(waffleContrastsIdx2);
+contrastJudgement2=reshape(contrastJudgement2,[nTrialsWaffle2,7]);
+%sort based on difference values
+contrastJudgement2=sortrows(contrastJudgement2,1); 
+% sort based on precue validity
+contrastJudgement2=sortrows(contrastJudgement2,2);
+
+responseEx2=[];
+responseUnex2=[];
+meanResponsePerConEx2=[];
+meanResponsePerConUnex2=[];
+for i=1:length(responses2)
+    if contrastJudgement2(i,2)==1%% expected
+        if i==1
+            responseEx2=[responseEx2 contrastJudgement2(i,4)];
+
+        elseif contrastJudgement2(i-1,1)==contrastJudgement2(i,1) 
+            responseEx2=[responseEx2 contrastJudgement2(i,4)];
+            if i==length(responses2)
+                responseEx2=[responseEx2 contrastJudgement2(i,4)];
+                meanResponsePerConEx2=[meanResponsePerConEx2 mean(responseEx2)];
+            end
+
+        elseif  contrastJudgement2(i-1,1)~=contrastJudgement2(i,1)
+            meanResponsePerConEx2=[meanResponsePerConEx2 mean(responseEx2)];
+            responseEx2=[];
+            responseEx2=[responseEx2 contrastJudgement2(i,4)];
+            if i==length(responses2)
+               meanResponsePerConEx2=[meanResponsePerConEx2 mean(responseEx2)];
+            end
+        end
+    elseif contrastJudgement2(i,2)==2 
+        if contrastJudgement2(i-1,2)==1
+            meanResponsePerConEx2=[meanResponsePerConEx2 mean(responseEx2)];
+            responseUnex2=[responseUnex2 contrastJudgement2(i,4)];
+
+        elseif contrastJudgement2(i-1,1)==contrastJudgement2(i,1) 
+            if i==length(responses2)
+                responseUnex2=[responseUnex2 contrastJudgement2(i,4)];
+                meanResponsePerConUnex2=[meanResponsePerConUnex2 mean(responseUnex2)];
+            end
+            responseUnex2=[responseUnex2 contrastJudgement2(i,4)];
+
+
+        elseif  contrastJudgement2(i-1,1)~=contrastJudgement2(i,1)
+            meanResponsePerConUnex2=[meanResponsePerConUnex2 mean(responseUnex2)];
+            responseUnex2=[];
+            responseUnex2=[contrastJudgement2(i,4)];
+            if i==length(responses2)
+               meanResponsePerConUnex2=[meanResponsePerConUnex2 mean(responseUnex2)];
+            end
+        end
+    end
+end
+
+contrastJudgement3= cat(7,difference3,precueValidities3,correct_r3,response3_45,response3_135,responses3,waffleContrasts3);
+nTrialsWaffle3=length(waffleContrastsIdx3);
+contrastJudgement3=reshape(contrastJudgement3,[nTrialsWaffle3,7]);
+%sort based on difference values
+contrastJudgement3=sortrows(contrastJudgement3,1); 
+% sort based on precue validity
+contrastJudgement3=sortrows(contrastJudgement3,2);
+
+responseEx3=[];
+responseUnex3=[];
+meanResponsePerConEx3=[];
+meanResponsePerConUnex3=[];
+for i=1:length(responses3)
+    if contrastJudgement3(i,2)==1%% expected
+        if i==1
+            responseEx3=[responseEx3 contrastJudgement3(i,4)];
+
+        elseif contrastJudgement3(i-1,1)==contrastJudgement3(i,1) 
+            responseEx3=[responseEx3 contrastJudgement3(i,4)];
+            if i==length(responses3)
+                responseEx3=[responseEx3 contrastJudgement3(i,4)];
+                meanResponsePerConEx3=[meanResponsePerConEx3 mean(responseEx3)];
+            end
+
+        elseif  contrastJudgement3(i-1,1)~=contrastJudgement3(i,1)
+            meanResponsePerConEx3=[meanResponsePerConEx3 mean(responseEx3)];
+            responseEx3=[];
+            responseEx3=[responseEx3 contrastJudgement3(i,4)];
+            if i==length(responses3)
+               meanResponsePerConEx3=[meanResponsePerConEx3 mean(responseEx3)];
+            end
+        end
+    elseif contrastJudgement3(i,2)==2 
+        if contrastJudgement3(i-1,2)==1
+            meanResponsePerConEx3=[meanResponsePerConEx3 mean(responseEx3)];
+            responseUnex3=[responseUnex3 contrastJudgement3(i,4)];
+
+        elseif contrastJudgement3(i-1,1)==contrastJudgement3(i,1) 
+            if i==length(responses3)
+                responseUnex3=[responseUnex3 contrastJudgement3(i,4)];
+                meanResponsePerConUnex3=[meanResponsePerConUnex3 mean(responseUnex3)];
+            end
+            responseUnex3=[responseUnex3 contrastJudgement3(i,4)];
+
+
+        elseif  contrastJudgement3(i-1,1)~=contrastJudgement3(i,1)
+            meanResponsePerConUnex3=[meanResponsePerConUnex3 mean(responseUnex3)];
+            responseUnex3=[];
+            responseUnex3=[contrastJudgement3(i,4)];
+            if i==length(responses3)
+               meanResponsePerConUnex3=[meanResponsePerConUnex3 mean(responseUnex3)];
+            end
+        end
+    end
+end
+
+contrastJudgementEx1=contrastJudgement1(contrastJudgement1(:,2)==1);
+contrastJudgementUnex1=contrastJudgement1(contrastJudgement1(:,2)==2);
+contrastJudgementEx2=contrastJudgement2(contrastJudgement2(:,2)==1);
+contrastJudgementUnex2=contrastJudgement2(contrastJudgement2(:,2)==2);
+contrastJudgementEx3=contrastJudgement3(contrastJudgement3(:,2)==1);
+contrastJudgementUnex3=contrastJudgement3(contrastJudgement3(:,2)==2);
+
+alldiffEx1=unique(contrastJudgementEx1(:,1));
+alldiffUnex1=unique(contrastJudgementUnex1(:,1));
+
+alldiffEx2=unique(contrastJudgementEx2(:,1));
+alldiffUnex2=unique(contrastJudgementUnex2(:,1));
+
+alldiffEx3=unique(contrastJudgementEx3(:,1));
+alldiffUnex3=unique(contrastJudgementUnex3(:,1));
+
+figure();
+plot(alldiffEx1,meanResponsePerConEx1,'-v');
+hold on
+plot(alldiffUnex1,meanResponsePerConUnex1,'--v');
+xlabel("difference value (with respect to +45)")
+ylabel("p (reported +45 with respect to difference)");
+title("p  (reported +45 with respect to difference) for expected vs unexpected, blocks 1-8 ",subjectID);
+legend("expected 45","unexpected 45");
+saveas(figure(f),[plotdir_sub,'/preported45_difference_split_blocks18.jpg']); 
+
+f=f+1;
+figure();
+plot(alldiffEx2,meanResponsePerConEx2,'-v');
+hold on
+plot(alldiffUnex2,meanResponsePerConUnex2,'--v');
+xlabel("difference value (with respect to +45)")
+ylabel("p (reported +45 with respect to difference)");
+title("p  (reported +45 with respect to difference) for expected vs unexpected, blocks 9-12 ",subjectID);
+legend("expected 45","unexpected 45");
+saveas(figure(f),[plotdir_sub,'/preported45_difference_split_blocks912.jpg']); 
+
+f=f+1;
+figure();
+plot(alldiffEx3,meanResponsePerConEx3,'-v');
+hold on
+plot(alldiffUnex3,meanResponsePerConUnex3,'--v');
+xlabel("difference value (with respect to +45)")
+ylabel("p (reported +45 with respect to difference)");
+title("p  (reported +45 with respect to difference) for expected vs unexpected, blocks 13-16 ",subjectID);
+legend("expected 45","unexpected 45");
+saveas(figure(f),[plotdir_sub,'/preported45_difference_split_blocks1316.jpg']); 
 
 end

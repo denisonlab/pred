@@ -594,10 +594,8 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 d.stairIdx(iTrial) = NaN;
                 d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
                 d.stairIdxUn(iTrial)=NaN;
-                d.gratingOrientation(iTrial) = NaN; %orientation of test stimuli
                 d.gratingPhase(iTrial) = NaN; %phase of test stimuli
                 d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
-                d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
                 d.standardPhase(iTrial) = NaN; %phase of test stimuli
                 d.standardContrast(iTrial) = NaN; %contrast of test stimuli
                 d.standardSPF(iTrial) = NaN; %contrast of test stimuli
@@ -795,6 +793,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
         
         timeStart = GetSecs;
         correct = [];
+        testStronger=[];
         block=1;
         eyeSkip = zeros(size(trials1,1)+size(trials2,1),1); % trials skipped due to an eye movement, same size as trials matrix
         skippedTrials = [];
@@ -951,6 +950,8 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             skippedTrials(end+1) = trialOrder(iTrial);
                             d.timeTargetResponse(iTrial) = NaN;
                             d.correct(iTrial) = NaN;
+                            
+                            d.testStronger(iTrial)=NaN;
                             d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
                             d.stairIdx(iTrial) = NaN; %store stair index stimuli
                             d.stairIdxUn(iTrial)=NaN;
@@ -971,16 +972,22 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.plaidOrientation(iTrial) = NaN; % keep orientation of plaid stimuli as NaN
                             d.plaidPhase(iTrial) = NaN; %keep phase of plaid stimuli as NaN
                             d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
-                            nTrials = nTrials + 1;
-                            iTrial = iTrial + 1;
                             
-                            fields={'block','timeStart','timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
-                                'timePreStart','timeFix','timeS','timeBlank1','timeTone','stopThisTrial','timeSpentSaving'};
+                            d.block(iTrial)=block;
+                            d.timeStart(iTrial)=timeStart;
+                            d.timeTone(iTrial)=timeTone;
+                            d.timePreStart(iTrial)=timePreStart;
+                            d.timeFix(iTrial)=timeFix;
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeSpentSaving','timeBlank2','timeT','timeS','timeBlank1'};
                             % save data
                             for iF = 1:numel(fields)
                                 d.(fields{iF})(iTrial) = NaN; 
                             end
     
+                            nTrials = nTrials + 1;
+                            iTrial = iTrial + 1;
+
                             Screen('FillRect', window, white*p.backgroundColor);
                             drawFixation(window, cx, cy, fixSize,p.fixColor*p.dimFactor*white);
                             instructionsSkip = 'Fixation lost!';
@@ -1032,6 +1039,8 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             skippedTrials(end+1) = trialOrder(iTrial);
                             d.timeTargetResponse(iTrial) = NaN;
                             d.correct(iTrial) = NaN;
+                            d.testStronger(iTrial)=NaN;
+
                             d.stairIdxExp(iTrial) = NaN; %store stair index stimuli expected
                             d.stairIdx(iTrial) = NaN; %store stair index stimuli
                             d.stairIdxUn(iTrial)=NaN;
@@ -1052,8 +1061,14 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.plaidOrientation(iTrial) = NaN; % keep orientation of plaid stimuli as NaN
                             d.plaidPhase(iTrial) = NaN; %keep phase of plaid stimuli as NaN
                             d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
-                            fields={'block','timeStart','timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
-                                'timePreStart','timeFix','timeS','timeBlank1','timeTone','stopThisTrial','timeSpentSaving'};
+                            d.block(iTrial)=block;
+                            d.timeStart(iTrial)=timeStart;
+                            d.timeTone(iTrial)=timeTone;
+                            d.timePreStart(iTrial)=timePreStart;
+                            d.timeFix(iTrial)=timeFix;
+                            d.timeS(iTrial)=timeS;
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeSpentSaving','timeBlank2','timeT','timeBlank1'};
                             % save data
                             for iF = 1:numel(fields)
                                 d.(fields{iF})(iTrial) = NaN; 
@@ -1128,8 +1143,15 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.plaidOrientation(iTrial) = NaN; % keep orientation of plaid stimuli as NaN
                             d.plaidPhase(iTrial) = NaN; %keep phase of plaid stimuli as NaN
                             d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
-                            fields={'block','timeStart','timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
-                                'timePreStart','timeFix','timeS','timeBlank1','timeTone','stopThisTrial','timeSpentSaving'};
+                            d.block(iTrial)=block;
+                            d.timeStart(iTrial)=timeStart;
+                            d.timeTone(iTrial)=timeTone;
+                            d.timePreStart(iTrial)=timePreStart;
+                            d.timeFix(iTrial)=timeFix;
+                            d.timeS(iTrial)=timeS;
+                            d.timeBlank1(iTrial)=timeBlank1;
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeSpentSaving','timeBlank2','timeT'};
                             % save data
                             for iF = 1:numel(fields)
                                 d.(fields{iF})(iTrial) = NaN; 
@@ -1213,8 +1235,16 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.plaidOrientation(iTrial) = NaN; % keep orientation of plaid stimuli as NaN
                             d.plaidPhase(iTrial) = NaN; %keep phase of plaid stimuli as NaN
                             d.plaidContrast(iTrial) = NaN; %keep contrast of plaid stimuli as NaN
-                            fields={'block','timeStart','timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
-                                'timePreStart','timeFix','timeS','timeBlank1','timeTone','stopThisTrial','timeSpentSaving'};
+                            d.block(iTrial)=block;
+                            d.timeStart(iTrial)=timeStart;
+                            d.timeTone(iTrial)=timeTone;
+                            d.timePreStart(iTrial)=timePreStart;
+                            d.timeFix(iTrial)=timeFix;
+                            d.timeS(iTrial)=timeS;
+                            d.timeBlank1(iTrial)=timeBlank1;
+                            d.timeT(iTrial)=timeT;
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeBlank1','timeSpentSaving','timeBlank2'};
                             % save data
                             for iF = 1:numel(fields)
                                 d.(fields{iF})(iTrial) = NaN; 
@@ -1306,14 +1336,23 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
                             d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
                            
-                            d.gratingPhase(iTrial) = NaN; %phase of test stimuli
-                            d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
-                            d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
-                            d.standardPhase(iTrial) = NaN; %phase of test stimuli
-                            d.standardContrast(iTrial) = NaN; %contrast of test stimuli
-                            d.standardSPF(iTrial) = NaN; %contrast of test stimuli
-                            fields={'block','timeStart','timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
-                                'timePreStart','timeFix','timeS','timeBlank1','timeTone','stopThisTrial','timeSpentSaving'};
+                            d.differenceMultiplier(iTrial)=NaN; %store difference multiplier
+                            d.staticGrating(iTrial)=NaN; %store the static grating index
+                            d.gratingContrast(iTrial) = NaN; %store contrast of test stimuli
+                            d.gratingSPF(iTrial) = NaN; %store SPF of test stimuli
+                            d.gratingPhase(iTrial) = NaN;
+
+                            d.orientation(iTrial) = NaN; %store orientation of trial
+                            d.standardPhase(iTrial) = NaN; %store phase of standard stimuli
+                            d.standardContrast(iTrial) = NaN; % store contrast of standard stimuli
+                            d.standardSPF(iTrial) = NaN; %store SPF of standard stimuli
+                            d.block(iTrial)=block;
+                            d.timeStart(iTrial)=timeStart;
+                            d.timeTone(iTrial)=timeTone;
+                            d.timePreStart(iTrial)=timePreStart;
+                            d.timeFix(iTrial)=timeFix;
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeS','timeBlank1','timeSpentSaving,timeT'};
                             % save data
                             for iF = 1:numel(fields)
                                 d.(fields{iF})(iTrial) = NaN; 
@@ -1379,20 +1418,29 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
                             d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
                            
-                            d.gratingPhase(iTrial) = NaN; %phase of test stimuli
-                            d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
-                            d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
-                            d.standardPhase(iTrial) = NaN; %phase of test stimuli
-                            d.standardContrast(iTrial) = NaN; %contrast of test stimuli
-                            d.standardSPF(iTrial) = NaN; %contrast of test stimuli
+                            d.differenceMultiplier(iTrial)=NaN; %store difference multiplier
+                            d.staticGrating(iTrial)=NaN; %store the static grating index
+                            d.gratingContrast(iTrial) = NaN; %store contrast of test stimuli
+                            d.gratingSPF(iTrial) = NaN; %store SPF of test stimuli
+                            d.gratingPhase(iTrial) = NaN;
 
-                            fields={'block','timeStart','timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
-                                'timePreStart','timeFix','timeS','timeBlank1','timeTone','stopThisTrial','timeSpentSaving'};
+                            d.orientation(iTrial) = NaN; %store orientation of trial
+                            d.standardPhase(iTrial) = NaN; %store phase of standard stimuli
+                            d.standardContrast(iTrial) = NaN; % store contrast of standard stimuli
+                            d.standardSPF(iTrial) = NaN; %store SPF of standard stimuli
+
+                            d.timeStart(iTrial)=timeStart;
+                            d.timeTone(iTrial)=timeTone;
+                            d.timePreStart(iTrial)=timePreStart;
+                            d.timeFix(iTrial)=timeFix;
+                            d.timeS(iTrial)=timeS;
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeBlank1','timeSpentSaving,timeT'};
                             % save data
                             for iF = 1:numel(fields)
                                 d.(fields{iF})(iTrial) = NaN; 
                             end
-
+                           
 
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
@@ -1465,7 +1513,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 Eyelink('Message', 'TRIAL_END');
             end
 
-            %% Percent correct for orientation
+            %% Percent correct for orientation & test stronger
 
            if plaidStatus==1 && strcmp('0)',targetResponseKeyName) % response CW
                 if (differenceMultiplier==-1 && staticGrating==1)||(differenceMultiplier==1 && staticGrating==2) % stimuli CCW
@@ -1483,7 +1531,22 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 correct_p=NaN;
             else
                 responseText = 'Please push one of the buttons: 9 (CW), 0 (CW)';
-            end
+           end
+
+           if plaidStatus==2 && strcmp('0)',targetResponseKeyName) % if they respond with +45
+               if orientation==1 % and orientation is +45
+                   testStronger=1; % they reported test as stronger
+               elseif orientation==2 % and orientation is -45
+                   testStronger=0; % they did not report test as stronger
+               end
+           elseif plaidStatus==2 && strcmp('9(',targetResponseKeyName) % if they respond with -45
+               if orientation==1 % and orientation is +45
+                   testStronger=0; % they did not report test as stronger
+               elseif orientation==2 % and orientation is -45
+                   testStronger=1;  % they reported test as stronger
+               end
+           end
+           %%
             
             if plaidStatus==1 && p.debug
                 if precueValidity==1
@@ -1561,12 +1624,17 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                 d.plaidStatus(iTrial) = plaidStatus; %is it a plaid this time?
                 d.precueValidity(iTrial) = precueValidity; % cue validity (valid/invalid)
                
-                d.gratingPhase(iTrial) = NaN; %phase of test stimuli
-                d.gratingContrast(iTrial) = NaN; %contrast of test stimuli
-                d.standardOrientation(iTrial) = NaN; %orientation of test stimuli
-                d.standardPhase(iTrial) = NaN; %phase of test stimuli
-                d.standardContrast(iTrial) = NaN; %contrast of test stimuli
-                d.standardSPF(iTrial) = NaN; %contrast of test stimuli
+
+                d.differenceMultiplier(iTrial)=NaN; %store difference multiplier
+                d.staticGrating(iTrial)=NaN; %store the static grating index
+                d.gratingContrast(iTrial) = NaN; %store contrast of test stimuli
+                d.gratingSPF(iTrial) = NaN; %store SPF of test stimuli
+                d.gratingPhase(iTrial) = NaN;
+
+                d.orientation(iTrial) = NaN; %store orientation of trial
+                d.standardPhase(iTrial) = NaN; %store phase of standard stimuli
+                d.standardContrast(iTrial) = NaN; % store contrast of standard stimuli
+                d.standardSPF(iTrial) = NaN; %store SPF of standard stimuli
             end
             %% Store trial info
             p.trials1=trials1;
