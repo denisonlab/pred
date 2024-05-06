@@ -300,9 +300,16 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
 
         timeStart = GetSecs;
         correct = [];
+        testStronger=[];
         block=1;
-        firstNonWaffle=0; % tracking the first trial that is a non-waffle trial
         completedTrials=0;
+
+        disp('reached')
+        stairIdxExp=length(p.stairs); % the stair index should be the easiest (i.e. the last) value
+        lastFewAccExp=[]; % no previous grating trials have occured so this is empty
+        stairIdxUn=length(p.stairs);
+        lastFewAccUnexp=[];  % no previous grating trials have occured so this is empty
+
         for iTrial = 1:nTrials % the iteration in the trial loop
             trialIdx = trialOrder(iTrial); % the trial number in the trials matrix
             stopThisTrial = 0;
