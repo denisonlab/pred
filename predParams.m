@@ -69,8 +69,6 @@ p.imDur = 0.5; % image duration 0.03
 %p.imDur = 2; % image duration 0.03
 p.signalStart=1;
 p.signalRestDur=1;
-p.maskDur=0.02;
-p.maskSOA = 0; % should be 0
 p.ITI=0.2;
 %% Stairs
 p.stairs=[logspace(log10(0.1),log10(10),20)];
