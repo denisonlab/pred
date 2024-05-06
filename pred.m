@@ -503,15 +503,15 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
            end
 
            if plaidStatus==2 && strcmp('0)',targetResponseKeyName) % if they respond with +45
-               if orientation==1 % and orientation is +45
+               if plaidOrientation==1 % and orientation is +45
                    testStronger=1; % they reported test as stronger
                elseif orientation==2 % and orientation is -45
                    testStronger=0; % they did not report test as stronger
                end
            elseif plaidStatus==2 && strcmp('9(',targetResponseKeyName) % if they respond with -45
-               if orientation==1 % and orientation is +45
+               if plaidOrientation==1 % and orientation is +45
                    testStronger=0; % they did not report test as stronger
-               elseif orientation==2 % and orientation is -45
+               elseif plaidOrientation==2 % and orientation is -45
                    testStronger=1;  % they reported test as stronger
                end
            end
@@ -1542,15 +1542,15 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
            end
 
            if plaidStatus==2 && strcmp('0)',targetResponseKeyName) % if they respond with +45
-               if orientation==1 % and orientation is +45
+               if plaidOrientation==1 % and orientation is +45
                    testStronger=1; % they reported test as stronger
-               elseif orientation==2 % and orientation is -45
+               elseif plaidOrientation==2 % and orientation is -45
                    testStronger=0; % they did not report test as stronger
                end
            elseif plaidStatus==2 && strcmp('9(',targetResponseKeyName) % if they respond with -45
-               if orientation==1 % and orientation is +45
+               if plaidOrientation==1 % and orientation is +45
                    testStronger=0; % they did not report test as stronger
-               elseif orientation==2 % and orientation is -45
+               elseif plaidOrientation==2 % and orientation is -45
                    testStronger=1;  % they reported test as stronger
                end
            end
