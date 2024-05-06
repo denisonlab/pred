@@ -631,7 +631,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
             end
 
             d.trialOrder=trialOrder;
-            save(sprintf('%s/%s_s%d_predv2_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,date),'d','p');
+            save(sprintf('%s/%s_s%d_demopredv2_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,date),'d','p');
 
             %time between trials after response
             d.timeSpentSaving(iTrial)=toc;
