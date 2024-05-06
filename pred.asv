@@ -979,18 +979,13 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.timeTone(iTrial)=timeTone;
                             d.timePreStart(iTrial)=timePreStart;
                             d.timeFix(iTrial)=timeFix;
-                              d.timeEnd(iTrial) = NaN;
-                            d.timeElapsed(iTrial) = NaN;
-                            d.timeTargetResponse(iTrial) = NaN;
-                            d.targetRT(iTrial) = NaN;
-                            d.targetResponseKey(iTrial) = NaN;
-                            d.timeSpentSaving(iTrial) = NaN;
-                            d.timeBlank2(iTrial) = NaN;
-                            d.timeT(iTrial) = NaN;
-                            d.timeBlank1(iTrial) = NaN;
-                            d.timeS(iTrial) = NaN;
-
-                        
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeSpentSaving','timeBlank2','timeT','timeS','timeBlank1'};
+                            % save data
+                            for iF = 1:numel(fields)
+                                d.(fields{iF})(iTrial) = NaN; 
+                            end
+    
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
 
@@ -1082,7 +1077,13 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.timeBlank2(iTrial) = NaN;
                             d.timeT(iTrial) = NaN;
                             d.timeBlank1(iTrial) = NaN;
-                           
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeSpentSaving','timeBlank2','timeT','timeBlank1'};
+                            % save data
+                            for iF = 1:numel(fields)
+                                d.(fields{iF})(iTrial) = NaN; 
+                            end
+                            
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
     
@@ -1161,15 +1162,14 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.timeFix(iTrial)=timeFix;
                             d.timeS(iTrial)=timeS;
                             d.timeBlank1(iTrial)=timeBlank1;
-                            d.timeEnd(iTrial) = NaN;
-                            d.timeElapsed(iTrial) = NaN;
-                            d.timeTargetResponse(iTrial) = NaN;
-                            d.targetRT(iTrial) = NaN;
-                            d.targetResponseKey(iTrial) = NaN;
-                            d.timeSpentSaving(iTrial) = NaN;
-                            d.timeBlank2(iTrial) = NaN;
-                            d.timeT(iTrial) = NaN;
-                           
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeSpentSaving','timeBlank2','timeT'};
+                            % save data
+                            for iF = 1:numel(fields)
+                                d.(fields{iF})(iTrial) = NaN; 
+                            end
+                            
+                            
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
     
@@ -1257,16 +1257,12 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.timeS(iTrial)=timeS;
                             d.timeBlank1(iTrial)=timeBlank1;
                             d.timeT(iTrial)=timeT;
-
-                              d.timeEnd(iTrial) = NaN;
-                            d.timeElapsed(iTrial) = NaN;
-                            d.timeTargetResponse(iTrial) = NaN;
-                            d.targetRT(iTrial) = NaN;
-                            d.targetResponseKey(iTrial) = NaN;
-                            d.timeSpentSaving(iTrial) = NaN;
-                            d.timeBlank2(iTrial) = NaN;
-                            d.timeBlank1(iTrial) = NaN;
-                           
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeBlank1','timeSpentSaving','timeBlank2'};
+                            % save data
+                            for iF = 1:numel(fields)
+                                d.(fields{iF})(iTrial) = NaN; 
+                            end
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
     
@@ -1371,15 +1367,12 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.timeTone(iTrial)=timeTone;
                             d.timePreStart(iTrial)=timePreStart;
                             d.timeFix(iTrial)=timeFix;
-                              d.timeEnd(iTrial) = NaN;
-                            d.timeElapsed(iTrial) = NaN;
-                            d.timeTargetResponse(iTrial) = NaN;
-                            d.targetRT(iTrial) = NaN;
-                            d.targetResponseKey(iTrial) = NaN;
-                            d.timeSpentSaving(iTrial) = NaN;
-                            d.timeS(iTrial) = NaN;
-                            d.timeBlank1(iTrial) = NaN;
-                           
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeS','timeBlank1','timeSpentSaving,timeT'};
+                            % save data
+                            for iF = 1:numel(fields)
+                                d.(fields{iF})(iTrial) = NaN; 
+                            end
 
                             nTrials = nTrials + 1;
                             iTrial = iTrial + 1;
@@ -1459,14 +1452,12 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
                             d.timePreStart(iTrial)=timePreStart;
                             d.timeFix(iTrial)=timeFix;
                             d.timeS(iTrial)=timeS;
-                              d.timeEnd(iTrial) = NaN;
-                            d.timeElapsed(iTrial) = NaN;
-                            d.timeTargetResponse(iTrial) = NaN;
-                            d.targetRT(iTrial) = NaN;
-                            d.targetResponseKey(iTrial) = NaN;
-                            d.timeSpentSaving(iTrial) = NaN;
-                            d.timeT(iTrial) = NaN;
-                            d.timeBlank1(iTrial) = NaN;
+                            fields={'timeEnd','timeElapsed','timeTargetResponse','targetRT','targetResponseKey',
+                            'timeBlank1','timeSpentSaving,timeT'};
+                            % save data
+                            for iF = 1:numel(fields)
+                                d.(fields{iF})(iTrial) = NaN; 
+                            end
                            
 
                             nTrials = nTrials + 1;
