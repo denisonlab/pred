@@ -85,7 +85,6 @@ end
 fprintf('\nExperiment settings:\n')
 fprintf('subject = %s\n', p.subjectID)
 fprintf('aperture = %s\n', p.aperture)
-fprintf('expt stage = %d\n', p.task)
 
 %% Screen
 
@@ -135,9 +134,8 @@ p.cueTones=cueTones;
 devNum = -1;
 
 KbName('UnifyKeyNames');
-if p.task==1 || p.task==2
-    validKeys = KbName({'9(','0)'});
-end
+validKeys = KbName({'9(','0)'});
+
 
 
 %% MAKE PLAID REFERENCE STIMULI FOR VERSION 2 HERE
