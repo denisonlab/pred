@@ -4,7 +4,7 @@ clear;
 close all;
 
 dataDir = sprintf('%s/data', pwd);
-subjectID="S0120_cleanupcode";
+subjectID="S0004";
 choice = 1; % a single session (1) or many (2)
 sessionNum=1;
 responseKeyIds=[1 2];
@@ -13,7 +13,7 @@ responseKeyIds=[1 2];
 if choice == 1
     % Get session number for single file
     datafileDir=sprintf('%s/%s/session_%d/',dataDir,subjectID,sessionNum);
-    date="240503_1628";
+    date="240506_0943";
     datafile = sprintf('%s/%s_s%d_predv2_s%s.mat', datafileDir, subjectID, sessionNum,date);
     file = load(datafile);
 else
@@ -280,21 +280,24 @@ responses= file.d.targetResponseKey;
 responses(skipZero)=[];
 responses(skipNotWaffle)=[];
 
-testStronger=[];
-for i=1:length(responses)
-    % if they respond with -45 and orientation is -45, then they chose the
-    % test as stronger
-    if responses(i)==responseKeyIds(1) && waffleOrientation(i)==1 
-        testStronger=[testStronger 1];
+testStronger=file.d.testStronger;
+testStronger(skipZero)=[];
+testStronger(skipNotWaffle)=[];
 
-    % if they respond with +45 and orientation is +45, then they chose the
-    % test as stronger
-    elseif responses(i)==responseKeyIds(2) && waffleOrientation(i)==2
-        testStronger=[testStronger 1];
-    else
-        testStronger=[testStronger 0];
-    end
-end
+% for i=1:length(responses)
+%     % if they respond with -45 and orientation is -45, then they chose the
+%     % test as stronger
+%     if responses(i)==responseKeyIds(1) && waffleOrientation(i)==1 
+%         testStronger=[testStronger 1];
+% 
+%     % if they respond with +45 and orientation is +45, then they chose the
+%     % test as stronger
+%     elseif responses(i)==responseKeyIds(2) && waffleOrientation(i)==2
+%         testStronger=[testStronger 1];
+%     else
+%         testStronger=[testStronger 0];
+%     end
+% end
 contrastJudgement= cat(4,waffleContrasts,precueValidities,waffleOrientation,testStronger);
 nTrialsWaffle=length(waffleContrastsIdx);
 contrastJudgement=reshape(contrastJudgement,[nTrialsWaffle,4]);
@@ -350,6 +353,8 @@ contrastJudgementUnex=contrastJudgement(contrastJudgement(:,2)==2);
 
 allconsEx=unique(contrastJudgementEx);
 allconsUnex=unique(contrastJudgementUnex);
+allconsEx=[1:5];
+allconsUnex=[1:5];
 figure();
 plot(allconsEx,meanStrongerPerConEx,'blue-v');
 hold on

@@ -1,4 +1,4 @@
-function p = predParams(p)
+function p = predParamsPlaid(p)
 
 %% Screen
 p.screenWidthCm = 20;
@@ -33,10 +33,7 @@ p.testPhases = linspace(0,2*pi,4);
 p.gratingPhases=p.testPhases+pi;
 
 %% Plaid parameters
-% p.plaidContrasts1 = [logspace(log10(0.21),log10(0.6),7)];
-% p.plaidContrasts2 = 0.2;
-p.plaidContrastsRange=[logspace(log10(.1333),log10(.3),5)];
-p.plaidContrasts1=[p.plaidContrastsRange(1) p.plaidContrastsRange(2) p.plaidContrastsRange(3) p.plaidContrastsRange(3) p.plaidContrastsRange(3) p.plaidContrastsRange(3) p.plaidContrastsRange(4) p.plaidContrastsRange(5)];
+p.plaidContrasts1=[logspace(log10(.1333),log10(.3),5)];
 p.plaidContrasts2 = 0.2;
 p.plaidAxes = [0 90]; % base orientations 
 p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli 
@@ -45,7 +42,6 @@ p.plaidOrientations= [-45 45];
 p.plaidStatus=[1 1 1 2]; 
 p.plaidSPF=1.5;
 p.precueValiditiesWaffle=[1 2];
-p.plaidContrastsDemoId=length(p.plaidContrasts1);
 %% Waffles+Kok
 p.standardContrast2 = 0.8; 
 p.gratingContrast2 = 0.8;
