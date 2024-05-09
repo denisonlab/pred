@@ -33,15 +33,16 @@ p.testPhases = linspace(0,2*pi,4);
 p.gratingPhases=p.testPhases+pi;
 
 %% Plaid parameters
-p.plaidContrasts1=[logspace(log10(.1333),log10(.3),5)];
+p.plaidContrasts1=[logspace(log10(.1333),log10(.3),5) 0.5 0.8];
 p.plaidContrasts2 = 0.2;
 p.plaidAxes = [0 90]; % base orientations 
 p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli 
 
 p.plaidOrientations= [-45 45];
 p.plaidStatus=[1 1 1 2]; 
-p.plaidSPF=1.5;
+p.plaidSPF=[1 1.5];
 p.precueValiditiesWaffle=[1 2];
+p.plaidSPFconstant=1.5;
 %% Waffles+Kok
 p.standardContrast2 = 0.8; 
 p.gratingContrast2 = 0.8;

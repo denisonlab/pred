@@ -145,15 +145,17 @@ for iC = 1:numel(p.plaidContrasts1)
     contrast1 = p.plaidContrasts1(iC);
     for iP=1:numel(p.testPhases)
         phase = p.testPhases(iP);
-        grating1 = rd_grating(pixelsPerDegree, p.imSize(1), ...
-            p.plaidSPF, p.plaidAxes(1), phase, contrast1); % 0 to 1
-        grating2 = rd_grating(pixelsPerDegree, p.imSize(1), ...
-             p.plaidSPF, p.plaidAxes(2), phase, p.plaidContrasts2); % 0 to 1
-        plaid = (grating1 + grating2) - 0.5; 
-        
-        [plaid, aps] = rd_aperture(plaid, 'gaussian', gaborSD);
-        tex_plaid{iC,iP} = Screen('MakeTexture', window, plaid*white);
-        
+        for iS=1:numel(p.plaidSPF)
+            SPF=p.plaidSPF(iS);
+            grating1 = rd_grating(pixelsPerDegree, p.imSize(1), ...
+                SPF, p.plaidAxes(1), phase, contrast1); % 0 to 1
+            grating2 = rd_grating(pixelsPerDegree, p.imSize(1), ...
+                 p.plaidSPFconstant, p.plaidAxes(2), phase, p.plaidContrasts2); % 0 to 1
+            plaid = (grating1 + grating2) - 0.5; 
+            
+            [plaid, aps] = rd_aperture(plaid, 'gaussian', gaborSD);
+            tex_plaid{iC,iP} = Screen('MakeTexture', window, plaid*white);
+        end
     end
 end
 
