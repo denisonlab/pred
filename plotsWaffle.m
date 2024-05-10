@@ -4,7 +4,7 @@ clear;
 close all;
 
 dataDir = sprintf('%s/data', pwd);
-subjectID="S0004";
+subjectID="S0004_plaid";
 choice = 1; % a single session (1) or many (2)
 sessionNum=1;
 responseKeyIds=[1 2];
@@ -13,8 +13,8 @@ responseKeyIds=[1 2];
 if choice == 1
     % Get session number for single file
     datafileDir=sprintf('%s/%s/session_%d/',dataDir,subjectID,sessionNum);
-    date="240506_0943";
-    datafile = sprintf('%s/%s_s%d_predv2_s%s.mat', datafileDir, subjectID, sessionNum,date);
+    date="240510_0925";
+    datafile = sprintf('%s/%s_s%d_predplaid_s%s.mat', datafileDir, subjectID, sessionNum,date);
     file = load(datafile);
 else
     % Find all session files for the subject
@@ -353,8 +353,8 @@ contrastJudgementUnex=contrastJudgement(contrastJudgement(:,2)==2);
 
 allconsEx=unique(contrastJudgementEx);
 allconsUnex=unique(contrastJudgementUnex);
-allconsEx=[1:5];
-allconsUnex=[1:5];
+allconsEx=[1:7];
+allconsUnex=[1:7];
 figure();
 plot(allconsEx,meanStrongerPerConEx,'blue-v');
 hold on
@@ -365,8 +365,47 @@ title("p(test stronger) for expected vs unexpected ",subjectID);
 legend("expected","unexpected");
 saveas(figure(f),[plotdir_sub,'/pteststronger_split.jpg']);
 
-%% P(reported +45)
+%% combined conditions
 
+contrastJudgement= cat(4,waffleContrasts,precueValidities,waffleOrientation,testStronger);
+nTrialsWaffle=length(waffleContrastsIdx);
+contrastJudgement=reshape(contrastJudgement,[nTrialsWaffle,4]);
+%sort based on contrast levels
+contrastJudgement=sortrows(contrastJudgement,1); 
+strongerEx=[];
+meanStrongerPerConEx=[];
+for i=1:length(responses)
+        if i==1
+            strongerEx=[strongerEx contrastJudgement(i,4)];
+
+        elseif contrastJudgement(i-1,1)==contrastJudgement(i,1) 
+            strongerEx=[strongerEx contrastJudgement(i,4)];
+            if i==length(responses)
+                strongerEx=[strongerEx contrastJudgement(i,4)];
+                meanStrongerPerConEx=[meanStrongerPerConEx mean(strongerEx)];
+            end
+
+        elseif  contrastJudgement(i-1,1)~=contrastJudgement(i,1)
+            meanStrongerPerConEx=[meanStrongerPerConEx mean(strongerEx)];
+            strongerEx=[];
+            strongerEx=[strongerEx contrastJudgement(i,4)];
+        end
+    
+end
+
+
+%allconsEx=unique(contrastJudgement(:,1));
+allconsEx=[1:7];
+figure();
+plot(allconsEx,meanStrongerPerConEx,'blue-v');
+xlabel("contrasts")
+ylabel("p(test stronger)");
+title("p(test stronger)  ",subjectID);
+saveas(figure(f),[plotdir_sub,'/pteststronger_split.jpg']);
+
+
+%% P(reported +45)
+f=1;
 f=f+1;
 waffleContrastsIdx=file.d.plaidContrast;
 skipZero=file.d.stopThisTrial==1;

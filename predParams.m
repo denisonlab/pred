@@ -42,7 +42,6 @@ p.plaidAxes = [0 90]; % base orientations
 p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli 
 
 p.plaidOrientations= [-45 45];
-p.plaidStatus=[1 1 1 2]; 
 p.plaidSPF=1.5;
 p.precueValiditiesWaffle=[1 2];
 p.plaidContrastsDemoId=length(p.plaidContrasts1);
