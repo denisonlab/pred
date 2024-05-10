@@ -85,7 +85,6 @@ end
 fprintf('\nExperiment settings:\n')
 fprintf('subject = %s\n', p.subjectID)
 fprintf('aperture = %s\n', p.aperture)
-fprintf('expt stage = %d\n', p.task)
 
 %% Screen
 
@@ -135,9 +134,42 @@ p.cueTones=cueTones;
 devNum = -1;
 
 KbName('UnifyKeyNames');
-if p.task==1 || p.task==2
-    validKeys = KbName({'9(','0)'});
-end
+validKeys = KbName({'9(','0)'});
+
+%% Make TEST stimuli
+
+imPos = round(p.imPos*pixelsPerDegree); % image position (pixels)
+
+tex = cell(numel(p.gratingPhases), numel(p.gratingSPF));
+tex_stand= cell(numel(p.testPhases), numel(p.gratingSPF));
+
+    for iP=1:numel(p.gratingPhases) %TEST
+        phase = p.testPhases(iP);
+        for iS=1:numel(p.gratingSPF)
+            SPF = p.gratingSPF(iS);
+            grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
+               SPF, 0, phase, p.gratingContrast2 ); % 0 to 1
+             [gabor, aps] = rd_aperture(grating, 'gaussian', gaborSD);
+            tex{iP,iS} = Screen('MakeTexture', window, gabor*white);
+        end
+    end
+    
+
+    for iP=1:numel(p.testPhases) %STANDARD
+        phase = p.testPhases(iP);
+        for iS=1:numel(p.gratingSPF)
+            SPF = p.gratingSPF(iS);
+            grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
+                SPF, 0, phase, p.standardContrast2); % 0 to 1
+            [gabor, aps] = rd_aperture(grating, 'gaussian', gaborSD);
+            tex_stand{iP,iS} = Screen('MakeTexture', window, gabor*white);
+        end
+    end
+
+ 
+%Make rects for placing image
+imSize = size(grating);
+imRect = CenterRectOnPoint([0 0 imSize], cx+imPos(1), cy+imPos(2));
 
 
 %% MAKE PLAID REFERENCE STIMULI FOR VERSION 2 HERE
@@ -182,6 +214,7 @@ trials2 = fullfact([ numel(p.precueValiditiesWaffle)... % 1 precue validity
      numel(p.testPhases),... % 3 plaid phase 
      numel(p.plaidContrasts1)]); % 4 plaid contrast
 %% Merge trial count
+trials2=repmat(trials2,3,1);
 nTrials = size(trials2,1);  % total trials = number of grating trials + number of waffle trials
 nBlocks=nTrials/p.BlockTrials; 
 
@@ -580,7 +613,6 @@ while iTrial<=nTrials
     end
     iTrial = iTrial + 1;
 end
-
 
 if p.eyeTracking
     p.eyefixation = fixations;

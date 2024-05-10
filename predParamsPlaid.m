@@ -40,9 +40,9 @@ p.plaidEcc = 1; % dva from center for L and R stimultaneous stimuli
 
 p.plaidOrientations= [-45 45];
 p.plaidStatus=[1 1 1 2]; 
-p.plaidSPF=[1];
+p.plaidSPF=1.5;
 p.precueValiditiesWaffle=[1 2];
-p.plaidSPFconstant=3;
+
 %% Waffles+Kok
 p.standardContrast2 = 0.8; 
 p.gratingContrast2 = 0.8;
@@ -75,7 +75,7 @@ p.precueNames = {'valid','invalid'}; %p.precueNames = {'valid','neutral','invali
 p.precueValidities = [1 1 1 2]; %tone validity 75% 1 in 4 is invalid
 
 %% Trials & Blocks
-p.BlockTrials=40;
+p.BlockTrials=42;
 p.repScale1=2; % 42 mins for 896 trials
 p.repScale2=3; % 63 mins for 1344 trials
 p.repScaleDemo=1;

@@ -255,7 +255,7 @@ rad=round(ang2pix(p.eyerad,p.screenWidthCm, screenWidthPx, p.viewDistCm,'central
              numel(p.testPhases),... % 3 plaid phase 
              numel(p.plaidContrastsDemoId)]); % 4 plaid contrast
         %% Merge trial count
-        trials2=repmat(trials2,8);
+        
         nTrials = size(trials1,1)+size(trials2,1);  % total trials = number of grating trials + number of waffle trials
         %nBlocks=nTrials/p.BlockTrials; 
         nBlocks=nTrials/p.BlockTrials; 

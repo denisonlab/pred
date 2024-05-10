@@ -136,6 +136,40 @@ devNum = -1;
 KbName('UnifyKeyNames');
 validKeys = KbName({'9(','0)'});
 
+%% Make TEST stimuli
+
+imPos = round(p.imPos*pixelsPerDegree); % image position (pixels)
+
+tex = cell(numel(p.gratingPhases), numel(p.gratingSPF));
+tex_stand= cell(numel(p.testPhases), numel(p.gratingSPF));
+
+    for iP=1:numel(p.gratingPhases) %TEST
+        phase = p.testPhases(iP);
+        for iS=1:numel(p.gratingSPF)
+            SPF = p.gratingSPF(iS);
+            grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
+               SPF, 0, phase, p.gratingContrast2 ); % 0 to 1
+             [gabor, aps] = rd_aperture(grating, 'gaussian', gaborSD);
+            tex{iP,iS} = Screen('MakeTexture', window, gabor*white);
+        end
+    end
+    
+
+    for iP=1:numel(p.testPhases) %STANDARD
+        phase = p.testPhases(iP);
+        for iS=1:numel(p.gratingSPF)
+            SPF = p.gratingSPF(iS);
+            grating = rd_grating(pixelsPerDegree, p.imSize(1), ...
+                SPF, 0, phase, p.standardContrast2); % 0 to 1
+            [gabor, aps] = rd_aperture(grating, 'gaussian', gaborSD);
+            tex_stand{iP,iS} = Screen('MakeTexture', window, gabor*white);
+        end
+    end
+
+ 
+%Make rects for placing image
+imSize = size(grating);
+imRect = CenterRectOnPoint([0 0 imSize], cx+imPos(1), cy+imPos(2));
 
 
 %% MAKE PLAID REFERENCE STIMULI FOR VERSION 2 HERE
@@ -143,17 +177,15 @@ for iC = 1:numel(p.plaidContrasts1)
     contrast1 = p.plaidContrasts1(iC);
     for iP=1:numel(p.testPhases)
         phase = p.testPhases(iP);
-        for iS=1:numel(p.plaidSPF)
-            SPF=p.plaidSPF(iS);
-            grating1 = rd_grating(pixelsPerDegree, p.imSize(1), ...
-                SPF, p.plaidAxes(1), phase, contrast1); % 0 to 1
-            grating2 = rd_grating(pixelsPerDegree, p.imSize(1), ...
-                 p.plaidSPFconstant, p.plaidAxes(2), phase, p.plaidContrasts2); % 0 to 1
-            plaid = (grating1 + grating2) - 0.5; 
-            
-            [plaid, aps] = rd_aperture(plaid, 'gaussian', gaborSD);
-            tex_plaid{iC,iP} = Screen('MakeTexture', window, plaid*white);
-        end
+        grating1 = rd_grating(pixelsPerDegree, p.imSize(1), ...
+            p.plaidSPF, p.plaidAxes(1), phase, contrast1); % 0 to 1
+        grating2 = rd_grating(pixelsPerDegree, p.imSize(1), ...
+             p.plaidSPF, p.plaidAxes(2), phase, p.plaidContrasts2); % 0 to 1
+        plaid = (grating1 + grating2) - 0.5; 
+        
+        [plaid, aps] = rd_aperture(plaid, 'gaussian', gaborSD);
+        tex_plaid{iC,iP} = Screen('MakeTexture', window, plaid*white);
+        
     end
 end
 
@@ -182,6 +214,7 @@ trials2 = fullfact([ numel(p.precueValiditiesWaffle)... % 1 precue validity
      numel(p.testPhases),... % 3 plaid phase 
      numel(p.plaidContrasts1)]); % 4 plaid contrast
 %% Merge trial count
+trials2=repmat(trials2,3,1);
 nTrials = size(trials2,1);  % total trials = number of grating trials + number of waffle trials
 nBlocks=nTrials/p.BlockTrials; 
 
@@ -250,7 +283,7 @@ timeStart = GetSecs;
 correct = [];
 testStronger=[];
 block=1;
-eyeSkip = zeros(size(trials1,1)+size(trials2,1),1); % trials skipped due to an eye movement, same size as trials matrix
+eyeSkip = size(trials2,1); % trials skipped due to an eye movement, same size as trials matrix
 skippedTrials = [];
 iTrial=1;
 completedTrials=0;
@@ -273,10 +306,10 @@ while iTrial<=nTrials
     %% Get condition information for this trial
 
     plaidStatus=2; % if the trial id is a value > the number of grating trials, this trial will be a waffle trial
-    precueValidity = p.precueValiditiesWaffle(trials2(trialIdx-size(trials1,1), precueValidityIdx2));
-    plaidOrientation = trials2(trialIdx-size(trials1,1), plaidOrientationIdx);
-    plaidPhase = trials2(trialIdx-size(trials1,1), plaidPhaseIdx);
-    plaidContrast = trials2(trialIdx-size(trials1,1), plaidContrastIdx);
+    precueValidity = p.precueValiditiesWaffle(trials2(trialIdx, precueValidityIdx2));
+    plaidOrientation = trials2(trialIdx, plaidOrientationIdx);
+    plaidPhase = trials2(trialIdx, plaidPhaseIdx);
+    plaidContrast = trials2(trialIdx, plaidContrastIdx);
     pOrientation=p.plaidOrientations(plaidOrientation); %get the orientation value (+/-45) using the plaid orientation index
 
     %% tone related to overall orientation
@@ -539,7 +572,6 @@ while iTrial<=nTrials
     d.timeTone(iTrial)=timeTone; % time at tone
     d.stopThisTrial(iTrial) = stopThisTrial;
     d.testStronger(iTrial)=testStronger;
-    d.trialOrder(iTrial)=trialOrder;
     save(sprintf('%s/%s_s%d_predplaid_s%s.mat',data.dataDir_sub,p.subjectID,p.sessionNum,date),'d','p');
 
     %time between trials after response
